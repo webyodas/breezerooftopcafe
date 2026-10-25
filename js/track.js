@@ -1,15 +1,21 @@
 /**
  * ============================================================================
- * BREEZE ROOFTOP CAFE - LIVE ORDER TRACKING CONTROLLER
+ * BREEZE ROOFTOP CAFE - LIVE ORDER TRACKING & RADAR CONTROLLER (v2.0)
  * ============================================================================
- * Provides standalone live order tracking, status radar, rider partner cards,
- * 60s grace cancellation window, and gentle one-shot notification bell chime.
+ * Features:
+ * 1. Direct Order ID / Token tracking with zero main-thread freeze.
+ * 2. Multi-Order lookup by 10-digit mobile number: displays all orders on the go,
+ *    with an intuitive active orders switcher and full past delivered orders list.
+ * 3. 60-Second Grace Cancellation window & Kitchen Lock status synchronization.
+ * 4. Realtime updates via Cloudflare D1 events with loop-guarded subscription.
+ * 5. One-shot non-looping gentle chime on order milestone transitions.
+ * 6. Direct WhatsApp Cafe Manager inquiry button.
  */
 
 (function () {
   'use strict';
 
-  // DOM Elements
+  // DOM Elements - Search & State Containers
   const trackSearchForm = document.getElementById('trackSearchForm');
   const trackInputLookup = document.getElementById('trackInputLookup');
   const btnTrackLookup = document.getElementById('btnTrackLookup');
@@ -17,54 +23,94 @@
   const trackResultsContainer = document.getElementById('trackResultsContainer');
   const trackEmptyState = document.getElementById('trackEmptyState');
   const trackLoadingState = document.getElementById('trackLoadingState');
+  const trackNoActiveOrdersBanner = document.getElementById('trackNoActiveOrdersBanner');
 
-  // Order Details Elements
+  // DOM Elements - Active Orders on the Go Bar
+  const trackActiveChipsBar = document.getElementById('trackActiveChipsBar');
+  const trackActiveCount = document.getElementById('trackActiveCount');
+  const trackActiveChipsList = document.getElementById('trackActiveChipsList');
+
+  // DOM Elements - Past Orders Section
+  const trackPastOrdersSection = document.getElementById('trackPastOrdersSection');
+  const trackPastCount = document.getElementById('trackPastCount');
+  const trackPastOrdersList = document.getElementById('trackPastOrdersList');
+
+  // DOM Elements - Order Header Card
   const trackDisplayOrderId = document.getElementById('trackDisplayOrderId');
   const trackStatusBadge = document.getElementById('trackStatusBadge');
   const trackStatusBadgeText = document.getElementById('trackStatusBadgeText');
   const trackOrderDate = document.getElementById('trackOrderDate');
+  const trackingHeroCard = document.getElementById('trackingHeroCard');
   const trackHeroIcon = document.getElementById('trackingHeroIcon');
   const trackHeroHeading = document.getElementById('trackingHeroHeading');
   const trackHeroSubtext = document.getElementById('trackingHeroSubtext');
+  const trackPrepEstimate = document.getElementById('trackingPrepEstimate');
   const trackPrepTimeText = document.getElementById('trackingPrepTimeText');
 
-  // Cancel & Lock Elements
+  // DOM Elements - Cancellation & Kitchen Lock
   const trackCancelBox = document.getElementById('trackingCancelBox');
   const cancelTimerCountdown = document.getElementById('cancelTimerCountdown');
   const btnCancelOrder = document.getElementById('btnCancelOrder');
   const trackKitchenLocked = document.getElementById('trackingKitchenLocked');
 
-  // Stepper Elements
+  // DOM Elements - 5-Step Stepper
   const step1 = document.getElementById('step1');
   const step2 = document.getElementById('step2');
   const step3 = document.getElementById('step3');
   const step4 = document.getElementById('step4');
   const step5 = document.getElementById('step5');
 
-  // Rider Card Elements
+  // DOM Elements - Rider Partner Card
   const trackRiderCard = document.getElementById('trackingRiderCard');
   const trackRiderName = document.getElementById('trackingRiderName');
   const trackRiderPhoneBtn = document.getElementById('trackingRiderPhoneBtn');
   const trackRiderVehicle = document.getElementById('trackingRiderVehicle');
 
-  // Items & Bill Elements
+  // DOM Elements - Items & Bill
   const trackItemsList = document.getElementById('trackingItemsList');
   const trackSubtotalAmount = document.getElementById('trackSubtotalAmount');
   const trackTotalAmount = document.getElementById('trackingTotalAmount');
   const trackPaymentPill = document.getElementById('trackingPaymentPill');
   const trackDestinationInfo = document.getElementById('trackingDestinationInfo');
+  const trackHelpWhatsappBtn = document.getElementById('trackHelpWhatsappBtn');
 
-  // Delivered & Rating Elements
+  // DOM Elements - Delivered Celebration & Rating
   const trackDeliveredCard = document.getElementById('trackingDeliveredCard');
   const trackRatingStars = document.getElementById('trackingRatingStars');
   const ratingFeedbackMsg = document.getElementById('ratingFeedbackMsg');
   const btnReorderFromTracking = document.getElementById('btnReorderFromTracking');
 
+  // In-Memory State
   let currentActiveOrder = null;
+  let activeRealtimeOrderId = null;
   let activeRealtimeChannel = null;
   let graceTimerInterval = null;
   let lastNotifiedStatus = null;
   let lastChimeTimestamp = 0;
+  let cachedOrdersForPhone = [];
+
+  // --------------------------------------------------------------------------
+  // ESCAPE HTML HELPER
+  // --------------------------------------------------------------------------
+  function escapeHtml(str) {
+    if (typeof str !== 'string') return String(str || '');
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // --------------------------------------------------------------------------
+  // ACTIVE STATUS HELPER
+  // --------------------------------------------------------------------------
+  function isActiveStatus(status) {
+    const s = String(status || '').toLowerCase().trim();
+    return s === 'placed' || s === 'pending' || s === 'confirmed' || s === 'accepted' ||
+           s === 'cooking' || s === 'preparing' || s === 'food_ready' ||
+           s === 'out_for_delivery' || s === 'dispatched';
+  }
 
   // --------------------------------------------------------------------------
   // GENTLE CUSTOMER NOTIFICATION SOUND ENGINE (One-shot, non-looping chime)
@@ -122,6 +168,7 @@
   // --------------------------------------------------------------------------
   function normalizeOrderRecord(row) {
     if (!row) return null;
+
     let items = [];
     try {
       items = typeof row.items === 'string' ? JSON.parse(row.items) : (Array.isArray(row.items) ? row.items : []);
@@ -145,12 +192,18 @@
     else if (st === 'delivered' || st === 'completed') step = 5;
     else if (st === 'cancelled' || st === 'rejected') step = 0;
 
+    const totalVal = Number(row.total_amount !== undefined ? row.total_amount : (row.total || 0));
+    const subtotalVal = Number(row.subtotal !== undefined ? row.subtotal : (totalVal || 0));
+
     return {
       id: row.id,
       created_at: row.created_at || new Date().toISOString(),
       status: row.status || 'placed',
       items: items,
-      total: Number(row.total || 0),
+      total: totalVal,
+      total_amount: totalVal,
+      subtotal: subtotalVal,
+      delivery_fee: Number(row.delivery_fee || 0),
       customer: customer,
       customer_name: customer.name || row.customer_name || 'Valued Guest',
       customer_phone: customer.phone || row.customer_phone || '',
@@ -170,9 +223,9 @@
   }
 
   // --------------------------------------------------------------------------
-  // RENDER ORDER TRACKING UI
+  // RENDER ORDER TRACKING UI (Single Order Focus)
   // --------------------------------------------------------------------------
-  function renderOrderTracking(order) {
+  function renderOrderTracking(order, shouldSubscribe = true) {
     if (!order) return;
     currentActiveOrder = order;
 
@@ -184,7 +237,7 @@
     const idParts = String(order.id).split('-');
     const token = idParts.length >= 3 ? idParts[idParts.length - 1] : order.id.slice(-4);
     if (trackDisplayOrderId) {
-      trackDisplayOrderId.innerHTML = `Order #${order.id} <span class="tracking-token-pill">Token #${token}</span>`;
+      trackDisplayOrderId.innerHTML = `Order #${escapeHtml(order.id)} <span class="tracking-token-pill">Token #${escapeHtml(token)}</span>`;
     }
 
     if (trackOrderDate) {
@@ -198,7 +251,7 @@
           minute: '2-digit'
         });
       } catch (e) {
-        trackOrderDate.textContent = 'Just now';
+        trackOrderDate.textContent = 'Today';
       }
     }
 
@@ -218,7 +271,7 @@
         if (trackRiderVehicle) trackRiderVehicle.textContent = 'Breeze Express Partner • Out for Delivery';
         if (trackRiderPhoneBtn) {
           if (order.rider_phone) {
-            trackRiderPhoneBtn.href = 'tel:' + order.rider_phone;
+            trackRiderPhoneBtn.href = 'tel:' + encodeURIComponent(order.rider_phone);
             trackRiderPhoneBtn.style.display = 'inline-flex';
           } else {
             trackRiderPhoneBtn.style.display = 'none';
@@ -239,7 +292,7 @@
           <div class="tracking-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.06);">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-weight:700; color:var(--primary-gold); font-size:0.9rem;">${qty}x</span>
-              <span style="font-weight:600; color:var(--text-dark); font-size:0.92rem;">${window.escapeHtml ? window.escapeHtml(it.name) : it.name}</span>
+              <span style="font-weight:600; color:var(--text-dark); font-size:0.92rem;">${escapeHtml(it.name)}</span>
             </div>
             <span style="font-weight:700; color:var(--text-dark); font-size:0.92rem;">₹${price * qty}</span>
           </div>
@@ -248,7 +301,7 @@
       trackItemsList.innerHTML = itemsHtml || '<div style="color:#78716c; font-size:0.85rem; padding:12px 0;">Items details unavailable</div>';
     }
 
-    if (trackSubtotalAmount) trackSubtotalAmount.textContent = '₹' + order.total;
+    if (trackSubtotalAmount) trackSubtotalAmount.textContent = '₹' + (order.subtotal || order.total);
     if (trackTotalAmount) trackTotalAmount.textContent = '₹' + order.total;
 
     // Payment Pill
@@ -276,11 +329,11 @@
       const cTable = order.table_number || 'Terrace Table';
 
       if (cType === 'Home Delivery') {
-        trackDestinationInfo.innerHTML = `<i class="fas fa-motorcycle" style="color:var(--primary-gold);"></i> Delivering to <strong>${window.escapeHtml ? window.escapeHtml(cName) : cName}</strong>${cPhone ? ' (' + cPhone + ')' : ''}${cAddr ? '<br><span style="color:#78716c; font-size:0.85rem;">' + (window.escapeHtml ? window.escapeHtml(cAddr) : cAddr) + '</span>' : ''}`;
+        trackDestinationInfo.innerHTML = `<i class="fas fa-motorcycle" style="color:var(--primary-gold);"></i> Delivering to <strong>${escapeHtml(cName)}</strong>${cPhone ? ' (' + escapeHtml(cPhone) + ')' : ''}${cAddr ? '<br><span style="color:#78716c; font-size:0.85rem;">' + escapeHtml(cAddr) + '</span>' : ''}`;
       } else if (cType.includes('Dine-In')) {
-        trackDestinationInfo.innerHTML = `<i class="fas fa-utensils" style="color:var(--primary-gold);"></i> Rooftop Dine-In for <strong>${window.escapeHtml ? window.escapeHtml(cName) : cName}</strong> (${cTable})`;
+        trackDestinationInfo.innerHTML = `<i class="fas fa-utensils" style="color:var(--primary-gold);"></i> Rooftop Dine-In for <strong>${escapeHtml(cName)}</strong> (${escapeHtml(cTable)})`;
       } else {
-        trackDestinationInfo.innerHTML = `<i class="fas fa-shopping-bag" style="color:var(--primary-gold);"></i> Takeaway / Pick-Up for <strong>${window.escapeHtml ? window.escapeHtml(cName) : cName}</strong>`;
+        trackDestinationInfo.innerHTML = `<i class="fas fa-shopping-bag" style="color:var(--primary-gold);"></i> Takeaway / Pick-Up for <strong>${escapeHtml(cName)}</strong>`;
       }
     }
 
@@ -293,8 +346,16 @@
       }
     }
 
-    // Subscribe to live updates
-    subscribeToOrderRealtime(order.id);
+    // Direct WhatsApp Manager Inquiry
+    if (trackHelpWhatsappBtn) {
+      const waText = encodeURIComponent(`Hi Breeze Cafe Manager, I am inquiring regarding my Order #${order.id} (Token #${token}).`);
+      trackHelpWhatsappBtn.href = `https://wa.me/919623999095?text=${waText}`;
+    }
+
+    // Live Supabase / CF Realtime Subscription (Loop-guarded)
+    if (shouldSubscribe && order.id) {
+      subscribeToOrderRealtime(order.id);
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -306,60 +367,64 @@
 
     let activeIndex = 0;
     let badgeText = 'Order Placed';
-    let badgeClass = 'status-placed';
+    let badgeClass = 'placed';
     let heroIcon = 'fa-receipt';
     let heroHeading = 'Order Placed Successfully!';
     let heroSub = 'We have received your order and sent it directly to the kitchen.';
+    let isDeliveredState = false;
+    let isCancelledState = false;
 
     if (st === 'placed' || st === 'pending') {
       activeIndex = 0;
       badgeText = 'Order Placed';
-      badgeClass = 'status-placed';
+      badgeClass = 'placed';
       heroIcon = 'fa-receipt';
       heroHeading = 'Order Placed Successfully!';
       heroSub = 'We have received your order and sent it directly to the kitchen.';
     } else if (st === 'confirmed' || st === 'accepted') {
       activeIndex = 1;
       badgeText = 'Kitchen Confirmed';
-      badgeClass = 'status-confirmed';
+      badgeClass = 'confirmed';
       heroIcon = 'fa-check-double';
       heroHeading = 'Order Accepted by Kitchen!';
-      heroSub = 'Restaurant has reviewed and scheduled your dishes for immediate cooking.';
+      heroSub = 'Restaurant has accepted and scheduled your dishes for cooking.';
     } else if (st === 'cooking' || st === 'preparing') {
       activeIndex = 2;
       badgeText = 'Food Being Prepared';
-      badgeClass = 'status-cooking';
+      badgeClass = 'cooking';
       heroIcon = 'fa-utensils';
       heroHeading = 'Chef is Cooking Your Meal';
-      heroSub = 'Fresh artisanal ingredients are being prepared on our rooftop kitchen.';
+      heroSub = 'Fresh artisanal dishes are being prepared on our rooftop kitchen.';
     } else if (st === 'food_ready') {
       activeIndex = 3;
       badgeText = 'Packed & Ready';
-      badgeClass = 'status-ready';
+      badgeClass = 'ready';
       heroIcon = 'fa-box-open';
       heroHeading = 'Food is Freshly Packed!';
       heroSub = order.rider_name ? `Assigned to delivery partner ${order.rider_name}. Dispatching momentarily.` : 'Awaiting delivery partner dispatch.';
     } else if (st === 'out_for_delivery' || st === 'dispatched') {
       activeIndex = 3;
       badgeText = 'Out for Delivery';
-      badgeClass = 'status-delivery';
+      badgeClass = 'transit';
       heroIcon = 'fa-motorcycle';
       heroHeading = 'Out for Delivery!';
       heroSub = order.rider_name ? `Your rider ${order.rider_name} is on the way with your hot meal.` : 'Your delivery partner is en route to your address.';
     } else if (st === 'delivered' || st === 'completed') {
       activeIndex = 4;
       badgeText = 'Delivered & Settled';
-      badgeClass = 'status-delivered';
+      badgeClass = 'delivered';
       heroIcon = 'fa-smile-beam';
       heroHeading = 'Enjoy Your Meal!';
-      heroSub = 'Your order has been delivered successfully. Thank you for dining with Breeze Rooftop Cafe!';
+      heroSub = 'Your order has been delivered successfully. Thank you for dining with Breeze!';
+      isDeliveredState = true;
     } else if (st === 'cancelled' || st === 'rejected') {
       activeIndex = -1;
       badgeText = 'Order Cancelled';
-      badgeClass = 'status-cancelled';
+      badgeClass = 'cancelled';
       heroIcon = 'fa-times-circle';
       heroHeading = 'Order Cancelled';
       heroSub = order.cancellation_reason || 'This order was cancelled.';
+      isCancelledState = true;
     }
 
     // Update Status Badge
@@ -368,7 +433,12 @@
       trackStatusBadge.className = 'tracking-header-badge ' + badgeClass;
     }
 
-    // Update Hero Card
+    // Update Hero Card Classes & Texts
+    if (trackingHeroCard) {
+      trackingHeroCard.classList.remove('delivered-state', 'cancelled-state', 'user-cancelled-state');
+      if (isDeliveredState) trackingHeroCard.classList.add('delivered-state');
+      if (isCancelledState) trackingHeroCard.classList.add('cancelled-state');
+    }
     if (trackHeroIcon) {
       trackHeroIcon.className = 'fas ' + heroIcon;
     }
@@ -385,8 +455,7 @@
       if (!stepEl) return;
       stepEl.classList.remove('completed', 'active');
       if (activeIndex === -1) {
-        // Cancelled
-        stepEl.style.opacity = '0.4';
+        stepEl.style.opacity = '0.35';
       } else {
         stepEl.style.opacity = '1';
         if (idx < activeIndex) {
@@ -463,10 +532,10 @@
       }
 
       currentActiveOrder.status = 'cancelled';
-      currentActiveOrder.cancellation_reason = 'Cancelled by customer';
-      renderOrderTracking(currentActiveOrder);
+      currentActiveOrder.cancellation_reason = 'Cancelled by customer within 60s grace window';
+      renderOrderTracking(currentActiveOrder, false);
       if (window.showToast) window.showToast('Order #' + currentActiveOrder.id + ' has been cancelled.');
-      playCustomerNotificationChime('info');
+      playCustomerNotificationChime('declined');
     } catch (e) {
       console.error('Cancellation error:', e);
       if (window.showToast) window.showToast('Could not cancel order. Please call cafe desk directly.');
@@ -479,16 +548,23 @@
   }
 
   // --------------------------------------------------------------------------
-  // SUPABASE REALTIME SUBSCRIPTION FOR INSTANT STATUS CHANGES
+  // REALTIME SUBSCRIPTION ENGINE (Safeguarded against re-entrancy)
   // --------------------------------------------------------------------------
   function subscribeToOrderRealtime(orderId) {
     if (!orderId) return;
+    if (activeRealtimeOrderId === orderId && activeRealtimeChannel) {
+      return; // Already subscribed to this order
+    }
+
     const client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
     if (!client) return;
 
     if (activeRealtimeChannel) {
       try { activeRealtimeChannel.unsubscribe(); } catch (e) {}
+      activeRealtimeChannel = null;
     }
+
+    activeRealtimeOrderId = orderId;
 
     try {
       activeRealtimeChannel = client.channel('track-page-' + orderId)
@@ -510,25 +586,202 @@
               } else {
                 playCustomerNotificationChime('info');
               }
+
               if (window.showToast) {
                 if (newSt === 'confirmed' || newSt === 'accepted') {
                   window.showToast('👨‍🍳 Order confirmed by kitchen!');
                 } else if (newSt === 'cooking' || newSt === 'preparing') {
                   window.showToast('🍳 Chef is preparing your dishes.');
+                } else if (newSt === 'food_ready') {
+                  window.showToast('🍱 Food is packed and ready!');
                 } else if (newSt === 'out_for_delivery') {
-                  window.showToast('🛵 Order is out for delivery!');
+                  window.showToast('🛵 Order is out for delivery with your partner!');
                 } else if (newSt === 'delivered' || newSt === 'completed') {
                   window.showToast('🎉 Your food has been delivered! Enjoy your meal.');
                 }
               }
             }
-            renderOrderTracking(updated);
+
+            // Re-render UI WITHOUT re-subscribing (flag false prevents recursion)
+            renderOrderTracking(updated, false);
           }
         })
         .subscribe();
     } catch (err) {
       console.warn('Realtime subscription error:', err);
     }
+  }
+
+  // --------------------------------------------------------------------------
+  // MULTI-ORDER CHIPS & PAST ORDERS RENDERING
+  // --------------------------------------------------------------------------
+  function renderActiveOrdersChips(activeOrders, selectedOrderId) {
+    if (!trackActiveChipsBar || !trackActiveChipsList) return;
+
+    if (!Array.isArray(activeOrders) || activeOrders.length <= 1) {
+      trackActiveChipsBar.style.display = 'none';
+      return;
+    }
+
+    if (trackActiveCount) trackActiveCount.textContent = activeOrders.length;
+    trackActiveChipsBar.style.display = 'block';
+
+    let html = '';
+    activeOrders.forEach(ord => {
+      const isSelected = ord.id === selectedOrderId;
+      const idParts = String(ord.id).split('-');
+      const token = idParts.length >= 3 ? idParts[idParts.length - 1] : ord.id.slice(-4);
+      const st = (ord.status || '').toLowerCase().trim();
+
+      let statusLabel = 'Placed';
+      let icon = 'fa-clock';
+      if (st === 'confirmed' || st === 'accepted') { statusLabel = 'Confirmed'; icon = 'fa-check-double'; }
+      else if (st === 'cooking' || st === 'preparing') { statusLabel = 'Cooking'; icon = 'fa-utensils'; }
+      else if (st === 'food_ready') { statusLabel = 'Packed'; icon = 'fa-box-open'; }
+      else if (st === 'out_for_delivery' || st === 'dispatched') { statusLabel = 'On Way'; icon = 'fa-motorcycle'; }
+
+      html += `
+        <button type="button" class="track-active-chip ${isSelected ? 'active' : ''}" data-order-id="${escapeHtml(ord.id)}">
+          <i class="fas ${icon}"></i>
+          <span>Token #${escapeHtml(token)}</span>
+          <span class="chip-badge">${statusLabel}</span>
+        </button>
+      `;
+    });
+
+    trackActiveChipsList.innerHTML = html;
+
+    // Attach click listeners to chips
+    trackActiveChipsList.querySelectorAll('.track-active-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const oId = btn.dataset.orderId;
+        const target = activeOrders.find(o => o.id === oId);
+        if (target) {
+          renderOrderTracking(target, true);
+          renderActiveOrdersChips(activeOrders, target.id);
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('id', target.id);
+            window.history.replaceState({ orderId: target.id }, document.title, url.toString());
+          } catch (e) {}
+        }
+      });
+    });
+  }
+
+  function renderPastOrdersList(pastOrders) {
+    if (!trackPastOrdersSection || !trackPastOrdersList) return;
+
+    if (!Array.isArray(pastOrders) || pastOrders.length === 0) {
+      trackPastOrdersSection.style.display = 'none';
+      return;
+    }
+
+    if (trackPastCount) trackPastCount.textContent = pastOrders.length;
+    trackPastOrdersSection.style.display = 'block';
+
+    let html = '';
+    pastOrders.forEach(ord => {
+      const idParts = String(ord.id).split('-');
+      const token = idParts.length >= 3 ? idParts[idParts.length - 1] : ord.id.slice(-4);
+      const isCancelled = ord.status === 'cancelled' || ord.status === 'rejected';
+      const isDelivered = ord.status === 'delivered' || ord.status === 'completed';
+      const statusText = isCancelled ? 'Cancelled' : (isDelivered ? 'Delivered' : 'Settled');
+      const badgeStyle = isCancelled
+        ? 'background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;'
+        : 'background:#dcfce7; color:#166534; border:1px solid #86efac;';
+
+      const itemsSummary = (ord.items || []).map(i => `${i.qty || 1}x ${escapeHtml(i.name)}`).join(', ') || 'Breeze Dishes';
+
+      let dateStr = 'Recent';
+      try {
+        const d = new Date(ord.created_at);
+        dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      } catch (e) {}
+
+      html += `
+        <div class="track-past-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="tracking-token-pill">Token #${escapeHtml(token)}</span>
+              <strong style="color:#1c1917; font-size:0.95rem;">Order #${escapeHtml(ord.id)}</strong>
+              <span style="font-size:0.78rem; color:#78716c;">• ${escapeHtml(dateStr)}</span>
+            </div>
+            <span style="font-size:0.75rem; font-weight:800; padding:3px 10px; border-radius:999px; ${badgeStyle}">
+              ${statusText}
+            </span>
+          </div>
+
+          <p style="font-size:0.86rem; color:#44403c; margin:6px 0 12px; line-height:1.4;">
+            ${itemsSummary}
+          </p>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid #f2ece1; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:1.15rem; font-weight:800; color:#1c1917;">
+              ₹${ord.total}
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-outline-gold btn-sm btn-view-past-receipt" data-order-id="${escapeHtml(ord.id)}" style="padding:6px 14px; font-size:0.82rem; border-radius:8px;">
+                <i class="fas fa-receipt"></i> <span>View Receipt</span>
+              </button>
+              <button type="button" class="btn btn-primary btn-sm btn-past-reorder" data-order-id="${escapeHtml(ord.id)}" style="padding:6px 14px; font-size:0.82rem; border-radius:8px;">
+                <i class="fas fa-redo"></i> <span>Reorder</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    trackPastOrdersList.innerHTML = html;
+
+    // View Receipt handlers
+    trackPastOrdersList.querySelectorAll('.btn-view-past-receipt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const oId = btn.dataset.orderId;
+        const target = pastOrders.find(o => o.id === oId);
+        if (target) {
+          renderOrderTracking(target, false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
+
+    // Reorder handlers
+    trackPastOrdersList.querySelectorAll('.btn-past-reorder').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const oId = btn.dataset.orderId;
+        const target = pastOrders.find(o => o.id === oId);
+        if (target && Array.isArray(target.items) && target.items.length > 0) {
+          try {
+            const CART_KEY = 'breeze_rooftop_cart';
+            let cart = [];
+            try {
+              const saved = localStorage.getItem(CART_KEY);
+              if (saved) cart = JSON.parse(saved);
+              if (!Array.isArray(cart)) cart = [];
+            } catch (e) { cart = []; }
+
+            target.items.forEach(it => {
+              const existing = cart.find(c => c.name.toLowerCase() === it.name.toLowerCase());
+              if (existing) {
+                existing.qty = (existing.qty || 1) + (it.qty || 1);
+              } else {
+                cart.push({
+                  name: it.name,
+                  price: Number(it.price || 0),
+                  qty: Number(it.qty || 1)
+                });
+              }
+            });
+
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+            sessionStorage.setItem('breeze_auto_open_cart', 'true');
+          } catch (e) {}
+          window.location.href = '/menu?openCart=1';
+        }
+      });
+    });
   }
 
   // --------------------------------------------------------------------------
@@ -542,6 +795,9 @@
     if (trackLoadingState) trackLoadingState.style.display = 'block';
     if (trackEmptyState) trackEmptyState.style.display = 'none';
     if (trackResultsContainer) trackResultsContainer.style.display = 'none';
+    if (trackActiveChipsBar) trackActiveChipsBar.style.display = 'none';
+    if (trackNoActiveOrdersBanner) trackNoActiveOrdersBanner.style.display = 'none';
+    if (trackPastOrdersSection) trackPastOrdersSection.style.display = 'none';
 
     try {
       const client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
@@ -549,74 +805,149 @@
         throw new Error('Database client offline');
       }
 
-      let row = null;
       const digits = raw.replace(/[^0-9]/g, '');
 
-      // Case 1: 10-Digit Indian Mobile Number
+      // ======================================================================
+      // CASE 1: 10-Digit Indian Mobile Number
+      // ======================================================================
       if (digits.length === 10) {
         const { data, error } = await client.from('orders')
           .select('*')
           .or(`customer_phone.eq.${digits},customer_phone.eq.+91${digits}`)
           .order('created_at', { ascending: false })
-          .limit(1);
+          .limit(25);
 
-        if (!error && Array.isArray(data) && data.length > 0) {
-          row = data[0];
+        if (trackLoadingState) trackLoadingState.style.display = 'none';
+
+        if (error || !Array.isArray(data) || data.length === 0) {
+          if (trackEmptyState) {
+            trackEmptyState.style.display = 'block';
+            const notFoundText = trackEmptyState.querySelector('p');
+            if (notFoundText) {
+              notFoundText.textContent = `No orders found for mobile number ${digits}. Please verify your 10-digit number.`;
+            }
+          }
+          return;
+        }
+
+        const normalizedList = data.map(normalizeOrderRecord).filter(Boolean);
+        cachedOrdersForPhone = normalizedList;
+
+        const activeOrders = normalizedList.filter(o => isActiveStatus(o.status));
+        const pastOrders = normalizedList.filter(o => !isActiveStatus(o.status));
+
+        // Subcase 1A: Has Active Orders on the Go
+        if (activeOrders.length > 0) {
+          const selectedOrder = activeOrders[0];
+          renderOrderTracking(selectedOrder, true);
+          renderActiveOrdersChips(activeOrders, selectedOrder.id);
+          renderPastOrdersList(pastOrders);
+
+          // Update URL cleanly
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('phone', digits);
+            url.searchParams.set('id', selectedOrder.id);
+            window.history.replaceState({ orderId: selectedOrder.id, phone: digits }, document.title, url.toString());
+          } catch (e) {}
+          return;
+        }
+
+        // Subcase 1B: No Active Orders, but has Past Completed Orders
+        if (pastOrders.length > 0) {
+          if (trackNoActiveOrdersBanner) trackNoActiveOrdersBanner.style.display = 'block';
+          // Render the latest delivered order in tracker as receipt
+          renderOrderTracking(pastOrders[0], false);
+          renderPastOrdersList(pastOrders);
+
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('phone', digits);
+            url.searchParams.delete('id');
+            window.history.replaceState({ phone: digits }, document.title, url.toString());
+          } catch (e) {}
+          return;
         }
       }
 
-      // Case 2: Exact Order ID (e.g. BRZ-1729864200000-4321)
-      if (!row) {
-        const { data, error } = await client.from('orders')
-          .select('*')
-          .eq('id', raw)
-          .maybeSingle();
+      // ======================================================================
+      // CASE 2: Order ID (Exact, Uppercase, or Suffix Token)
+      // ======================================================================
+      let row = null;
 
-        if (!error && data) {
-          row = data;
-        }
-      }
+      // 2A: Exact match
+      const { data: d1, error: e1 } = await client.from('orders')
+        .select('*')
+        .eq('id', raw)
+        .maybeSingle();
 
-      // Case 3: Case-insensitive / Uppercase Order ID
+      if (!e1 && d1) row = d1;
+
+      // 2B: Uppercase match
       if (!row) {
-        const { data, error } = await client.from('orders')
+        const { data: d2, error: e2 } = await client.from('orders')
           .select('*')
           .eq('id', raw.toUpperCase())
           .maybeSingle();
 
-        if (!error && data) {
-          row = data;
-        }
+        if (!e2 && d2) row = d2;
       }
 
-      // Case 4: Token Suffix lookup (e.g. "4321" or "#4321")
+      // 2C: Token Suffix lookup (e.g. "4321" or "#4321")
       if (!row && digits.length >= 3 && digits.length <= 6) {
-        const { data } = await client.from('orders')
+        const { data: d3 } = await client.from('orders')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(50);
 
-        if (Array.isArray(data)) {
-          row = data.find(r => r.id && String(r.id).endsWith('-' + digits)) || null;
+        if (Array.isArray(d3)) {
+          row = d3.find(r => r.id && String(r.id).endsWith('-' + digits)) || null;
         }
       }
 
+      if (trackLoadingState) trackLoadingState.style.display = 'none';
+
       if (row) {
         const normalized = normalizeOrderRecord(row);
-        renderOrderTracking(normalized);
+        renderOrderTracking(normalized, true);
 
-        // Update URL query parameter cleanly without reloading page
+        // Update URL cleanly
         try {
-          const newUrl = window.location.pathname + '?id=' + encodeURIComponent(normalized.id);
-          window.history.replaceState({ orderId: normalized.id }, document.title, newUrl);
+          const url = new URL(window.location.href);
+          url.searchParams.set('id', normalized.id);
+          window.history.replaceState({ orderId: normalized.id }, document.title, url.toString());
         } catch (e) {}
+
+        // In background: if this order has a phone number, fetch other orders to populate chips / past orders
+        const cPhone = normalized.customer_phone ? String(normalized.customer_phone).replace(/[^0-9]/g, '').slice(-10) : '';
+        if (cPhone && cPhone.length === 10) {
+          client.from('orders')
+            .select('*')
+            .or(`customer_phone.eq.${cPhone},customer_phone.eq.+91${cPhone}`)
+            .order('created_at', { ascending: false })
+            .limit(20)
+            .then(({ data: phoneRows }) => {
+              if (Array.isArray(phoneRows) && phoneRows.length > 1) {
+                const phoneList = phoneRows.map(normalizeOrderRecord).filter(Boolean);
+                const activeList = phoneList.filter(o => isActiveStatus(o.status));
+                const pastList = phoneList.filter(o => !isActiveStatus(o.status) && o.id !== normalized.id);
+
+                if (activeList.length > 1) {
+                  renderActiveOrdersChips(activeList, normalized.id);
+                }
+                if (pastList.length > 0) {
+                  renderPastOrdersList(pastList);
+                }
+              }
+            })
+            .catch(() => {});
+        }
       } else {
-        if (trackLoadingState) trackLoadingState.style.display = 'none';
         if (trackEmptyState) {
           trackEmptyState.style.display = 'block';
           const notFoundText = trackEmptyState.querySelector('p');
           if (notFoundText) {
-            notFoundText.textContent = `No order found matching "${window.escapeHtml ? window.escapeHtml(raw) : raw}". Please verify your order ID or mobile number.`;
+            notFoundText.textContent = `No order found matching "${escapeHtml(raw)}". Please check your Order ID or mobile number.`;
           }
         }
       }
@@ -634,12 +965,6 @@
   if (trackSearchForm) {
     trackSearchForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (trackInputLookup) lookupOrder(trackInputLookup.value);
-    });
-  }
-
-  if (btnTrackLookup) {
-    btnTrackLookup.addEventListener('click', () => {
       if (trackInputLookup) lookupOrder(trackInputLookup.value);
     });
   }
@@ -678,7 +1003,28 @@
     btnReorderFromTracking.addEventListener('click', () => {
       if (currentActiveOrder && Array.isArray(currentActiveOrder.items) && currentActiveOrder.items.length > 0) {
         try {
-          localStorage.setItem('breeze_cart', JSON.stringify(currentActiveOrder.items));
+          const CART_KEY = 'breeze_rooftop_cart';
+          let cart = [];
+          try {
+            const saved = localStorage.getItem(CART_KEY);
+            if (saved) cart = JSON.parse(saved);
+            if (!Array.isArray(cart)) cart = [];
+          } catch (e) { cart = []; }
+
+          currentActiveOrder.items.forEach(it => {
+            const existing = cart.find(c => c.name.toLowerCase() === it.name.toLowerCase());
+            if (existing) {
+              existing.qty = (existing.qty || 1) + (it.qty || 1);
+            } else {
+              cart.push({
+                name: it.name,
+                price: Number(it.price || 0),
+                qty: Number(it.qty || 1)
+              });
+            }
+          });
+
+          localStorage.setItem(CART_KEY, JSON.stringify(cart));
           sessionStorage.setItem('breeze_auto_open_cart', 'true');
         } catch (e) {}
       }
@@ -724,7 +1070,7 @@
       }
     } catch (e) {}
 
-    // Check user profile for last order
+    // Check user profile for last order phone
     try {
       const profRaw = localStorage.getItem('breeze_customer_profile');
       if (profRaw) {

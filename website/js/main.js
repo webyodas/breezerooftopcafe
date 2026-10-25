@@ -1133,7 +1133,7 @@ async function fetchUserOrdersFromSupabase(email, phone = null) {
 
       return {
         id: row.id,
-        total: Number(row.total_amount) || 0,
+        total: Number(row.total_amount || row.total || 0),
         subtotal: Number(row.subtotal) || 0,
         deliveryFee: Number(row.delivery_fee) || 0,
         status: row.status || 'placed',
@@ -6732,7 +6732,7 @@ function initCartSystem() {
 
     return {
       id: row.id,
-      total: Number(row.total_amount) || 0,
+      total: Number(row.total_amount || row.total || 0),
       total_amount: Number(row.total_amount) || 0,
       subtotal: Number(row.subtotal) || 0,
       deliveryFee: Number(row.delivery_fee) || 0,
@@ -6916,6 +6916,11 @@ function initCartSystem() {
 
   async function handleUrlDeepLinks() {
     try {
+      if (window.location.pathname.startsWith('/track')) {
+        // Dedicated live order tracking page (/track) manages its own radar and URL parameters
+        return;
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const shouldOpenCart = urlParams.get('openCart') === '1' || sessionStorage.getItem('breeze_auto_open_cart') === 'true';
 

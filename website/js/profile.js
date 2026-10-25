@@ -732,8 +732,23 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
-      if (typeof fetchFn === 'function') {
-        const { history } = await fetchFn(profile.email, profile.phone);
+
+      // Resolve phone from profile or saved auth
+      let queryPhone = (profile && profile.phone) ? profile.phone : '';
+      let queryEmail = (profile && profile.email) ? profile.email : '';
+      if (!queryPhone) {
+        try {
+          const authRaw = localStorage.getItem('breeze_customer_profile');
+          if (authRaw) {
+            const parsed = JSON.parse(authRaw);
+            queryPhone = parsed.phone || '';
+            queryEmail = queryEmail || parsed.email || '';
+          }
+        } catch (e) {}
+      }
+
+      if (typeof fetchFn === 'function' && (queryEmail || queryPhone)) {
+        const { history } = await fetchFn(queryEmail, queryPhone);
         userOrdersHistory = history || [];
       } else {
         const cached = localStorage.getItem('breeze_orders_history');
@@ -749,15 +764,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderOrdersList() {
     if (!pageOrdersListContainer) return;
 
-    if (userOrdersHistory.length === 0) {
+    if (!Array.isArray(userOrdersHistory) || userOrdersHistory.length === 0) {
       pageOrdersListContainer.innerHTML = `
         <div class="empty-state-v2">
           <div class="empty-state-icon-circle">
             <i class="fas fa-receipt"></i>
           </div>
-          <h5 class="empty-state-title">No Past Orders Found</h5>
+          <h5 class="empty-state-title">No Orders Found</h5>
           <p class="empty-state-desc">
-            Orders placed with your account will appear here with live tracking, receipts, and 1-click reorder!
+            Orders placed with your account will appear here with live kitchen radar, official receipts, and 1-click reorder!
           </p>
           <a href="/menu" class="btn-luxury-gold" style="text-decoration: none;">
             <i class="fas fa-utensils"></i> Explore Rooftop Menu
@@ -767,25 +782,51 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    let ordersHtml = '';
-    userOrdersHistory.forEach(ord => {
+    const activeOrders = userOrdersHistory.filter(o => {
+      const st = (o.status || '').toLowerCase().trim();
+      return st !== 'delivered' && st !== 'completed' && st !== 'cancelled' && st !== 'rejected';
+    });
+
+    const pastOrders = userOrdersHistory.filter(o => {
+      const st = (o.status || '').toLowerCase().trim();
+      return st === 'delivered' || st === 'completed' || st === 'cancelled' || st === 'rejected';
+    });
+
+    function buildOrderCardHtml(ord, isActive) {
       const dateStr = ord.placedAt ? new Date(ord.placedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recent';
-      const itemsSummary = (ord.items || []).map(i => `${i.qty || 1}x ${escapeHtml(i.name)}`).join(', ') || 'Rooftop Delights';
-      const isCancelled = ord.status === 'cancelled';
-      const isDelivered = ord.status === 'delivered';
-      const statusBg = isCancelled ? '#fee2e2' : (isDelivered ? '#dcfce7' : '#fef3c7');
-      const statusColor = isCancelled ? '#991b1b' : (isDelivered ? '#166534' : '#92400e');
-      const statusBorder = isCancelled ? '#fca5a5' : (isDelivered ? '#86efac' : '#fde68a');
-      const statusText = isCancelled ? 'Cancelled' : (isDelivered ? 'Delivered' : 'In Progress');
+      const itemsSummary = (ord.items || []).map(i => `${i.qty || 1}x ${escapeHtml(i.name)}`).join(', ') || 'Breeze Rooftop Dishes';
+      const isCancelled = ord.status === 'cancelled' || ord.status === 'rejected';
+      const isDelivered = ord.status === 'delivered' || ord.status === 'completed';
+
+      let statusBg = '#fef3c7';
+      let statusColor = '#92400e';
+      let statusBorder = '#fde68a';
+      let statusText = 'In Kitchen';
+
+      if (isCancelled) {
+        statusBg = '#fee2e2'; statusColor = '#991b1b'; statusBorder = '#fca5a5'; statusText = 'Cancelled';
+      } else if (isDelivered) {
+        statusBg = '#dcfce7'; statusColor = '#166534'; statusBorder = '#86efac'; statusText = 'Delivered';
+      } else {
+        const st = (ord.status || '').toLowerCase().trim();
+        if (st === 'cooking' || st === 'preparing') statusText = 'Cooking in Kitchen';
+        else if (st === 'food_ready') statusText = 'Packed & Ready';
+        else if (st === 'out_for_delivery' || st === 'dispatched') statusText = 'Out for Delivery';
+        else statusText = 'Order Confirmed';
+      }
 
       const idParts = String(ord.id || '').split('-');
       let tokenPill = '';
       if (idParts.length >= 3) {
-        tokenPill = `<span style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px;">Token #${idParts[idParts.length - 1]}</span>`;
+        tokenPill = `<span style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px;">Token #${escapeHtml(idParts[idParts.length - 1])}</span>`;
       }
 
-      ordersHtml += `
-        <div class="addr-card-v2" style="background:#ffffff; margin-bottom:14px; border:1px solid #e7e2d9; padding:20px; border-radius:16px;">
+      const cardBorder = isActive
+        ? 'border: 2px solid rgba(181, 136, 61, 0.55); box-shadow: 0 4px 16px rgba(181, 136, 61, 0.12);'
+        : 'border: 1px solid #e7e2d9;';
+
+      return `
+        <div class="addr-card-v2" style="background:#ffffff; margin-bottom:14px; ${cardBorder} padding:20px; border-radius:16px;">
           <div class="addr-card-header" style="margin-bottom:10px;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               ${tokenPill}
@@ -796,17 +837,25 @@ document.addEventListener('DOMContentLoaded', () => {
               ${statusText}
             </span>
           </div>
+
           <div style="font-size:0.9rem; color:#44403c; margin:8px 0 16px; line-height:1.5;">
             ${itemsSummary}
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid #f0ebe1;">
+
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid #f0ebe1; flex-wrap:wrap; gap:10px;">
             <div style="font-size:1.2rem; font-weight:800; color:#1c1917; font-family:'Plus Jakarta Sans', sans-serif;">
               ₹${escapeHtml(String(ord.total))}
             </div>
-            <div style="display:flex; gap:8px;">
-              <button type="button" class="btn-set-default-v2 btn-profile-track" data-id="${escapeHtml(ord.id)}">
-                ${isCancelled ? '<i class="fas fa-file-invoice"></i> Receipt' : '<i class="fas fa-motorcycle" style="color:var(--primary-gold);"></i> Track'}
-              </button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              ${isActive ? `
+                <a href="/track?id=${encodeURIComponent(ord.id)}" class="btn-luxury-gold" style="padding:8px 16px; font-size:0.84rem; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                  <i class="fas fa-satellite-dish"></i> Live Track Order
+                </a>
+              ` : `
+                <button type="button" class="btn-set-default-v2 btn-profile-track" data-id="${escapeHtml(ord.id)}">
+                  <i class="fas fa-file-invoice"></i> View Receipt
+                </button>
+              `}
               <button type="button" class="btn-luxury-gold btn-profile-reorder" data-id="${escapeHtml(ord.id)}" style="padding:8px 18px; font-size:0.84rem;">
                 <i class="fas fa-redo-alt"></i> Reorder
               </button>
@@ -814,7 +863,39 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    });
+    }
+
+    let ordersHtml = '';
+
+    // 1. Active Orders on the Go
+    if (activeOrders.length > 0) {
+      ordersHtml += `
+        <div style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);"></span>
+              <h5 style="margin: 0; font-weight: 800; font-size: 1.05rem; color: #1c1917;">Active Orders on the Go (${activeOrders.length})</h5>
+            </div>
+            <a href="/track" style="font-size: 0.82rem; font-weight: 700; color: var(--primary-gold); text-decoration: none;">
+              <i class="fas fa-radar"></i> Open Live Radar
+            </a>
+          </div>
+          ${activeOrders.map(o => buildOrderCardHtml(o, true)).join('')}
+        </div>
+      `;
+    }
+
+    // 2. Past Completed & Delivered Orders
+    if (pastOrders.length > 0) {
+      ordersHtml += `
+        <div>
+          <h5 style="margin: 0 0 12px; font-weight: 800; font-size: 1rem; color: #44403c;">
+            <i class="fas fa-history" style="color: var(--primary-gold);"></i> Completed & Delivered Orders (${pastOrders.length})
+          </h5>
+          ${pastOrders.map(o => buildOrderCardHtml(o, false)).join('')}
+        </div>
+      `;
+    }
 
     pageOrdersListContainer.innerHTML = ordersHtml;
 

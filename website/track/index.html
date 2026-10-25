@@ -170,6 +170,32 @@
         </a>
       </div>
 
+      <!-- Active Orders on the Go Bar (Rendered when phone has active orders) -->
+      <div id="trackActiveChipsBar" style="display: none; background: #ffffff; border: 1.5px solid rgba(181, 136, 61, 0.35); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+          <div style="font-weight: 800; font-size: 0.95rem; color: #1c1814; display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);"></span>
+            <span>Active Orders on the Go (<span id="trackActiveCount">0</span>)</span>
+          </div>
+          <small style="color: #78716c; font-size: 0.8rem;">Tap an order to track live</small>
+        </div>
+        <div id="trackActiveChipsList" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;"></div>
+      </div>
+
+      <!-- No Active Orders Banner (Rendered when phone has past orders but no live cooking orders) -->
+      <div id="trackNoActiveOrdersBanner" style="display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 16px; padding: 22px 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 style="font-family: var(--font-serif); font-size: 1.2rem; font-weight: 700; color: #166534; margin: 0 0 4px;">No Active Orders on the Go</h3>
+        <p style="font-size: 0.86rem; color: #15803d; max-width: 480px; margin: 0 auto 14px; line-height: 1.5;">
+          All previous orders for this phone have been delivered &amp; settled. See your past receipts below or treat yourself to fresh bites from our menu!
+        </p>
+        <a href="/menu" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px; border-radius: 999px;">
+          <i class="fas fa-utensils"></i> <span>Order Now From Menu</span>
+        </a>
+      </div>
+
       <!-- Live Order Results Container -->
       <div id="trackResultsContainer" style="display: none;">
         
@@ -341,10 +367,36 @@
                 <i class="fas fa-check-circle"></i> Paid Online
               </div>
             </div>
+
+            <!-- Support & Profile Action Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid #f2ece1; flex-wrap: wrap; gap: 10px;">
+              <a href="https://wa.me/919623999095" id="trackHelpWhatsappBtn" target="_blank" rel="noopener noreferrer" style="font-size: 0.82rem; font-weight: 700; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 14px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fab fa-whatsapp"></i> <span>Need Help? Chat with Cafe Manager</span>
+              </a>
+              <a href="/profile?tab=orders" style="font-size: 0.82rem; font-weight: 700; color: #78716c; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="fas fa-receipt"></i> <span>All Your Orders in Profile</span> <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+              </a>
+            </div>
           </div>
 
         </div>
 
+      </div>
+
+      <!-- Past Orders List Section (Rendered when phone has past delivered/completed orders) -->
+      <div id="trackPastOrdersSection" style="display: none; margin-top: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-family: var(--font-serif); font-size: 1.2rem; font-weight: 700; color: #1c1814; margin: 0 0 2px;">
+              <i class="fas fa-history" style="color: var(--primary-gold);"></i> Past Completed Orders (<span id="trackPastCount">0</span>)
+            </h3>
+            <small style="color: #78716c; font-size: 0.8rem;">Click any order to view details or reorder</small>
+          </div>
+          <a href="/profile?tab=orders" style="font-size: 0.82rem; font-weight: 700; color: var(--primary-gold); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            <span>Orders Dashboard</span> <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div id="trackPastOrdersList"></div>
       </div>
 
     </div>

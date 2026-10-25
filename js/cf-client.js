@@ -84,6 +84,7 @@
     activePoller: null,
     lastEventId: 0,
     pollingIntervalMs: 1000,
+    isPolling: false,
 
     register(channel) {
       this.channels.set(channel.name, channel);
@@ -100,7 +101,7 @@
     startPoller() {
       if (this.activePoller) return;
       this.fetchLatestId().then(() => {
-        if (!this.activePoller) {
+        if (!this.activePoller && this.channels.size > 0) {
           this.activePoller = setInterval(() => this.pollEvents(), this.pollingIntervalMs);
         }
       });
@@ -124,7 +125,8 @@
     },
 
     async pollEvents() {
-      if (this.channels.size === 0) return;
+      if (this.channels.size === 0 || this.isPolling) return;
+      this.isPolling = true;
       try {
         const res = await fetch(`${getApiBaseUrl()}/api/events?since=${this.lastEventId}`);
         if (!res.ok) return;
@@ -139,28 +141,36 @@
         }
       } catch (e) {
         // Network retry silently
+      } finally {
+        this.isPolling = false;
       }
     },
 
     dispatch(event) {
-      this.channels.forEach(channel => {
-        channel.listeners.forEach(listener => {
+      // Snapshot entries to prevent infinite loop if a callback mutates this.channels
+      const channelEntries = Array.from(this.channels.entries());
+      for (const [name, channel] of channelEntries) {
+        // If channel was unregistered during dispatch, skip it
+        if (!this.channels.has(name) || !channel.isSubscribed) continue;
+
+        const listenersSnapshot = Array.from(channel.listeners);
+        for (const listener of listenersSnapshot) {
           // Table filter
           if (listener.table && listener.table !== event.table) {
-            return;
+            continue;
           }
 
           // Event type filter ('*' or 'INSERT' or 'UPDATE' or 'DELETE')
           if (listener.eventFilter && listener.eventFilter !== '*') {
             const evMatch = listener.eventFilter.toUpperCase() === event.eventType.toUpperCase();
-            if (!evMatch) return;
+            if (!evMatch) continue;
           }
 
           // Column attribute filter (e.g. rider_id=eq.RAJESH)
           if (listener.rawFilter) {
             const targetRow = event.new || event.old;
             if (!rowMatchesFilter(targetRow, listener.rawFilter)) {
-              return; // Do NOT dispatch to this listener!
+              continue; // Do NOT dispatch to this listener!
             }
           }
 
@@ -175,8 +185,8 @@
           } catch (err) {
             console.error('[Realtime Dispatch Error]', err);
           }
-        });
-      });
+        }
+      }
     }
   };
 
