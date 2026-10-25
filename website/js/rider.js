@@ -579,18 +579,13 @@ document.addEventListener('DOMContentLoaded', () => {
     cardItemsList.innerHTML = itemsHtml || '<div style="font-size:0.8rem;color:#94a3b8;">Standard Order Items</div>';
 
     // Button Progression States:
-    // 1. Confirmed / Placed -> Show "Picked Up"
-    // 2. Picked up / Preparing -> Show "Out for Delivery"
-    // 3. Out for delivery -> Show "Mark Delivered"
-    if (!ord.picked_up_at && ord.status !== 'out_for_delivery') {
-      cardOrderStepTag.textContent = 'Order Ready in Kitchen';
+    // 1. If not picked up and not out for delivery -> Show "Picked Up from Cafe Kitchen"
+    // 2. Once picked up or out for delivery -> Show "Mark Order as Delivered"
+    const isOutForDelivery = ord.status === 'out_for_delivery' || ord.status === 'dispatched' || Boolean(ord.picked_up_at);
+    if (!isOutForDelivery) {
+      cardOrderStepTag.textContent = (ord.status === 'food_ready') ? 'Food Ready at Counter' : 'Assigned • Preparing in Kitchen';
       btnActionPickup.style.display = 'flex';
       btnActionTransit.style.display = 'none';
-      btnActionDelivered.style.display = 'none';
-    } else if (ord.picked_up_at && ord.status !== 'out_for_delivery') {
-      cardOrderStepTag.textContent = 'Picked Up • Ready for Road';
-      btnActionPickup.style.display = 'none';
-      btnActionTransit.style.display = 'flex';
       btnActionDelivered.style.display = 'none';
     } else {
       cardOrderStepTag.textContent = 'Out for Delivery 🛵';
@@ -694,15 +689,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const now = new Date().toISOString();
       activeDeliveryOrder.picked_up_at = now;
+      activeDeliveryOrder.dispatched_at = now;
+      activeDeliveryOrder.status = 'out_for_delivery';
 
       if (supabaseClient) {
         await supabaseClient.from('orders').update({
           picked_up_at: now,
-          status: 'preparing'
+          dispatched_at: now,
+          status: 'out_for_delivery'
         }).eq('id', activeDeliveryOrder.id);
       }
 
-      showRiderToast('📦 Meal picked up from kitchen! Ready to hit the road.');
+      showRiderToast('🛵 Order picked up! Out for delivery to customer.');
       renderActiveOrderUI(activeDeliveryOrder);
       btnActionPickup.disabled = false;
     });
@@ -715,11 +713,16 @@ document.addEventListener('DOMContentLoaded', () => {
       btnActionTransit.disabled = true;
       btnActionTransit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Heading Out...';
 
+      const now = new Date().toISOString();
       activeDeliveryOrder.status = 'out_for_delivery';
+      if (!activeDeliveryOrder.dispatched_at) activeDeliveryOrder.dispatched_at = now;
+      if (!activeDeliveryOrder.picked_up_at) activeDeliveryOrder.picked_up_at = now;
 
       if (supabaseClient) {
         await supabaseClient.from('orders').update({
-          status: 'out_for_delivery'
+          status: 'out_for_delivery',
+          dispatched_at: activeDeliveryOrder.dispatched_at,
+          picked_up_at: activeDeliveryOrder.picked_up_at
         }).eq('id', activeDeliveryOrder.id);
       }
 
