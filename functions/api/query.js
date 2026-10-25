@@ -27,6 +27,27 @@ const CORS_HEADERS = {
   'Content-Type': 'application/json'
 };
 
+function isValidIdentifier(name) {
+  return typeof name === 'string' && /^[a-zA-Z0-9_]+$/.test(name);
+}
+
+function validateAndFormatColumns(columns) {
+  if (!columns || columns === '*') return '*';
+  const parts = columns.split(',').map(c => c.trim()).filter(Boolean);
+  if (parts.length === 0) return '*';
+  const safeParts = [];
+  for (const part of parts) {
+    if (/^count\(\s*\*\s*\)$/i.test(part)) {
+      safeParts.push('COUNT(*)');
+    } else if (isValidIdentifier(part)) {
+      safeParts.push(`"${part}"`);
+    } else {
+      throw new Error(`Invalid or disallowed column expression: '${part}'`);
+    }
+  }
+  return safeParts.join(', ');
+}
+
 function normalizeIncomingRow(table, row) {
   if (!row) return row;
   const normalized = { ...row };
@@ -176,7 +197,8 @@ async function handleQueryExecution({ env, body }) {
       'rider_settlements'
     ]);
 
-    if (table === 'admin_users' || !ALLOWED_TABLES.has(table)) {
+    const cleanTable = typeof table === 'string' ? table.trim().toLowerCase() : '';
+    if (!cleanTable || !ALLOWED_TABLES.has(cleanTable)) {
       return new Response(
         JSON.stringify({ data: null, error: { message: `Access to table '${table}' is unauthorized or forbidden` } }),
         { status: 403, headers: CORS_HEADERS }
@@ -187,7 +209,16 @@ async function handleQueryExecution({ env, body }) {
     // 1. SELECT ACTION
     // ------------------------------------------------------------------------
     if (action === 'select') {
-      let sql = `SELECT ${columns === '*' ? '*' : columns} FROM "${table}"`;
+      let safeCols = '*';
+      try {
+        safeCols = validateAndFormatColumns(columns);
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ data: null, error: { message: err.message } }),
+          { status: 400, headers: CORS_HEADERS }
+        );
+      }
+      let sql = `SELECT ${safeCols} FROM "${cleanTable}"`;
       const params = [];
       const whereClauses = [];
 
@@ -292,6 +323,12 @@ async function handleQueryExecution({ env, body }) {
       const sort = order || orderBy;
       if (sort && (sort.col || sort.column)) {
         const sortCol = sort.col || sort.column;
+        if (!isValidIdentifier(sortCol)) {
+          return new Response(
+            JSON.stringify({ data: null, error: { message: `Disallowed sort column identifier '${sortCol}'` } }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
         const dir = sort.ascending === false ? 'DESC' : 'ASC';
         if (sortCol === 'delivered_at') {
           sql += ` ORDER BY COALESCE("delivered_at", "created_at") ${dir}`;
@@ -344,13 +381,13 @@ async function handleQueryExecution({ env, body }) {
         const cols = keys.map(k => `"${k}"`).join(', ');
         const vals = keys.map(k => norm[k]);
 
-        const sql = `INSERT INTO "${table}" (${cols}) VALUES (${placeholders})`;
+        const sql = `INSERT INTO "${cleanTable}" (${cols}) VALUES (${placeholders})`;
         await env.DB.prepare(sql).bind(...vals).run();
 
         const rowId = norm.id;
         let finalRow = norm;
         if (rowId) {
-          const fetchStmt = env.DB.prepare(`SELECT * FROM "${table}" WHERE id = ?`).bind(rowId);
+          const fetchStmt = env.DB.prepare(`SELECT * FROM "${cleanTable}" WHERE id = ?`).bind(rowId);
           const found = await fetchStmt.first();
           if (found) finalRow = normalizeOutgoingRow(table, found);
         }
@@ -407,10 +444,10 @@ async function handleQueryExecution({ env, body }) {
         );
       }
 
-      const sql = `UPDATE "${table}" SET ${setClauses.join(', ')} WHERE ${whereClauses.join(' AND ')}`;
+      const sql = `UPDATE "${cleanTable}" SET ${setClauses.join(', ')} WHERE ${whereClauses.join(' AND ')}`;
       await env.DB.prepare(sql).bind(...params).run();
 
-      let fetchSql = `SELECT * FROM "${table}" WHERE ${whereClauses.join(' AND ')}`;
+      let fetchSql = `SELECT * FROM "${cleanTable}" WHERE ${whereClauses.join(' AND ')}`;
       const fetchParams = params.slice(keys.length);
       const updatedRows = (await env.DB.prepare(fetchSql).bind(...fetchParams).all()).results || [];
       const normalizedUpdated = updatedRows.map(r => normalizeOutgoingRow(table, r));
@@ -448,7 +485,7 @@ async function handleQueryExecution({ env, body }) {
         if (rowId) {
           try {
             const existingRow = await env.DB.prepare(
-              `SELECT "${conflictTarget}" FROM "${table}" WHERE "${conflictTarget}" = ?`
+              `SELECT "${conflictTarget}" FROM "${cleanTable}" WHERE "${conflictTarget}" = ?`
             ).bind(rowId).first();
             if (existingRow) existed = true;
           } catch (e) {}
@@ -459,14 +496,14 @@ async function handleQueryExecution({ env, body }) {
           .map(k => `"${k}" = excluded."${k}"`)
           .join(', ');
 
-        const sql = `INSERT INTO "${table}" (${cols}) VALUES (${placeholders})
+        const sql = `INSERT INTO "${cleanTable}" (${cols}) VALUES (${placeholders})
                      ON CONFLICT("${conflictTarget}") DO UPDATE SET ${updateClauses}`;
 
         await env.DB.prepare(sql).bind(...vals).run();
 
         let finalRow = norm;
         if (rowId) {
-          const fetchStmt = env.DB.prepare(`SELECT * FROM "${table}" WHERE "${conflictTarget}" = ?`).bind(rowId);
+          const fetchStmt = env.DB.prepare(`SELECT * FROM "${cleanTable}" WHERE "${conflictTarget}" = ?`).bind(rowId);
           const found = await fetchStmt.first();
           if (found) finalRow = normalizeOutgoingRow(table, found);
         }
@@ -517,9 +554,9 @@ async function handleQueryExecution({ env, body }) {
         );
       }
 
-      const idsBefore = (await env.DB.prepare(`SELECT id FROM "${table}" WHERE ${whereClauses.join(' AND ')}`).bind(...params).all()).results || [];
+      const idsBefore = (await env.DB.prepare(`SELECT id FROM "${cleanTable}" WHERE ${whereClauses.join(' AND ')}`).bind(...params).all()).results || [];
 
-      const sql = `DELETE FROM "${table}" WHERE ${whereClauses.join(' AND ')}`;
+      const sql = `DELETE FROM "${cleanTable}" WHERE ${whereClauses.join(' AND ')}`;
       await env.DB.prepare(sql).bind(...params).run();
 
       for (const item of idsBefore) {
