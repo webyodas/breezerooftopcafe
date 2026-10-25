@@ -2273,12 +2273,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (status === 'cancelled') {
       const isOnlinePaid = !isCod && total > 0;
       const cleanPhone = (order.customer_phone || '').replace(/\D/g, '').slice(-10);
-      const reasonStr = order.cancellation_reason || '';
+      const rawReason = String(order.cancellation_reason || '').trim();
       const isCustomerCancelled = (order.cancelled_by === 'customer');
+
+      let displayReason = rawReason
+        .replace(/^cancelled by customer:\s*/i, '')
+        .replace(/^cancelled by kitchen:\s*/i, '')
+        .replace(/^cancelled by restaurant:\s*/i, '')
+        .trim();
+
+      if (isCustomerCancelled) {
+        if (!displayReason || /grace window|customer requested cancellation/i.test(displayReason)) {
+          displayReason = 'Within 60s online grace window';
+        }
+      } else {
+        if (!displayReason) {
+          displayReason = 'Kitchen operational constraints';
+        }
+      }
+
+      const badgeLabel = isCustomerCancelled ? 'Cancelled by Customer' : 'Cancelled by Cafe';
+      const badgeIcon = isCustomerCancelled ? 'fa-user-slash' : 'fa-store-slash';
+      const badgeBg = isCustomerCancelled ? '#f1f5f9' : '#fef2f2';
+      const badgeBorder = isCustomerCancelled ? '#cbd5e1' : '#fecaca';
+      const badgeColor = isCustomerCancelled ? '#334155' : '#991b1b';
+      const iconColor = isCustomerCancelled ? '#64748b' : '#dc2626';
+
       cancelStrip = `
-        <div style="background: ${isCustomerCancelled ? '#f1f5f9' : '#fef2f2'}; border: 1px solid ${isCustomerCancelled ? '#cbd5e1' : '#fecaca'}; border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: ${isCustomerCancelled ? '#334155' : '#991b1b'};">
-          <i class="fas ${isCustomerCancelled ? 'fa-user-slash' : 'fa-info-circle'}" style="color: ${isCustomerCancelled ? '#64748b' : '#dc2626'}; margin-right: 4px;"></i>
-          ${isCustomerCancelled ? 'Cancelled by Customer' : 'Cancelled by Kitchen'}: <strong>${escapeHtml(reasonStr || (isCustomerCancelled ? 'Grace window cancellation' : 'By restaurant'))}</strong>
+        <div style="background: ${badgeBg}; border: 1px solid ${badgeBorder}; border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: ${badgeColor}; display: flex; align-items: center; gap: 6px;">
+          <i class="fas ${badgeIcon}" style="color: ${iconColor};"></i>
+          <span>${badgeLabel}: <strong>${escapeHtml(displayReason)}</strong></span>
         </div>
         ${isOnlinePaid ? `
           <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 12px; margin-top: 6px; font-size: 0.78rem; color: #92400e; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">

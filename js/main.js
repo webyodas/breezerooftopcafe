@@ -5424,13 +5424,32 @@ function initCartSystem() {
     // CASE A: ORDER CANCELLED (TERMINAL STATE - HIDE STEPPER & STOP RADAR)
     // ========================================================================
     if (isCancelled) {
-      const reasonStr = String(order.cancellation_reason || '').trim();
+      const rawReason = String(order.cancellation_reason || '').trim();
       const isCust = (order.cancelled_by === 'customer');
+      const isPhoneCustRequest = !isCust && /customer requested|customer request|customer phoned/i.test(rawReason);
+
+      let cleanReason = rawReason
+        .replace(/^cancelled by customer:\s*/i, '')
+        .replace(/^cancelled by kitchen:\s*/i, '')
+        .replace(/^cancelled by restaurant:\s*/i, '')
+        .trim();
+
+      if (isCust) {
+        cleanReason = cleanReason || 'Cancelled within grace period';
+      } else if (isPhoneCustRequest) {
+        cleanReason = cleanReason || 'Cancelled on customer request';
+      } else {
+        cleanReason = cleanReason || 'Kitchen operational constraints';
+      }
 
       if (trackingStatusBadge) {
-        trackingStatusBadge.className = isCust ? 'tracking-header-badge customer-cancelled' : 'tracking-header-badge cancelled';
+        trackingStatusBadge.className = isCust
+          ? 'tracking-header-badge customer-cancelled'
+          : (isPhoneCustRequest ? 'tracking-header-badge customer-cancelled' : 'tracking-header-badge cancelled');
         if (trackingStatusBadgeText) {
-          trackingStatusBadgeText.textContent = isCust ? 'Cancelled by You' : 'Cancelled by Restaurant';
+          trackingStatusBadgeText.textContent = isCust
+            ? 'Cancelled by You'
+            : (isPhoneCustRequest ? 'Cancelled on Request' : 'Cancelled by Restaurant');
         }
       }
 
@@ -5439,18 +5458,24 @@ function initCartSystem() {
         trackingHeroCard.classList.remove('delivered-state');
         trackingHeroCard.classList.remove('cancelled-state');
         trackingHeroCard.classList.remove('user-cancelled-state');
-        trackingHeroCard.classList.add(isCust ? 'user-cancelled-state' : 'cancelled-state');
+        trackingHeroCard.classList.add(isCust ? 'user-cancelled-state' : (isPhoneCustRequest ? 'user-cancelled-state' : 'cancelled-state'));
       }
       if (trackingHeroHeading) {
-        trackingHeroHeading.textContent = isCust ? 'Order Cancelled by You' : 'Order Cancelled by Restaurant';
+        trackingHeroHeading.textContent = isCust
+          ? 'Order Cancelled by You'
+          : (isPhoneCustRequest ? 'Order Cancelled on Request' : 'Order Cancelled by Restaurant');
       }
       if (trackingHeroSubtext) {
-        trackingHeroSubtext.textContent = isCust
-          ? 'You cancelled this order during the grace period. No charges were incurred.'
-          : 'Our kitchen was unable to fulfill this order at this time. We apologize for the inconvenience.';
+        if (isCust) {
+          trackingHeroSubtext.textContent = 'You cancelled this order during the grace period. No charges were incurred.';
+        } else if (isPhoneCustRequest) {
+          trackingHeroSubtext.textContent = 'This order was cancelled with our cafe desk as requested. No charges were incurred.';
+        } else {
+          trackingHeroSubtext.textContent = 'Our kitchen was unable to fulfill this order at this time. We apologize for the inconvenience.';
+        }
       }
       if (trackingHeroIcon) {
-        trackingHeroIcon.className = isCust ? 'fas fa-user-check' : 'fas fa-times-circle';
+        trackingHeroIcon.className = (isCust || isPhoneCustRequest) ? 'fas fa-user-check' : 'fas fa-times-circle';
       }
 
       // Hide active in-progress elements completely
@@ -5471,7 +5496,7 @@ function initCartSystem() {
         const cancelNoticeBox = document.getElementById('trackingCancelReasonNotice');
         const cancelNoticeIcon = document.getElementById('trackingCancelNoticeIcon');
 
-        if (isCust) {
+        if (isCust || isPhoneCustRequest) {
           trackingCancelledCard.style.background = '#f8fafc';
           trackingCancelledCard.style.borderColor = '#cbd5e1';
           if (iconCircle) {
@@ -5480,7 +5505,7 @@ function initCartSystem() {
             iconCircle.innerHTML = '<i class="fas fa-user-check"></i>';
           }
           if (cancelTitleEl) {
-            cancelTitleEl.textContent = 'Order Cancelled by Customer';
+            cancelTitleEl.textContent = isCust ? 'Order Cancelled by Customer' : 'Order Cancelled on Customer Request';
             cancelTitleEl.style.color = '#1e293b';
           }
           if (cancelNoticeBox) {
@@ -5493,9 +5518,6 @@ function initCartSystem() {
             cancelNoticeIcon.style.color = '#0284c7';
           }
           if (trackingCancelReasonText) {
-            const cleanReason = reasonStr
-              ? reasonStr.replace(/^cancelled by customer:\s*/i, '').trim()
-              : 'Cancelled within grace period';
             trackingCancelReasonText.innerHTML = `<strong>Reason:</strong> ${escapeHtml(cleanReason)}`;
           }
         } else {
@@ -5520,7 +5542,6 @@ function initCartSystem() {
             cancelNoticeIcon.style.color = '#dc2626';
           }
           if (trackingCancelReasonText) {
-            const cleanReason = reasonStr || 'Kitchen operational constraints';
             trackingCancelReasonText.innerHTML = `<strong>Reason:</strong> ${escapeHtml(cleanReason)}`;
           }
         }

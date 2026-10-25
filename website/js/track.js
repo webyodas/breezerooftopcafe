@@ -417,14 +417,32 @@
       isDeliveredState = true;
     } else if (st === 'cancelled' || st === 'rejected') {
       activeIndex = -1;
+      const rawReason = String(order.cancellation_reason || '').trim();
       const isCust = (order.cancelled_by === 'customer');
-      badgeText = isCust ? 'Cancelled by You' : 'Cancelled by Restaurant';
-      badgeClass = isCust ? 'customer-cancelled' : 'cancelled';
-      heroIcon = isCust ? 'fa-user-check' : 'fa-times-circle';
-      heroHeading = isCust ? 'Order Cancelled by You' : 'Order Cancelled by Restaurant';
-      heroSub = isCust
-        ? 'You cancelled this order during the grace period. No charges were incurred.'
-        : (order.cancellation_reason ? ('Reason: ' + order.cancellation_reason) : 'Our kitchen was unable to fulfill this order at this time. We apologize for the inconvenience.');
+      const isPhoneCustRequest = !isCust && /customer requested|customer request|customer phoned/i.test(rawReason);
+
+      let cleanReason = rawReason
+        .replace(/^cancelled by customer:\s*/i, '')
+        .replace(/^cancelled by kitchen:\s*/i, '')
+        .replace(/^cancelled by restaurant:\s*/i, '')
+        .trim();
+
+      if (isCust) {
+        badgeText = 'Cancelled by You';
+        heroHeading = 'Order Cancelled by You';
+        heroSub = 'You cancelled this order during the grace period. No charges were incurred.';
+      } else if (isPhoneCustRequest) {
+        badgeText = 'Cancelled on Request';
+        heroHeading = 'Order Cancelled on Request';
+        heroSub = 'This order was cancelled with our cafe desk as requested. No charges were incurred.';
+      } else {
+        badgeText = 'Cancelled by Restaurant';
+        heroHeading = 'Order Cancelled by Restaurant';
+        heroSub = cleanReason ? ('Reason: ' + cleanReason) : 'Our kitchen was unable to fulfill this order at this time. We apologize for the inconvenience.';
+      }
+
+      badgeClass = (isCust || isPhoneCustRequest) ? 'customer-cancelled' : 'cancelled';
+      heroIcon = (isCust || isPhoneCustRequest) ? 'fa-user-check' : 'fa-times-circle';
       isCancelledState = true;
     }
 
