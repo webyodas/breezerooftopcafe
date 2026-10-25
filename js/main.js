@@ -5620,7 +5620,7 @@ function initCartSystem() {
     if (trackingDeliveredCard) trackingDeliveredCard.style.display = 'none';
     if (trackingCancelledCard) trackingCancelledCard.style.display = 'none';
     if (trackingStepper) trackingStepper.style.display = 'flex';
-    if (trackingPrepEstimate) trackingPrepEstimate.style.display = 'inline-flex';
+    // Estimated time is hidden until accepted and scheduled by restaurant kitchen owner
 
     // Calculate Active Waiting Step accurately:
     // When order is placed: Step 1 (Placed) is passed/green; Step 2 (Order Confirmed) is waiting
@@ -5703,18 +5703,12 @@ function initCartSystem() {
       if (trackingHeroHeading) trackingHeroHeading.textContent = 'Order Placed Successfully';
       if (trackingHeroSubtext) trackingHeroSubtext.textContent = 'Sending your order to the restaurant kitchen. Awaiting confirmation...';
       if (trackingHeroIcon) trackingHeroIcon.className = 'fas fa-clock';
-      if (trackingPrepTimeText) {
-        trackingPrepTimeText.innerHTML = `
-          <span>
-            <i class="fas fa-clock" style="color: var(--gold-primary, #ca8a04);"></i>
-            <strong>Estimated Combined Time: ~${totalDelivMins} Mins</strong>
-            ${isTakeaway ? '' : `<span style="font-size: 0.74rem; color: #94a3b8; margin-left: 6px;">(~${prepMins}m Prep + ~${transitBufferMins}m Delivery)</span>`}
-          </span>
-        `;
-      }
+      // Do NOT show estimated time before owner accepts order and sets preparation time
+      if (trackingPrepEstimate) trackingPrepEstimate.style.display = 'none';
       if (trackingCancelBox) trackingCancelBox.style.display = 'flex';
       if (trackingKitchenLocked) trackingKitchenLocked.style.display = 'none';
     } else if (step === 3) {
+      if (trackingPrepEstimate) trackingPrepEstimate.style.display = 'inline-flex';
       if (trackingStatusBadge) trackingStatusBadge.className = 'tracking-header-badge cooking';
       if (trackingStatusBadgeText) trackingStatusBadgeText.textContent = 'Preparing in Kitchen';
       if (trackingHeroHeading) trackingHeroHeading.textContent = 'Food is Being Prepared';
@@ -5748,6 +5742,7 @@ function initCartSystem() {
       if (trackingCancelBox) trackingCancelBox.style.display = 'none';
       if (trackingKitchenLocked) trackingKitchenLocked.style.display = 'flex';
     } else if (step === 4) {
+      if (trackingPrepEstimate) trackingPrepEstimate.style.display = 'inline-flex';
       const isFoodReady = st === 'food_ready';
       if (isFoodReady) {
         if (trackingStatusBadge) trackingStatusBadge.className = 'tracking-header-badge ready';

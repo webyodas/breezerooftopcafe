@@ -466,10 +466,23 @@
     }
     if (trackHeroHeading) trackHeroHeading.textContent = heroHeading;
     if (trackHeroSubtext) trackHeroSubtext.textContent = heroSub;
-    if (trackPrepTimeText) {
-      trackPrepTimeText.textContent = (st === 'delivered' || st === 'completed')
-        ? 'Delivered on time'
-        : `Est. Prep & Delivery: ~${order.estimated_prep_time || 25} Mins`;
+    if (trackPrepEstimate) {
+      if (st === 'placed' || st === 'pending' || isCancelledState) {
+        trackPrepEstimate.style.display = 'none';
+      } else if (isDeliveredState) {
+        trackPrepEstimate.style.display = 'inline-flex';
+        if (trackPrepTimeText) trackPrepTimeText.textContent = 'Delivered on time';
+      } else {
+        trackPrepEstimate.style.display = 'inline-flex';
+        if (trackPrepTimeText) {
+          const prepMins = Number(order.estimated_prep_time) || 20;
+          const orderTypeStr = (order.order_type || '').toLowerCase();
+          const isTakeaway = orderTypeStr.includes('takeaway') || orderTypeStr.includes('pickup');
+          trackPrepTimeText.textContent = isTakeaway
+            ? `Est. Prep: ~${prepMins} Mins`
+            : `Est. Prep & Delivery: ~${prepMins + 15} Mins`;
+        }
+      }
     }
 
     // Update Stepper Elements
