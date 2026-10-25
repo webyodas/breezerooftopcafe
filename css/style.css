@@ -2025,6 +2025,31 @@ button {
   opacity: 0.85;
 }
 
+.footer-legal-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-legal-link {
+  color: #a8a092;
+  text-decoration: none;
+  font-size: 0.8rem;
+  transition: color var(--transition-fast, 0.2s);
+}
+
+.footer-legal-link:hover {
+  color: var(--primary-gold, #b5883d);
+  text-decoration: underline;
+}
+
+.footer-legal-sep {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.75rem;
+}
+
 
 
 

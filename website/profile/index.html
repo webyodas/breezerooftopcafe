@@ -28,7 +28,6 @@
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- Google Identity Services for 1-Tap Google Sign-In -->
   <!-- Supabase JS Client for Cloud Database Sync -->
   <!-- Cloudflare D1 Client (Replaced Supabase) -->
   <script src="/js/cf-client.js"></script>
@@ -163,7 +162,7 @@
                 <h3 id="pageHeroName" class="hero-customer-name">Customer Name</h3>
               </div>
               <div class="hero-meta-pills">
-                <span id="pageHeroEmail" class="hero-pill"><i class="fab fa-google" style="color: #4285f4;"></i> customer@gmail.com</span>
+                <span id="pageHeroEmail" class="hero-pill"><i class="fas fa-shield-alt" style="color: #16a34a;"></i> Verified Customer</span>
                 <span id="pageHeroPhone" class="hero-pill"><i class="fas fa-phone" style="color: #16a34a;"></i> +91 ----------</span>
               </div>
             </div>
@@ -334,12 +333,18 @@
 
               <div class="form-group-v2" style="margin-bottom: 24px;">
                 <label class="form-label-v2">
-                  Google Account Email
+                  Account Verification &amp; Security
                 </label>
-                <div class="verified-email-box">
-                  <span id="pageDisplayEmailText" style="font-weight: 600; color: #1c1917;">customer@gmail.com</span>
-                  <span class="badge-email-verified">
-                    <i class="fas fa-check-circle"></i> Verified Google
+                <div class="verified-email-box" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fbf9f5; border: 1.5px solid #ece4d8; border-radius: 10px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-mobile-alt" style="font-size: 1.25rem; color: #b5883d;"></i>
+                    <div>
+                      <div id="pageDisplaySecurityPhone" style="font-weight: 700; color: #1c1917; font-size: 0.95rem;">+91 ----------</div>
+                      <div style="font-size: 0.78rem; color: #78716c;">Direct Mobile Authentication</div>
+                    </div>
+                  </div>
+                  <span class="badge-email-verified" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-check-circle"></i> Active &amp; Verified
                   </span>
                 </div>
                 <input type="hidden" id="pageDisplayEmail">
@@ -365,9 +370,6 @@
     </div>
   </main>
 
-  <!-- ==========================================================================
-       MODAL: CUSTOMER AUTHENTICATION (Google 1-Tap)
-       ========================================================================== -->
   <!-- ==========================================================================
        MODAL: CUSTOMER AUTHENTICATION (Fast Mobile + Name)
        ========================================================================== -->
@@ -668,6 +670,96 @@
       </div>
     </div>
   </div>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="assets/logo-full.png" alt="Breeze Logo" class="brand-logo-img" style="height: 64px; width: auto; margin-bottom: 14px;">
+          <p>
+            Palghar's premier open-sky dining lounge. High above the city on the 5th floor of Kanchan Aura, offering artisan matchas, messy burgers, and fairy-lit evenings.
+          </p>
+          <div class="social-links">
+            <a href="https://www.instagram.com/breezetherooftopcafe/?hl=en" target="_blank" rel="noopener noreferrer" class="social-link" title="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="social-link" title="Google Maps">
+              <i class="fas fa-map-marker-alt"></i>
+            </a>
+            <a href="tel:9623999095" class="social-link" title="Call Cafe Desk"><i class="fas fa-phone"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Quick Navigation</h4>
+          <ul class="footer-links-list">
+            <li><a href="/" class="footer-link">Home</a></li>
+            <li><a href="/menu" class="footer-link">Food &amp; Drink Menu</a></li>
+            <li><a href="/about" class="footer-link">About &amp; Rooftop Vibe</a></li>
+            <li><a href="/contact" class="footer-link">Location &amp; Timings</a></li>
+            <li><a href="/profile" class="footer-link">Customer Account &amp; Orders</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Menu Highlights</h4>
+          <ul class="footer-links-list">
+            <li><a href="/menu" class="footer-link">Strawberry Iced Matcha</a></li>
+            <li><a href="/menu" class="footer-link">Cheesy Burst Burger</a></li>
+            <li><a href="/menu" class="footer-link">Paneer Zinger Burger</a></li>
+            <li><a href="/menu" class="footer-link">Cheesy Peri Peri Fries</a></li>
+            <li><a href="/menu" class="footer-link">Exotic Veggie Pizza</a></li>
+            <li><a href="/menu" class="footer-link">Alfredo Pasta</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col footer-contact-col">
+          <h4>Visit &amp; Contact</h4>
+          <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="footer-contact-link" title="Open Google Maps Location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>5th Floor Kanchan Aura, Mahim Rd, Palghar 401404</span>
+          </a>
+          <div class="footer-contact-item">
+            <i class="fas fa-clock"></i>
+            <span class="store-hours-display">11:00 AM – 11:00 PM Daily</span>
+          </div>
+          <a href="tel:+919623999095" class="footer-contact-link" title="Call Breeze Cafe">
+            <i class="fas fa-phone"></i>
+            <span>+91 9623999095</span>
+          </a>
+          <div class="footer-contact-actions">
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold btn-sm" title="Directions on Google Maps">
+              <i class="fas fa-location-arrow"></i> Directions
+            </a>
+            <a href="tel:+919623999095" class="btn btn-primary btn-sm" title="Call directly">
+              <i class="fas fa-phone"></i> Call Us
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          © 2026 Breeze The Roof-Top Café. All Rights Reserved.
+        </div>
+        <div class="footer-legal-links">
+          <a href="/privacy" class="footer-legal-link">Privacy Policy</a>
+          <span class="footer-legal-sep">•</span>
+          <a href="/terms" class="footer-legal-link">Terms &amp; Conditions</a>
+          <span class="footer-legal-sep">•</span>
+          <a href="/refund" class="footer-legal-link">Refund Policy</a>
+          <span class="footer-legal-sep">•</span>
+          <a href="/shipping" class="footer-legal-link">Delivery &amp; Shipping</a>
+        </div>
+        <div>
+          Crafted by <a href="https://webyodas.pages.dev" target="_blank" rel="noopener noreferrer" class="webyodas-link">Webyodas</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>

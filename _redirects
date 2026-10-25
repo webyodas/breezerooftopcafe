@@ -58,3 +58,9 @@
 
 /terms         /terms/index.html   200
 /terms/        /terms/index.html   200
+
+/refund        /refund/index.html  200
+/refund/       /refund/index.html  200
+
+/shipping      /shipping/index.html 200
+/shipping/     /shipping/index.html 200

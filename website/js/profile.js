@@ -297,69 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initGuestGateway() {
-    const container = document.getElementById('profileGoogleGuestBtnContainer');
-    if (!container) return;
-
-    if (typeof window.google !== 'undefined' && window.google.accounts && window.google.accounts.id) {
-      const clientId = window.BREEZE_CONFIG ? window.BREEZE_CONFIG.GOOGLE_CLIENT_ID : '837032728985-15e43n6b9hrtok1l5jjascsvtlub71ae.apps.googleusercontent.com';
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: (response) => {
-          try {
-            const base64Url = response.credential.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-            const data = JSON.parse(jsonPayload);
-
-            profile.name = data.name || profile.name || 'Breeze Guest';
-            profile.email = (data.email || '').toLowerCase().trim();
-            profile.avatar = data.picture || '';
-            profile.isLoggedIn = true;
-
-            localStorage.setItem(CUSTOMER_PROFILE_KEY, JSON.stringify(profile));
-
-            if (typeof window.syncCustomerToSupabase === 'function') {
-              window.syncCustomerToSupabase(profile);
-            }
-            if (typeof window.saveCustomerProfile === 'function') {
-              window.saveCustomerProfile(profile);
-            }
-
-            // Broadcast auth change event to header / main.js
-            try {
-              window.dispatchEvent(new CustomEvent('breeze:auth_change', {
-                detail: { isLoggedIn: true, profile: profile }
-              }));
-            } catch (err) {}
-
-            notify('Welcome, ' + profile.name + '! 🎉');
-            checkAuthState();
-
-            // Proactively prompt user to add their mobile number if missing
-            if (!profile.phone) {
-              setTimeout(() => {
-                if (typeof window.openGooglePhonePromptModal === 'function') {
-                  window.openGooglePhonePromptModal({ name: profile.name, email: profile.email, isEdit: false });
-                }
-              }, 400);
-            }
-          } catch (e) {
-            console.error('Google token parse error:', e);
-          }
-        }
-      });
-
-      container.innerHTML = '';
-      window.google.accounts.id.renderButton(container, {
-        type: 'standard',
-        theme: 'outline',
-        size: 'large',
-        text: 'continue_with',
-        shape: 'pill',
-        width: 280
-      });
-    } else {
-      setTimeout(initGuestGateway, 300);
+    const phoneInput = document.getElementById('profileAuthPhoneInput');
+    if (phoneInput && document.activeElement !== phoneInput) {
+      try { phoneInput.focus(); } catch(e){}
     }
   }
 
@@ -427,14 +367,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (pageHeroName) pageHeroName.textContent = displayName;
     if (pageHeroEmail) {
-      pageHeroEmail.innerHTML = profile.email
-        ? `<i class="fab fa-google" style="color: #4285f4;"></i> ${escapeHtml(profile.email)}`
-        : `<i class="far fa-envelope"></i> No Google account linked`;
+      if (profile.email) {
+        pageHeroEmail.style.display = 'inline-flex';
+        pageHeroEmail.innerHTML = `<i class="fas fa-envelope" style="color: #6366f1;"></i> ${escapeHtml(profile.email)}`;
+      } else {
+        pageHeroEmail.style.display = 'inline-flex';
+        pageHeroEmail.innerHTML = `<i class="fas fa-shield-alt" style="color: #16a34a;"></i> Verified Customer`;
+      }
     }
     if (pageHeroPhone) {
       pageHeroPhone.innerHTML = profile.phone
         ? `<i class="fas fa-phone" style="color: #16a34a;"></i> +91 ${escapeHtml(profile.phone)}`
-        : `<i class="fas fa-phone-slash" style="color: #a8a29e;"></i> No phone added`;
+        : `<i class="fas fa-phone" style="color: #16a34a;"></i> Verified Session`;
     }
 
     updateStatsBar();
@@ -954,7 +898,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageInputName) pageInputName.value = profile.name || '';
     if (pageInputPhone) pageInputPhone.value = profile.phone || '';
     if (pageDisplayEmail) pageDisplayEmail.value = profile.email || '';
-    if (pageDisplayEmailText) pageDisplayEmailText.textContent = profile.email || 'Not connected';
+    const pageDisplaySecurityPhone = document.getElementById('pageDisplaySecurityPhone');
+    if (pageDisplaySecurityPhone) {
+      pageDisplaySecurityPhone.textContent = profile.phone ? ('+91 ' + profile.phone) : 'Direct Mobile Session';
+    }
   }
 
   function savePersonalDetails() {

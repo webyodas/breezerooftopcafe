@@ -2254,6 +2254,7 @@ function initCartSystem() {
   const profileInputName = document.getElementById('profileInputName');
   const profileInputPhone = document.getElementById('profileInputPhone');
   const profileDisplayEmail = document.getElementById('profileDisplayEmail');
+  const profileDisplaySecurityPhone = document.getElementById('profileDisplaySecurityPhone');
   const btnSavePersonalInfo = document.getElementById('btnSavePersonalInfo');
   const btnProfileSignOut = document.getElementById('btnProfileSignOut');
 
@@ -2516,10 +2517,10 @@ function initCartSystem() {
     if (customerAuthSubtitle && customerAuthTitle) {
       if (reason === 'checkout') {
         customerAuthTitle.textContent = 'Sign In to Place Order';
-        customerAuthSubtitle.innerHTML = '<span style="color:#b5883d;font-weight:600;"><i class="fas fa-lock"></i> Please sign in to place your order.</span> Fast 1-tap sign-in with your Google account.';
+        customerAuthSubtitle.innerHTML = '<span style="color:#b5883d;font-weight:600;"><i class="fas fa-lock"></i> Please sign in to place your order.</span> Enter your name &amp; mobile number for instant 1-tap checkout.';
       } else {
         customerAuthTitle.textContent = 'Sign In / Register';
-        customerAuthSubtitle.textContent = 'Sign in with Google to live track rooftop orders, save delivery addresses, and sync your cart.';
+        customerAuthSubtitle.textContent = 'Enter your name and mobile number to live track orders, save delivery addresses, and sync your cart.';
       }
     }
 
@@ -3132,14 +3133,18 @@ function initCartSystem() {
 
     if (profileHeroName) profileHeroName.textContent = displayName;
     if (profileHeroEmail) {
-      profileHeroEmail.innerHTML = customerProfile.email
-        ? `<i class="fab fa-google" style="color: #4285f4;"></i> ${escapeHtml(customerProfile.email)}`
-        : `<i class="far fa-envelope"></i> No Google account linked`;
+      if (customerProfile.email) {
+        profileHeroEmail.style.display = 'inline-flex';
+        profileHeroEmail.innerHTML = `<i class="fas fa-envelope" style="color: #6366f1;"></i> ${escapeHtml(customerProfile.email)}`;
+      } else {
+        profileHeroEmail.style.display = 'inline-flex';
+        profileHeroEmail.innerHTML = `<i class="fas fa-shield-alt" style="color: #16a34a;"></i> Verified Customer`;
+      }
     }
     if (profileHeroPhone) {
       profileHeroPhone.innerHTML = customerProfile.phone
         ? `<i class="fas fa-phone"></i> +91 ${escapeHtml(customerProfile.phone)}`
-        : `<i class="fas fa-phone-slash"></i> No phone added`;
+        : `<i class="fas fa-phone"></i> Verified Session`;
     }
 
     // Stats calculations
@@ -3166,7 +3171,10 @@ function initCartSystem() {
     // Form inputs in Personal Info tab
     if (profileInputName) profileInputName.value = customerProfile.name || '';
     if (profileInputPhone) profileInputPhone.value = customerProfile.phone || '';
-    if (profileDisplayEmail) profileDisplayEmail.value = customerProfile.email || 'Not connected';
+    if (profileDisplayEmail) profileDisplayEmail.value = customerProfile.email || '';
+    if (profileDisplaySecurityPhone) {
+      profileDisplaySecurityPhone.textContent = customerProfile.phone ? ('+91 ' + customerProfile.phone) : 'Direct Mobile Session';
+    }
 
     // Switch to target tab
     switchProfileTab(targetTab);
@@ -5101,6 +5109,7 @@ function initCartSystem() {
   function openOrderTrackingModal(order) {
     if (!orderTrackingModal) return;
     customerActiveOrder = order;
+    lastCustomerNotifiedStatus = (order && order.status) ? String(order.status).toLowerCase().trim() : null;
 
     if (cancellationInterval) clearInterval(cancellationInterval);
     if (simulatedPosTimeout) clearTimeout(simulatedPosTimeout);
@@ -5200,46 +5209,79 @@ function initCartSystem() {
     }
   }
 
+  // --------------------------------------------------------------------------
+  // GENTLE CUSTOMER NOTIFICATION SOUND ENGINE (One-shot, non-looping chime)
+  // --------------------------------------------------------------------------
+  let lastCustomerChimeTime = 0;
+  let lastCustomerNotifiedStatus = null;
+
   function playCustomerAlertTone(type = 'info') {
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      if (ctx.state === 'suspended') {
-        ctx.resume();
+      // Throttle: Never play more frequently than once every 2.5 seconds
+      const now = Date.now();
+      if (now - lastCustomerChimeTime < 2500) {
+        return;
       }
+      lastCustomerChimeTime = now;
+
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtxClass) return;
+
+      const ctx = new AudioCtxClass();
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+
+      const t = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+
       if (type === 'declined') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(440, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.4);
-        gain.gain.setValueAtTime(0.35, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.4);
-      } else {
+        // Soft, gentle descending tone (not harsh sawtooth or loud buzzer)
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+        osc.frequency.setValueAtTime(520, t);
+        osc.frequency.exponentialRampToValueAtTime(390, t + 0.35);
+
+        gain.gain.setValueAtTime(0.18, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.45);
+        osc.start(t);
+        osc.stop(t + 0.35);
+      } else {
+        // Gentle, pleasant one-shot bell chime (pure sine, warm G5/C6 decay)
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(784, t); // G5 note
+        osc.frequency.exponentialRampToValueAtTime(1046.5, t + 0.08); // slides sweetly to C6
+
+        gain.gain.setValueAtTime(0.18, t); // Soft, comfortable volume (0.18)
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55); // smooth gentle decay
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.55);
       }
+
+      // Gentle single haptic tap (if supported), no vibration buzzer loop
       if (navigator.vibrate) {
-        navigator.vibrate(type === 'declined' ? [300, 120, 300] : [150, 80, 150]);
+        try { navigator.vibrate(60); } catch(e){}
       }
-    } catch (e) {}
+    } catch (e) {
+      // Gracefully ignore audio autoplay restrictions
+    }
   }
 
   function handleLiveCustomerOrderUpdate(dbOrder) {
     if (!dbOrder) return;
     if (customerActiveOrder && customerActiveOrder.id === dbOrder.id) {
+      const prevStatus = (customerActiveOrder.status || '').toLowerCase().trim();
+      const st = (dbOrder.status || '').toLowerCase().trim();
+
+      // Only alert if status has ACTUALLY CHANGED and hasn't been alerted yet
+      const isStatusChanged = Boolean(st && st !== prevStatus && st !== lastCustomerNotifiedStatus);
+
       customerActiveOrder.status = dbOrder.status;
       if (dbOrder.rider_id !== undefined) customerActiveOrder.rider_id = dbOrder.rider_id;
       if (dbOrder.rider_name !== undefined) customerActiveOrder.rider_name = dbOrder.rider_name;
@@ -5252,7 +5294,6 @@ function initCartSystem() {
       if (dbOrder.cancellation_reason !== undefined) customerActiveOrder.cancellation_reason = dbOrder.cancellation_reason;
       if (dbOrder.delay_reason !== undefined) customerActiveOrder.delay_reason = dbOrder.delay_reason;
 
-      const st = (dbOrder.status || '').toLowerCase().trim();
       if (st === 'placed') customerActiveOrder.currentStep = 2;
       else if (st === 'confirmed' || st === 'accepted' || st === 'cooking' || st === 'preparing') customerActiveOrder.currentStep = 3;
       else if (st === 'food_ready') customerActiveOrder.currentStep = 4;
@@ -5276,30 +5317,35 @@ function initCartSystem() {
 
       updateTrackingUI(customerActiveOrder);
 
-      if (st === 'confirmed' || st === 'accepted' || st === 'cooking' || st === 'preparing') {
-        showToast('👨‍🍳 Order confirmed by restaurant! Chef is preparing your dishes.');
-        playCustomerAlertTone('info');
-      } else if (st === 'food_ready') {
-        showToast(dbOrder.rider_name ? `🍱 Food ready! Partner ${dbOrder.rider_name} assigned.` : '🍱 Food is ready & packed! Awaiting delivery dispatch.');
-        playCustomerAlertTone('info');
-      } else if (st === 'out_for_delivery') {
-        showToast('🛵 Out for delivery! ' + (dbOrder.rider_name ? (dbOrder.rider_name + ' is on the way') : 'Your rider is on the way'));
-        playCustomerAlertTone('info');
-      } else if (st === 'delivered' || st === 'completed') {
-        showToast('🎉 Your meal has arrived! Enjoy your food.');
-        playCustomerAlertTone('info');
-        syncUserOrders(customerProfile.email, customerProfile.phone);
-      } else if (st === 'cancelled' || st === 'rejected') {
-        const isCust = (dbOrder.cancelled_by === 'customer') || /customer|mistake|grace window|changed mind/i.test(dbOrder.cancellation_reason || '');
-        if (isCust) {
-          const cleanReason = (dbOrder.cancellation_reason || '').replace(/^cancelled by customer:\s*/i, '').trim();
-          showToast('ℹ️ Order #' + dbOrder.id + ' cancelled by customer' + (cleanReason ? (': ' + cleanReason) : '.'));
+      // Trigger user-facing toast and one-shot chime ONLY on genuine status transition
+      if (isStatusChanged) {
+        lastCustomerNotifiedStatus = st;
+
+        if (st === 'confirmed' || st === 'accepted' || st === 'cooking' || st === 'preparing') {
+          showToast('👨‍🍳 Order confirmed by restaurant! Chef is preparing your dishes.');
           playCustomerAlertTone('info');
-        } else {
-          showToast('❌ Order #' + dbOrder.id + ' was declined by kitchen: ' + (dbOrder.cancellation_reason || 'Peak kitchen capacity'));
-          playCustomerAlertTone('declined');
+        } else if (st === 'food_ready') {
+          showToast(dbOrder.rider_name ? `🍱 Food ready! Partner ${dbOrder.rider_name} assigned.` : '🍱 Food is ready & packed! Awaiting delivery dispatch.');
+          playCustomerAlertTone('info');
+        } else if (st === 'out_for_delivery') {
+          showToast('🛵 Out for delivery! ' + (dbOrder.rider_name ? (dbOrder.rider_name + ' is on the way') : 'Your rider is on the way'));
+          playCustomerAlertTone('info');
+        } else if (st === 'delivered' || st === 'completed') {
+          showToast('🎉 Your meal has arrived! Enjoy your food.');
+          playCustomerAlertTone('info');
+          syncUserOrders(customerProfile.email, customerProfile.phone);
+        } else if (st === 'cancelled' || st === 'rejected') {
+          const isCust = (dbOrder.cancelled_by === 'customer') || /customer|mistake|grace window|changed mind/i.test(dbOrder.cancellation_reason || '');
+          if (isCust) {
+            const cleanReason = (dbOrder.cancellation_reason || '').replace(/^cancelled by customer:\s*/i, '').trim();
+            showToast('ℹ️ Order #' + dbOrder.id + ' cancelled by customer' + (cleanReason ? (': ' + cleanReason) : '.'));
+            playCustomerAlertTone('info');
+          } else {
+            showToast('❌ Order #' + dbOrder.id + ' was declined by kitchen: ' + (dbOrder.cancellation_reason || 'Peak kitchen capacity'));
+            playCustomerAlertTone('declined');
+          }
+          syncUserOrders(customerProfile.email, customerProfile.phone);
         }
-        syncUserOrders(customerProfile.email, customerProfile.phone);
       }
     }
   }
