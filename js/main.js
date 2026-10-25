@@ -2948,17 +2948,10 @@ function initCartSystem() {
       const statusColor = isCancelled ? '#c62828' : (isDelivered ? '#2e7d32' : '#e65100');
       const statusText = isCancelled ? 'Cancelled' : (isDelivered ? 'Delivered' : 'In Progress');
 
-      const idParts = String(ord.id || '').split('-');
-      let tokenPill = '';
-      if (idParts.length >= 3) {
-        tokenPill = `<span style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:800; font-size:0.72rem; padding:1px 6px; border-radius:4px; margin-right:6px;">Token #${idParts[idParts.length - 1]}</span>`;
-      }
-
       ordersHtml += `
         <div class="profile-order-card">
           <div class="profile-order-header">
             <div style="display:flex; align-items:center;">
-              ${tokenPill}
               <span class="profile-order-id">#${escapeHtml(ord.id)}</span>
             </div>
             <span class="profile-order-date">${dateStr}</span>
@@ -5118,9 +5111,7 @@ function initCartSystem() {
     if (simulatedPosTimeout) clearTimeout(simulatedPosTimeout);
 
     // Populate Order Information
-    const idParts = String(order.id || '').split('-');
-    const tokenSuffix = idParts.length >= 3 ? ` (Token #${idParts[idParts.length - 1]})` : '';
-    if (trackingOrderTitle) trackingOrderTitle.textContent = 'Order #' + order.id + tokenSuffix;
+    if (trackingOrderTitle) trackingOrderTitle.textContent = 'Order #' + order.id;
     if (trackingTotalAmount) trackingTotalAmount.textContent = '₹' + order.total;
     if (trackingFinalBill) trackingFinalBill.textContent = '₹' + order.total;
 

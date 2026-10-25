@@ -234,10 +234,8 @@
     if (trackResultsContainer) trackResultsContainer.style.display = 'block';
 
     // Order Header
-    const idParts = String(order.id).split('-');
-    const token = idParts.length >= 3 ? idParts[idParts.length - 1] : order.id.slice(-4);
     if (trackDisplayOrderId) {
-      trackDisplayOrderId.innerHTML = `Order #${escapeHtml(order.id)} <span class="tracking-token-pill">Token #${escapeHtml(token)}</span>`;
+      trackDisplayOrderId.innerHTML = `Order #${escapeHtml(order.id)}`;
     }
 
     if (trackOrderDate) {
@@ -348,7 +346,7 @@
 
     // Direct WhatsApp Manager Inquiry
     if (trackHelpWhatsappBtn) {
-      const waText = encodeURIComponent(`Hi Breeze Cafe Manager, I am inquiring regarding my Order #${order.id} (Token #${token}).`);
+      const waText = encodeURIComponent(`Hi Breeze Cafe Manager, I am inquiring regarding my Order #${order.id}.`);
       trackHelpWhatsappBtn.href = `https://wa.me/919623999095?text=${waText}`;
     }
 
@@ -643,7 +641,7 @@
       html += `
         <button type="button" class="track-active-chip ${isSelected ? 'active' : ''}" data-order-id="${escapeHtml(ord.id)}">
           <i class="fas ${icon}"></i>
-          <span>Token #${escapeHtml(token)}</span>
+          <span>#${escapeHtml(ord.id)}</span>
           <span class="chip-badge">${statusLabel}</span>
         </button>
       `;
@@ -703,7 +701,6 @@
         <div class="track-past-card">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="tracking-token-pill">Token #${escapeHtml(token)}</span>
               <strong style="color:#1c1917; font-size:0.95rem;">Order #${escapeHtml(ord.id)}</strong>
               <span style="font-size:0.78rem; color:#78716c;">• ${escapeHtml(dateStr)}</span>
             </div>

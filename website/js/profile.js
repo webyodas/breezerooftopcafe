@@ -815,12 +815,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else statusText = 'Order Confirmed';
       }
 
-      const idParts = String(ord.id || '').split('-');
-      let tokenPill = '';
-      if (idParts.length >= 3) {
-        tokenPill = `<span style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px;">Token #${escapeHtml(idParts[idParts.length - 1])}</span>`;
-      }
-
       const cardBorder = isActive
         ? 'border: 2px solid rgba(181, 136, 61, 0.55); box-shadow: 0 4px 16px rgba(181, 136, 61, 0.12);'
         : 'border: 1px solid #e7e2d9;';
@@ -829,7 +823,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="addr-card-v2" style="background:#ffffff; margin-bottom:14px; ${cardBorder} padding:20px; border-radius:16px;">
           <div class="addr-card-header" style="margin-bottom:10px;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              ${tokenPill}
               <span style="font-weight:800; font-size:1rem; color:#1c1917;">#${escapeHtml(ord.id)}</span>
               <span style="font-size:0.78rem; color:#78716c;"><i class="far fa-calendar-alt"></i> ${escapeHtml(dateStr)}</span>
             </div>
