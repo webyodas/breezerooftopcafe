@@ -14,15 +14,15 @@ const BREEZE_CONFIG = {
 
   // 2. GOOGLE IDENTITY SERVICES OAUTH
   // Generated from Google Cloud Console under Webyodas account for breezecafe.pages.dev:
-  GOOGLE_CLIENT_ID: '837032728985-15e43n6b9hrtok1l5jjascsvtlub71ae.apps.googleusercontent.com',
+  GOOGLE_CLIENT_ID: '', // Deprecated: Replaced with Fast Mobile Phone Auth
 
   // 3. RAZORPAY PAYMENT GATEWAY & DOORSTEP UPI
   // Military-grade security: Secrets are NEVER exposed in storefront code.
   // Public Key ID is dynamically loaded from secure admin storage or runtime environment.
   RAZORPAY_KEY_ID: (function() {
     try {
-      return localStorage.getItem('breeze_rzp_key_id') || '';
-    } catch(e) { return ''; }
+      return localStorage.getItem('breeze_rzp_key_id') || 'rzp_test_TlgwHYUpOAKE2P';
+    } catch(e) { return 'rzp_test_TlgwHYUpOAKE2P'; }
   })(),
   CAFE_UPI_ID: 'breezecafe@icici', // Primary Merchant UPI ID for dynamic QR code at doorstep
 
@@ -2561,25 +2561,35 @@ function initCartSystem() {
   }
   if (customerAuthCloseBtn) customerAuthCloseBtn.addEventListener('click', closeAuthModal);
 
-  // Direct Phone & Name Login Handler (Zero Third-Party Dependency)
-  const directPhoneAuthForm = document.getElementById('directPhoneAuthForm');
-  const authPhoneInput = document.getElementById('authPhoneInput');
-  const authNameInput = document.getElementById('authNameInput');
+  // Direct Fast Phone & Name Login Handler (1-Tap Seamless Auth)
+  const phoneAuthForm = document.getElementById('fastPhoneAuthForm') || document.getElementById('directPhoneAuthForm');
+  const authPhoneInput = document.getElementById('authCustomerPhone') || document.getElementById('authPhoneInput');
+  const authNameInput = document.getElementById('authCustomerName') || document.getElementById('authNameInput');
+  const authPhoneError = document.getElementById('authPhoneError');
 
-  if (directPhoneAuthForm) {
-    directPhoneAuthForm.addEventListener('submit', (e) => {
+  if (phoneAuthForm) {
+    phoneAuthForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const phone = authPhoneInput ? authPhoneInput.value.trim() : '';
       const name = authNameInput ? authNameInput.value.trim() : '';
       const digits = phone.replace(/[^0-9]/g, '').slice(-10);
-      if (digits.length !== 10) {
+      if (digits.length !== 10 || !/^[6-9]/.test(digits)) {
+        if (authPhoneError) {
+          authPhoneError.textContent = 'Please enter a valid 10-digit Indian mobile number';
+          authPhoneError.style.display = 'block';
+        }
         showToast('Please enter a valid 10-digit mobile number');
         return;
       }
-      if (!name) {
+      if (!name || name.length < 2) {
+        if (authPhoneError) {
+          authPhoneError.textContent = 'Please enter your full name';
+          authPhoneError.style.display = 'block';
+        }
         showToast('Please enter your full name');
         return;
       }
+      if (authPhoneError) authPhoneError.style.display = 'none';
 
       saveCustomerProfile({
         name: name,
@@ -2599,6 +2609,7 @@ function initCartSystem() {
 
       closeAuthModal();
       showToast(`✓ Welcome to Breeze, ${name}!`);
+      renderAuthUI();
 
       if (pendingCheckoutAction) {
         const nextAction = pendingCheckoutAction;
@@ -4385,393 +4396,7 @@ function initCartSystem() {
     // Update submit button text
     if (orderSubmitBtnLabel) {
       if (selectedPaymentMethod === 'razorpay') {
-        orderSubmitBtnLabel.textContent = 'Proceed to Pay ₹' + totalBill + ' (Online)';
-      } else {
-        orderSubmitBtnLabel.textContent = 'Confirm COD Order (₹' + totalBill + ')';
-      }
-    }
-  }
-
-  // Payment method radio change listener
-  if (payMethodRazorpay) {
-    payMethodRazorpay.addEventListener('change', () => {
-      selectedPaymentMethod = 'razorpay';
-      updatePaymentSelectorUI();
-    });
-  }
-  if (payMethodCod) {
-    payMethodCod.addEventListener('change', () => {
-      const totalBill = getActiveOrderBill();
-      if (totalBill > BREEZE_CONFIG.MAX_COD_AMOUNT) {
-        showToast('Cash on Delivery is limited to orders up to ₹1,000 for kitchen safety.');
-        return;
-      }
-      selectedPaymentMethod = 'cod';
-      updatePaymentSelectorUI();
-    });
-  }
-
-  function openOrderPrompt(mode, directItem) {
-    if (window.isBreezeStoreOpen === false) {
-      openStoreClosedModal();
-      return;
-    }
-
-    // Live Stock Validation Intercept
-    if (mode === 'direct' && directItem) {
-      if (isItemSoldOut(directItem)) {
-        showToast(`⚠️ Sorry! "${directItem.name}" is sold out in the kitchen.`);
-        return;
-      }
-    } else {
-      const soldOutList = getSoldOutItemsInCart();
-      if (soldOutList.length > 0) {
-        openSoldOutReconcileModal(soldOutList, () => {
-          if (cart.length > 0) {
-            openOrderPrompt('cart', null);
-          }
-        });
-        return;
-      }
-    }
-
-    // Mandatory Authentication Gate (Zomato-grade)
-    if (!customerProfile || !customerProfile.isLoggedIn || (!customerProfile.email && !customerProfile.phone)) {
-      pendingCheckoutAction = { mode, directItem };
-      closeCartDrawer();
-      openAuthModal('checkout');
-      showToast('🔒 Please sign in to place your order');
-      return;
-    }
-
-    if (!orderDetailsModal) return;
-    currentOrderMode = mode;
-    directOrderItem = directItem;
-
-    // Prefill customer form fields from profile
-    if (orderCustName) orderCustName.value = customerProfile.name || '';
-    if (orderCustPhone) orderCustPhone.value = customerProfile.phone || '';
-    if (orderCustTable) orderCustTable.value = customerProfile.table || '';
-    if (orderCustNotes) orderCustNotes.value = customerProfile.notes || '';
-
-    // Set order type pills & inputs
-    setOrderType(activeOrderType || 'Home Delivery');
-    if (!activeOrderType || activeOrderType === 'Home Delivery') {
-      renderCheckoutAddressSelector();
-    }
-
-    // Render Order Summary
-    if (orderModalSummary) {
-      if (mode === 'direct' && directItem) {
-        if (orderModalTitle) orderModalTitle.textContent = 'Checkout & Delivery Details';
-        let summaryHtml = '<div class="order-summary-header"><span>Item Ordered</span><span>Subtotal</span></div>';
-        summaryHtml += '<div class="order-summary-list">';
-        summaryHtml += '<div class="order-summary-item">';
-        summaryHtml += '<span class="order-summary-item-name"><span class="order-summary-item-qty">1x</span>' + escapeHtml(directItem.name) + '</span>';
-        summaryHtml += '<span class="order-summary-item-price">₹' + directItem.price + '</span>';
-        summaryHtml += '</div>';
-        summaryHtml += '</div>';
-        summaryHtml += '<div class="order-summary-footer">';
-        summaryHtml += '<span class="order-summary-footer-label">Total Amount:</span>';
-        summaryHtml += '<span class="order-summary-footer-total">₹' + directItem.price + '</span>';
-        summaryHtml += '</div>';
-        orderModalSummary.innerHTML = summaryHtml;
-      } else {
-        // Cart mode
-        if (orderModalTitle) orderModalTitle.textContent = 'Checkout & Delivery Details';
-        const { count, total } = getCartTotals();
-        let summaryHtml = '<div class="order-summary-header"><span>Order Summary (' + count + ' item' + (count === 1 ? '' : 's') + ')</span><span>Subtotal</span></div>';
-        summaryHtml += '<div class="order-summary-list">';
-        cart.forEach(item => {
-          const itemTotal = (item.price || 0) * (item.qty || 1);
-          summaryHtml += '<div class="order-summary-item">';
-          summaryHtml += '<span class="order-summary-item-name"><span class="order-summary-item-qty">' + (item.qty || 1) + 'x</span>' + escapeHtml(item.name) + '</span>';
-          summaryHtml += '<span class="order-summary-item-price">₹' + itemTotal + '</span>';
-          summaryHtml += '</div>';
-        });
-        summaryHtml += '</div>';
-        summaryHtml += '<div class="order-summary-footer">';
-        summaryHtml += '<span class="order-summary-footer-label">Grand Total:</span>';
-        summaryHtml += '<span class="order-summary-footer-total">₹' + total + '</span>';
-        summaryHtml += '</div>';
-        orderModalSummary.innerHTML = summaryHtml;
-      }
-    }
-
-    // Refresh payment selector and COD limits
-    updatePaymentSelectorUI();
-
-    closeCartDrawer();
-    orderDetailsModal.classList.add('active');
-    document.body.classList.add('modal-open');
-    document.documentElement.classList.add('modal-open');
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-
-    // Focus first relevant input
-    setTimeout(() => {
-      if (orderCustName && !orderCustName.value) {
-        orderCustName.focus();
-      } else if (orderCustPhone && !orderCustPhone.value) {
-        orderCustPhone.focus();
-      } else if (orderCustAddress && activeOrderType === 'Home Delivery' && !orderCustAddress.value) {
-        orderCustAddress.focus();
-      }
-    }, 150);
-  }
-
-  function closeOrderPrompt() {
-    if (orderDetailsModal) {
-      orderDetailsModal.classList.remove('active');
-      document.body.classList.remove('modal-open');
-      document.documentElement.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-  }
-
-  if (orderModalCloseBtn) orderModalCloseBtn.addEventListener('click', closeOrderPrompt);
-  if (orderDetailsModal) {
-    orderDetailsModal.addEventListener('click', (e) => {
-      if (e.target === orderDetailsModal) closeOrderPrompt();
-    });
-  }
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (orderDetailsModal && orderDetailsModal.classList.contains('active')) closeOrderPrompt();
-      if (customerAuthModal && customerAuthModal.classList.contains('active')) closeAuthModal();
-      if (orderTrackingModal && orderTrackingModal.classList.contains('active')) closeOrderTrackingModal();
-      if (razorpaySimModal && razorpaySimModal.classList.contains('active')) closeRazorpaySimModal();
-      if (orderHistoryModal && orderHistoryModal.classList.contains('active')) closeOrderHistoryModal();
-      if (customerProfileModal && customerProfileModal.classList.contains('active')) closeCustomerProfileModal();
-      if (googlePhonePromptModal && googlePhonePromptModal.classList.contains('active')) closeGooglePhonePromptModal();
-      const storeClosedModal = document.getElementById('storeClosedModal');
-      if (storeClosedModal && storeClosedModal.classList.contains('active')) closeStoreClosedModal();
-    }
-  });
-
-  // Order Type Pills Listener
-  if (orderTypePills) {
-    orderTypePills.querySelectorAll('.order-type-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        setOrderType(pill.dataset.type);
-      });
-    });
-  }
-
-  // --------------------------------------------------------------------------
-  // CHRONOLOGICAL DAILY ORDER & TOKEN NUMBER GENERATOR
-  // --------------------------------------------------------------------------
-  async function generateNextOrderNumber() {
-    const now = new Date();
-    const dd = String(now.getDate()).padStart(2, '0');
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const datePrefix = `BRZ-${dd}${mm}-`; // e.g. BRZ-1210-
-
-    let nextSeq = 1;
-    const client = getSupabaseClient();
-    if (client) {
-      try {
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).toISOString();
-        const { data, error } = await client
-          .from('orders')
-          .select('id, created_at')
-          .gte('created_at', startOfDay)
-          .order('created_at', { ascending: false });
-
-        if (!error && Array.isArray(data)) {
-          let maxExisting = 0;
-          data.forEach(o => {
-            if (o.id && o.id.startsWith(datePrefix)) {
-              const parts = o.id.split('-');
-              const num = parseInt(parts[parts.length - 1], 10);
-              if (!isNaN(num) && num > maxExisting) {
-                maxExisting = num;
-              }
-            }
-          });
-          nextSeq = maxExisting > 0 ? maxExisting + 1 : data.length + 1;
-        }
-      } catch (err) {
-        console.warn('Could not query daily order sequence from Supabase:', err);
-      }
-    }
-
-    // Local sequence fallback
-    try {
-      const localKey = `brz_daily_seq_${dd}${mm}`;
-      const cached = parseInt(localStorage.getItem(localKey) || '0', 10);
-      if (cached >= nextSeq) {
-        nextSeq = cached + 1;
-      }
-      localStorage.setItem(localKey, String(nextSeq));
-    } catch (_) {}
-
-    const tokenFormatted = String(nextSeq).padStart(2, '0');
-    return `${datePrefix}${tokenFormatted}`;
-  }
-
-  // --------------------------------------------------------------------------
-  // SUBMIT ORDER ENGINE (RAZORPAY + COD + PETPOOJA DISPATCH)
-  // --------------------------------------------------------------------------
-  async function submitOrder() {
-    if (window.isBreezeStoreOpen === false) {
-      showToast('🔴 ' + (window.breezeStoreClosureReason || 'Kitchen is currently closed for online ordering.'));
-      closeOrderPrompt();
-      return;
-    }
-
-    // Final security check: ensure user is authenticated
-    if (!customerProfile || !customerProfile.isLoggedIn || (!customerProfile.email && !customerProfile.phone)) {
-      pendingCheckoutAction = { mode: currentOrderMode, directItem: directOrderItem };
-      closeOrderPrompt();
-      openAuthModal('checkout');
-      showToast('🔒 Please sign in to place your order');
-      return;
-    }
-
-    const name = orderCustName ? orderCustName.value.trim() : '';
-    const phone = orderCustPhone ? orderCustPhone.value.trim() : '';
-    const address = orderCustAddress ? orderCustAddress.value.trim() : '';
-    const table = orderCustTable ? orderCustTable.value.trim() : '';
-    const notes = orderCustNotes ? orderCustNotes.value.trim() : '';
-
-    if (!name) {
-      showToast('Please enter your full name');
-      if (orderCustName) orderCustName.focus();
-      return;
-    }
-
-    const digitsOnly = phone.replace(/[^0-9]/g, '');
-    if (!isValidIndianMobile(digitsOnly)) {
-      showToast('Please enter a valid 10-digit mobile number (e.g. 9876543210)');
-      if (orderCustPhone) orderCustPhone.focus();
-      return;
-    }
-
-    if (activeOrderType === 'Home Delivery' && !address) {
-      showToast('Please enter your delivery address');
-      if (orderCustAddress) orderCustAddress.focus();
-      return;
-    }
-
-    // Auto-save/update customer profile
-    const isCustomCheckoutAddr = Boolean(checkoutAddressSelect && checkoutAddressSelect.value === 'custom');
-    const profileUpdates = {
-      name: name,
-      orderType: activeOrderType,
-      table: table,
-      notes: notes,
-      isLoggedIn: true
-    };
-
-    if (!Array.isArray(customerProfile.saved_addresses)) {
-      customerProfile.saved_addresses = [];
-    }
-
-    // Only update saved profile address if user did not choose a one-time custom address
-    if (!isCustomCheckoutAddr) {
-      profileUpdates.address = address;
-      if (address && customerProfile.saved_addresses.length === 0) {
-        customerProfile.saved_addresses.push({
-          id: 'addr_' + Date.now(),
-          label: 'Home',
-          address: address,
-          landmark: '',
-          is_default: true
-        });
-        profileUpdates.saved_addresses = customerProfile.saved_addresses;
-      }
-    }
-
-    // Ensure primary phone is set in profile
-    if (!customerProfile.phone || !customerProfile.isLoggedIn) {
-      profileUpdates.phone = digitsOnly;
-    }
-    saveCustomerProfile(profileUpdates);
-
-    // Assemble ordered items
-    let itemsList = [];
-    let orderTotal = 0;
-
-    if (currentOrderMode === 'direct' && directOrderItem) {
-      itemsList = [{
-        name: directOrderItem.name,
-        price: directOrderItem.price,
-        qty: 1
-      }];
-      orderTotal = directOrderItem.price;
-    } else {
-      const { count, total } = getCartTotals();
-      if (count === 0) {
-        showToast('Your cart is empty! Please add items first.');
-        closeOrderPrompt();
-        return;
-      }
-      itemsList = cart.map(i => ({ name: i.name, price: i.price, qty: i.qty || 1, petpooja_code: i.petpooja_code || null }));
-      orderTotal = total;
-    }
-
-    // Live Cloud Kitchen Availability Check (Realtime Supabase Re-verification)
-    const liveMenu = await fetchCloudMenuItems(true);
-    const soldOutItems = (currentOrderMode === 'direct' && directOrderItem)
-      ? (isItemSoldOut(directOrderItem, liveMenu) ? [directOrderItem] : [])
-      : getSoldOutItemsInCart(liveMenu);
-
-    if (soldOutItems.length > 0) {
-      openSoldOutReconcileModal(soldOutItems, () => {
-        if (cart.length > 0) {
-          openOrderPrompt('cart', null);
-        } else {
-          closeOrderPrompt();
-          showToast('All items were sold out. Cart cleared.');
-        }
-      });
-      return;
-    }
-
-    // Check COD safety cap
-    if (selectedPaymentMethod === 'cod' && orderTotal > BREEZE_CONFIG.MAX_COD_AMOUNT) {
-      showToast('Cash on Delivery is limited to orders up to ₹1,000. Please select Online Payment.');
-      return;
-    }
-
-    // Create Order Object (Chronological Daily Token)
-    const orderId = await generateNextOrderNumber();
-    const order = {
-      id: orderId,
-      items: itemsList,
-      total: orderTotal,
-      customer: {
-        email: customerProfile.email || null,
-        name: name,
-        phone: phone,
-        address: address,
-        type: activeOrderType,
-        table: table,
-        notes: notes
-      },
-      paymentMethod: selectedPaymentMethod,
-      paymentStatus: selectedPaymentMethod === 'razorpay' ? 'PAID' : 'PENDING_ON_DELIVERY',
-      paymentId: null,
-      status: 'placed',
-      currentStep: 1,
-      placedAt: Date.now(),
-      prepTimeMins: BREEZE_CONFIG.ESTIMATED_PREP_MINUTES,
-      cancellationSecondsRemaining: BREEZE_CONFIG.CANCELLATION_GRACE_SECONDS
-    };
-
-    currentPendingOrder = order;
-
-    if (selectedPaymentMethod === 'razorpay') {
-      if (BREEZE_CONFIG.RAZORPAY_KEY_ID) {
-        // Live Razorpay SDK Flow
-        launchLiveRazorpay(order);
-      } else {
-        // Simulated Razorpay Gateway Flow (while waiting for owner KYC)
-        closeOrderPrompt();
-        openRazorpaySimModal(order);
-      }
+      launchLiveRazorpay(order);
     } else {
       // Cash on Delivery
       closeOrderPrompt();
@@ -4780,15 +4405,14 @@ function initCartSystem() {
     }
   }
 
-  // Live Razorpay Launcher
+  // Live Razorpay Launcher (Official SDK Modal - Zero Custom Simulator)
   function launchLiveRazorpay(order) {
     if (typeof window.Razorpay === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = () => triggerRazorpaySDK(order);
       script.onerror = () => {
-        showToast('Could not load Razorpay gateway. Opening test simulator.');
-        openRazorpaySimModal(order);
+        showToast('Could not load Razorpay payment gateway. Please check your internet connection.');
       };
       document.head.appendChild(script);
     } else {
@@ -4797,23 +4421,24 @@ function initCartSystem() {
   }
 
   function triggerRazorpaySDK(order) {
+    const key = (window.BREEZE_CONFIG && window.BREEZE_CONFIG.RAZORPAY_KEY_ID) || 'rzp_test_TlgwHYUpOAKE2P';
     const options = {
-      key: BREEZE_CONFIG.RAZORPAY_KEY_ID,
-      amount: order.total * 100, // paise
+      key: key,
+      amount: Math.round(Number(order.total || 0) * 100), // in paise
       currency: 'INR',
-      name: 'Breeze The Roof-Top Café',
-      description: 'Order ' + order.id,
+      name: 'Breeze Rooftop Cafe',
+      description: 'Order #' + order.id,
       image: 'assets/logo-transparent.png',
       prefill: {
-        name: order.customer.name,
-        contact: order.customer.phone,
-        email: order.customer.email || (customerProfile && customerProfile.email ? customerProfile.email : '')
+        name: (order.customer && order.customer.name) || (customerProfile && customerProfile.name) || '',
+        contact: (order.customer && order.customer.phone) || (customerProfile && customerProfile.phone) || '',
+        email: (order.customer && order.customer.email) || (customerProfile && customerProfile.email) || ''
       },
       theme: {
         color: '#b5883d'
       },
       handler: function(response) {
-        order.paymentId = response.razorpay_payment_id;
+        order.paymentId = response.razorpay_payment_id || ('RZP_LIVE_' + Date.now());
         order.paymentStatus = 'PAID';
         closeOrderPrompt();
         finalizeOrder(order);
@@ -4826,10 +4451,14 @@ function initCartSystem() {
     };
     try {
       const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function(resp) {
+        console.error('Razorpay payment failed:', resp);
+        showToast('Payment declined: ' + (resp.error ? resp.error.description : 'Transaction cancelled'));
+      });
       rzp.open();
     } catch (e) {
       console.error('Razorpay Error:', e);
-      openRazorpaySimModal(order);
+      showToast('Payment gateway error: ' + (e.message || 'Please try again'));
     }
   }
 
@@ -6803,8 +6432,7 @@ function initCartSystem() {
         rzp.open();
       } catch (err) {
         console.error('Doorstep Razorpay launch error:', err);
-        showToast('Opening payment simulator...');
-        openRazorpaySimModal(order);
+        showToast('Could not launch Razorpay. Please retry or choose Cash on Delivery.');
       }
     }
 
@@ -6813,8 +6441,7 @@ function initCartSystem() {
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = doOpen;
       script.onerror = () => {
-        showToast('Could not load Razorpay. Opening simulator.');
-        openRazorpaySimModal(order);
+        showToast('Could not load Razorpay SDK. Please check your connection.');
       };
       document.head.appendChild(script);
     } else {

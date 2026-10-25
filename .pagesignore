@@ -1,0 +1,9 @@
+.git
+.wrangler
+scratch
+website
+mobile
+*.py
+*.sql
+*.md
+orders_backup_pre_test.json

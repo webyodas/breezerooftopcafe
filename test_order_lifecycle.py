@@ -2,7 +2,7 @@ import urllib.request
 import json
 import time
 
-BASE_URL = 'https://breeze-2.pages.dev'
+BASE_URL = 'https://breezerooftopcafe.pages.dev'
 
 def api_call(endpoint, payload=None, method='POST'):
     req = urllib.request.Request(

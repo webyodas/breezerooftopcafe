@@ -1,0 +1,8 @@
+name = "breezerooftopcafe"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "breeze-2-db"
+database_id = "3f8b2776-4164-403f-b8fc-21555d8615f2"

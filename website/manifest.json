@@ -1,5 +1,5 @@
 {
-  "name": "Breeze The Roof-Top Café",
+  "name": "Breeze Rooftop Cafe",
   "short_name": "Breeze Cafe",
   "description": "Palghar's premier rooftop lounge & gourmet dining. Order gourmet burgers, mocktails & meals with doorstep delivery.",
   "start_url": "/",
@@ -7,7 +7,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#14100c",
   "id": "breeze-storefront-pwa",
   "categories": ["food", "shopping", "lifestyle"],
   "icons": [

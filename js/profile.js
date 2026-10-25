@@ -267,12 +267,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const phone = profileAuthPhoneInput ? profileAuthPhoneInput.value.trim() : '';
       const name = profileAuthNameInput ? profileAuthNameInput.value.trim() : '';
       const digits = phone.replace(/[^0-9]/g, '').slice(-10);
-      if (digits.length !== 10) {
-        alert('Please enter a valid 10-digit mobile number');
+      if (digits.length !== 10 || !/^[6-9]/.test(digits)) {
+        notify('Please enter a valid 10-digit Indian mobile number');
         return;
       }
-      if (!name) {
-        alert('Please enter your full name');
+      if (!name || name.length < 2) {
+        notify('Please enter your full name');
         return;
       }
 
@@ -285,6 +285,13 @@ document.addEventListener('DOMContentLoaded', () => {
         window.syncCustomerToSupabase(profile);
       }
 
+      try {
+        window.dispatchEvent(new CustomEvent('breeze:auth_change', {
+          detail: { isLoggedIn: true, profile: profile }
+        }));
+      } catch (err) {}
+
+      notify('Welcome to Breeze, ' + name + '! 🎉');
       checkAuthState();
     });
   }

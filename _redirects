@@ -52,3 +52,9 @@
 /rider/        /rider/index.html   200
 /delivery      /rider              301
 /delivery/     /rider              301
+
+/privacy       /privacy/index.html 200
+/privacy/      /privacy/index.html 200
+
+/terms         /terms/index.html   200
+/terms/        /terms/index.html   200

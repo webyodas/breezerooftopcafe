@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Breeze The Roof-Top Café | Palghar's Premier Rooftop Lounge & Dining</title>
+  <title>Breeze Rooftop Cafe | Palghar's Premier Rooftop Lounge & Food Delivery</title>
   <meta name="description" content="Welcome to Breeze The Rooftop Café on the 5th Floor of Kanchan Aura, Palghar. Enjoy breathtaking open-sky rooftop views, gourmet messy burgers, artisanal mocktails, matcha, and chill evening fairy-light vibes. ">
   <meta name="keywords" content="Breeze Rooftop Cafe Palghar, Breeze The Rooftop Cafe, Kanchan Aura Palghar, Cafe in Palghar, Rooftop restaurant Palghar, Best cafe Palghar">
   
@@ -36,7 +36,6 @@
   <!-- Main Stylesheet with Cache Busting -->
   <link rel="stylesheet" href="css/style.css?v=9.0-mobile-first">
   <!-- Google Identity Services for Real 1-Tap Google Sign-In -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Supabase JS Client for Cloud Customer & Order Database -->
   <!-- Cloudflare D1 Client (Replaced Supabase) -->
   <script src="js/cf-client.js"></script>
@@ -1178,135 +1177,61 @@
     </div>
   </div>
 
+  <!-- ==========================================================================
+       MODAL: CUSTOMER AUTHENTICATION (Fast Mobile + Name)
+       ========================================================================== -->
   <div class="modal-overlay" id="customerAuthModal" role="dialog" aria-modal="true" aria-labelledby="customerAuthTitle">
-    <div class="modal-container customer-auth-container">
+    <div class="modal-container customer-auth-container" style="max-width: 440px; border-radius: 20px; padding: 24px; box-sizing: border-box;">
       <div class="modal-drag-handle"></div>
-      <div class="modal-sticky-header">
+      <div class="modal-sticky-header" style="border: none; padding-bottom: 8px;">
         <div>
-          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-user-lock"></i> Breeze Customer Account</span>
-          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="customerAuthTitle">Sign In / Register</h3>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-sparkles" style="color: #b5883d;"></i> Breeze Rooftop Rewards</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-dark); margin: 2px 0 0;" id="customerAuthTitle">Sign In / Register</h3>
         </div>
         <button type="button" class="modal-close-btn" id="customerAuthCloseBtn" aria-label="Close modal">
           <i class="fas fa-times"></i>
         </button>
       </div>
 
-      <p style="font-size: 0.88rem; color: var(--text-muted); margin: 8px 0 20px; text-align: left; line-height: 1.5;" id="customerAuthSubtitle">
-        Sign in with Google to live track rooftop orders, save delivery addresses, and sync your cart.
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin: 6px 0 20px; line-height: 1.45;" id="customerAuthSubtitle">
+        Enter your full name and mobile number to live-track orders, save delivery addresses, and enjoy 1-click checkout.
       </p>
 
-            <!-- Google Sign In Container (Instant 1-Tap) -->
-      <div style="padding: 10px 0 16px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <div id="googleBtnContainer" class="google-auth-wrapper" style="display: flex; justify-content: center; width: 100%; margin: 6px 0;"></div>
-      </div>
-
-      <div style="font-size: 0.76rem; color: #8c8275; margin-top: 10px; padding-top: 14px; border-top: 1px solid #f0e6d6; text-align: center;">
-        <i class="fas fa-shield-alt" style="color: #b5883d;"></i> 1-Tap secure sign-in powered by Google Identity
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================================================
-       MODAL: GOOGLE LOGIN MOBILE NUMBER LINKING (Marketing & Order Status)
-       ========================================================================== -->
-  <div class="modal-overlay" id="googlePhonePromptModal" role="dialog" aria-modal="true" aria-labelledby="googlePhoneModalTitle">
-    <div class="modal-container google-phone-container" style="max-width: 420px; padding: 24px; border-radius: 16px;">
-      <div class="modal-sticky-header" style="border: none; padding: 0 0 12px 0;">
-        <div>
-          <span class="badge-tag" style="margin-bottom: 6px;"><i class="fas fa-sparkles" style="color: #b5883d;"></i> Account Setup</span>
-          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="googlePhoneModalTitle">
-            Welcome to Breeze! 🎉
-          </h3>
+      <form id="fastPhoneAuthForm" onsubmit="return false;">
+        <div style="margin-bottom: 14px;">
+          <label for="authCustomerName" style="display: block; font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            Full Name *
+          </label>
+          <div style="position: relative;">
+            <i class="far fa-user" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #a8a29e; font-size: 0.95rem;"></i>
+            <input type="text" id="authCustomerName" class="form-input" placeholder="e.g. Rajesh Suthar" required autocomplete="name" style="width: 100%; height: 48px; padding-left: 42px; border-radius: 12px; border: 1.5px solid #e7e2d9; font-size: 0.95rem; background: #fff; box-sizing: border-box;">
+          </div>
         </div>
-        <button type="button" class="modal-close-btn" id="googlePhoneCloseBtn" aria-label="Close modal">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
 
-      <p style="font-size: 0.88rem; color: var(--text-muted); margin: 4px 0 18px; line-height: 1.5;" id="googlePhoneModalSubtitle">
-        Add your WhatsApp or Mobile number for live kitchen updates, bill receipts, and exclusive rooftop member offers.
-      </p>
-
-      <form id="googlePhoneForm" onsubmit="return false;">
-        <label for="googlePhoneInput" style="display: block; font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-          Mobile Number
-        </label>
-        <div class="phone-input-wrap" style="margin-bottom: 8px;">
-          <span class="country-prefix"><i class="fas fa-flag" style="margin-right: 4px; font-size: 0.72rem; color: #138808;"></i> +91</span>
-          <input type="tel" id="googlePhoneInput" class="auth-mobile-input" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric">
+        <div style="margin-bottom: 16px;">
+          <label for="authCustomerPhone" style="display: block; font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            Mobile Number *
+          </label>
+          <div class="phone-input-wrap" style="display: flex; align-items: center; border: 1.5px solid #e7e2d9; border-radius: 12px; background: #fff; height: 48px; overflow: hidden; box-sizing: border-box;">
+            <span class="country-prefix" style="padding: 0 12px; font-weight: 700; color: #1c1917; font-size: 0.92rem; background: #fbf9f5; border-right: 1px solid #e7e2d9; height: 100%; display: flex; align-items: center; gap: 4px;">
+              <i class="fas fa-flag" style="color: #138808; font-size: 0.75rem;"></i> +91
+            </span>
+            <input type="tel" id="authCustomerPhone" class="auth-mobile-input" maxlength="10" placeholder="10-digit mobile number" required autocomplete="tel" inputmode="numeric" style="flex: 1; border: none; padding: 0 14px; font-size: 1rem; font-weight: 600; outline: none; height: 100%; box-sizing: border-box;">
+          </div>
+          <div id="authPhoneError" style="display: none; color: #dc2626; font-size: 0.78rem; margin-top: 6px; font-weight: 600;"></div>
         </div>
-        <div id="googlePhoneError" style="display: none; color: #c62828; font-size: 0.78rem; margin-bottom: 10px; font-weight: 600;"></div>
 
-        <button type="button" class="btn btn-primary btn-block" id="btnSaveGooglePhone" style="height: 46px; font-weight: 700; margin-top: 10px;">
-          <span>Save & Continue</span> <i class="fas fa-arrow-right" style="margin-left: 6px;"></i>
-        </button>
-
-        <button type="button" id="btnSkipGooglePhone" style="display: block; width: 100%; text-align: center; background: none; border: none; color: #8c8275; font-size: 0.82rem; margin-top: 12px; cursor: pointer; text-decoration: underline; padding: 6px;">
-          Skip for now (I'll add it later)
+        <button type="submit" class="btn btn-primary btn-block" id="btnSubmitPhoneAuth" style="height: 48px; font-size: 1rem; font-weight: 700; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box;">
+          <span>Continue to Order</span> <i class="fas fa-arrow-right"></i>
         </button>
       </form>
 
-      <div style="font-size: 0.74rem; color: #a0988e; margin-top: 16px; padding-top: 12px; border-top: 1px solid #f0e6d6; text-align: center;">
-        <i class="fas fa-shield-alt" style="color: #b5883d;"></i> We respect your privacy. No spam guaranteed.
+      <div style="font-size: 0.76rem; color: #8c8275; margin-top: 16px; padding-top: 14px; border-top: 1px solid #f0e6d6; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <i class="fas fa-shield-alt" style="color: #b5883d;"></i> 100% Privacy • Instant Order Tracking & WhatsApp Receipts
       </div>
     </div>
   </div>
 
-  <!-- ==========================================================================
-       MODAL: RAZORPAY PAYMENT GATEWAY (Live SDK / Simulation Adapter)
-       ========================================================================== -->
-  <div class="modal-overlay" id="razorpaySimModal" role="dialog" aria-modal="true" aria-labelledby="rzpModalTitle">
-    <div class="modal-container razorpay-sim-container">
-      <div class="rzp-header">
-        <div class="rzp-brand">
-          <img src="assets/logo-transparent.png" alt="Breeze Logo" onerror="this.style.display='none'">
-          <div>
-            <span id="rzpModalTitle">Breeze The Roof-Top Café</span>
-            <div style="font-size: 0.72rem; color: #93c5fd;"><i class="fas fa-shield-alt"></i> Razorpay Secure Gateway</div>
-          </div>
-        </div>
-        <button type="button" class="modal-close-btn" id="rzpSimCloseBtn" aria-label="Close payment" style="color: #fff; background: rgba(255,255,255,0.15);">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <div class="rzp-body">
-        <div class="rzp-amount-box">
-          <div class="rzp-amount-label">Amount Payable</div>
-          <div class="rzp-amount-val" id="rzpSimAmount">₹0</div>
-          <div style="font-size: 0.74rem; color: #64748b; margin-top: 4px;">Zero Convenience Fees • Direct Rooftop Price</div>
-        </div>
-
-        <div style="margin-bottom: 12px; font-weight: 700; font-size: 0.84rem; color: #334155;">
-          Select UPI App / Payment Option:
-        </div>
-
-        <div class="upi-apps-grid">
-          <button type="button" class="upi-app-btn active" data-app="Google Pay">
-            <i class="fab fa-google" style="color: #4285F4;"></i> Google Pay
-          </button>
-          <button type="button" class="upi-app-btn" data-app="PhonePe">
-            <i class="fas fa-mobile-alt" style="color: #5f259f;"></i> PhonePe
-          </button>
-          <button type="button" class="upi-app-btn" data-app="Paytm UPI">
-            <i class="fas fa-wallet" style="color: #00b9f1;"></i> Paytm UPI
-          </button>
-          <button type="button" class="upi-app-btn" data-app="Cards / NetBanking">
-            <i class="fas fa-credit-card" style="color: #059669;"></i> Cards / NetBanking
-          </button>
-        </div>
-
-        <button type="button" class="rzp-action-pay" id="rzpSimPayBtn">
-          <i class="fas fa-lock"></i> Pay <span id="rzpSimBtnAmount">₹0</span> via UPI
-        </button>
-        <p style="text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 12px; margin-bottom: 0;"><i class="fas fa-shield-alt"></i> 100% Safe & Secure Payment • 256-bit Encrypted</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================================================
-       MODAL: LIVE KITCHEN & ORDER TRACKING
-       ========================================================================== -->
   <div class="modal-overlay" id="orderTrackingModal" role="dialog" aria-modal="true" aria-labelledby="trackingOrderTitle">
     <div class="modal-container tracking-modal-container">
       <div class="modal-drag-handle"></div>
