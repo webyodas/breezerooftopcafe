@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+*.log
+.system_generated/
+*.tmp
+.wrangler/
+scratch/
+orders_backup_pre_test.json
+# Local mobile demo preview (stays on device only)
+mobile/
+/mobile/

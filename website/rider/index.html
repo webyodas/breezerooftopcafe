@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Breeze Express — Delivery Partner Portal | Breeze The Roof-Top Café</title>
+  <meta name="description" content="Dedicated delivery partner cockpit for Breeze The Rooftop Cafe riders. Manage live orders, 1-tap navigation, and customer deliveries.">
+  <link rel="icon" type="image/png" href="/assets/logo-emblem.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  <!-- Progressive Web App Configuration -->
+  <link rel="manifest" href="/manifest-rider.json">
+  <meta name="theme-color" content="#1c1814">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Breeze Rider">
+  <link rel="apple-touch-icon" href="assets/pwa/rider-192.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Luxury Stylesheet (Brand Match) -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Supabase JS Client for Realtime Database Sync -->
+  <!-- Cloudflare D1 Client (Replaced Supabase) -->
+  <script src="/js/cf-client.js"></script>
+
+  <!-- Official Razorpay Checkout Gateway for Doorstep Online QR & Payments -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <style>
+    /* ==========================================================================
+       BREEZE EXPRESS — DELIVERY PARTNER PORTAL LUXURY THEME
+       100% Aligned with Breeze The Rooftop Cafe Brand & Aesthetic
+       ========================================================================== */
+    body.rider-portal-body {
+      background-color: var(--bg-page, #faf7f2);
+      color: var(--text-primary, #1c1814);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-sans, 'Plus Jakarta Sans', sans-serif);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Clean Luxury Header matching /profile */
+    .rider-header-clean {
+      background: #ffffff;
+      border-bottom: 1px solid #e7e2d9;
+      box-shadow: 0 1px 8px rgba(0, 0, 0, 0.03);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .rider-header-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 64px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-img {
+      height: 36px;
+      width: auto;
+      display: block;
+    }
+
+    .rider-badge-pill {
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: #fbf6ec;
+      color: var(--primary-gold, #b5883d);
+      border: 1px solid rgba(181, 136, 61, 0.35);
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Auth Gateway Card (Identical to Customer Sign-In style on /profile) */
+    .rider-auth-wrapper {
+      max-width: 440px;
+      width: 100%;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    .rider-auth-card {
+      background: #ffffff;
+      border: 1px solid #e7e2d9;
+      border-radius: 24px;
+      padding: 38px 28px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .auth-icon-circle {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: #fbf6ec;
+      border: 1.5px solid var(--primary-gold, #b5883d);
+      color: var(--primary-gold, #b5883d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.85rem;
+      margin: 0 auto 18px;
+    }
+
+    .auth-title {
+      font-family: var(--font-serif, 'Playfair Display', serif);
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #1c1814;
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 0.86rem;
+      color: #78716c;
+      margin-bottom: 24px;
+      line-height: 1.55;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #44403c;
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      background: #faf7f2;
+      border: 1.5px solid #e7e2d9;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      color: #1c1814;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus {
+      background: #ffffff;
+      border-color: var(--primary-gold, #b5883d);
+      box-shadow: 0 0 0 3px rgba(181, 136, 61, 0.15);
+    }
+
+    .btn-rider-gold-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #c59b4c 0%, #a87930 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 0.96rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(181, 136, 61, 0.28);
+      transition: all 0.2s ease;
+      margin-top: 20px;
+    }
+
+    .btn-rider-gold-submit:hover {
+      background: linear-gradient(135deg, #b5883d 0%, #9c722e 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(181, 136, 61, 0.35);
+    }
+
+    .btn-rider-gold-submit:active {
+      transform: translateY(0);
+    }
+
+    /* Main Cockpit Layout */
+    .cockpit-main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Rider Hero Bar (Matches .profile-luxury-hero on /profile) */
+    .rider-hero-card {
+      background: #ffffff;
+      border: 1px solid #e7e2d9;
+      border-radius: 20px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px -2px rgba(27, 24, 20, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rider-identity-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .rider-avatar-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c59b4c, #8e6523);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.25rem;
+      box-shadow: 0 2px 8px rgba(181, 136, 61, 0.25);
+    }
+
+    .rider-name-box strong {
+      display: block;
+      font-size: 1.05rem;
+      color: #1c1814;
+      font-weight: 800;
+    }
+
+    .rider-name-box small {
+      color: #78716c;
+      font-size: 0.8rem;
+    }
+
+    /* Status Pill Toggle */
+    .status-pill-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .status-pill-toggle.online {
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #166534;
+    }
+
+    .status-pill-toggle.offline {
+      background: #f5f5f4;
+      border: 1px solid #e7e5e4;
+      color: #78716c;
+    }
+
+    .status-dot-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-pill-toggle.online .status-dot-pulse {
+      background: #16a34a;
+      box-shadow: 0 0 6px #16a34a;
+    }
+
+    .status-pill-toggle.offline .status-dot-pulse {
+      background: #a8a29e;
+    }
+
+    /* KPI Summary Row: Clean, Balanced 2-Card Mobile-First Grid */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .kpi-tile {
+      background: #ffffff;
+      border: 1px solid #e7e2d9;
+      border-radius: 18px;
+      padding: 16px 14px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .kpi-tile.has-cash {
+      background: #fffdfa;
+      border-color: #fde68a;
+    }
+
+    .kpi-val {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #1c1814;
+      display: block;
+      line-height: 1.2;
+      margin-bottom: 4px;
+      font-family: inherit;
+    }
+
+    .kpi-label {
+      font-size: 0.74rem;
+      color: #78716c;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Section Headings */
+    .cockpit-section-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #78716c;
+      text-transform: uppercase;
+      letter-spacing: 0.75px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Radar / Idle Empty State */
+    .cockpit-idle-box {
+      background: #ffffff;
+      border: 1.5px dashed #e7e2d9;
+      border-radius: 22px;
+      padding: 44px 20px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+    }
+
+    .idle-radar-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #fbf6ec;
+      border: 2px solid var(--primary-gold, #b5883d);
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-gold, #b5883d);
+      font-size: 1.8rem;
+      animation: radarPulse 2s infinite;
+    }
+
+    @keyframes radarPulse {
+      0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(181, 136, 61, 0.35); }
+      70% { transform: scale(1); box-shadow: 0 0 0 14px rgba(181, 136, 61, 0); }
+      100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(181, 136, 61, 0); }
+    }
+
+    .idle-title {
+      font-family: var(--font-serif, 'Playfair Display', serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #1c1814;
+      margin-bottom: 6px;
+    }
+
+    /* Active Order Cockpit Card */
+    .cockpit-active-order {
+      background: #ffffff;
+      border: 2px solid var(--primary-gold, #b5883d);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(181, 136, 61, 0.12);
+    }
+
+    .order-cockpit-header {
+      background: #faf7f2;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0ebe1;
+    }
+
+    .order-ref-text {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #1c1814;
+    }
+
+    .order-step-badge {
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: #fbf6ec;
+      color: var(--primary-gold, #b5883d);
+      border: 1px solid rgba(181, 136, 61, 0.4);
+    }
+
+    /* Payment Alert Banners (Refined contrast) */
+    .payment-notice-bar {
+      padding: 12px 20px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .payment-notice-bar.cod {
+      background: #fff7ed;
+      color: #9a3412;
+      border-bottom: 1px solid #ffedd5;
+    }
+
+    .payment-notice-bar.online {
+      background: #f0fdf4;
+      color: #166534;
+      border-bottom: 1px solid #dcfce7;
+    }
+
+    .order-cockpit-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Customer Address & Quick Actions */
+    .customer-dispatch-card {
+      background: #faf7f2;
+      border: 1px solid #e7e2d9;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .cust-row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .cust-fullname {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #1c1814;
+    }
+
+    .cust-fulladdress {
+      font-size: 0.9rem;
+      color: #57534e;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      word-break: break-word;
+    }
+
+    .dispatch-actions-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-rider-call, .btn-rider-nav {
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
+      transition: filter 0.15s, transform 0.15s;
+    }
+
+    .btn-rider-call {
+      background: #16a34a;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+    }
+
+    .btn-rider-nav {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+    }
+
+    .btn-rider-call:hover, .btn-rider-nav:hover {
+      filter: brightness(0.94);
+    }
+
+    .btn-rider-call:active, .btn-rider-nav:active {
+      transform: scale(0.98);
+    }
+
+    /* Items Card */
+    .order-items-box {
+      background: #faf7f2;
+      border: 1px solid #e7e2d9;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .items-box-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #78716c;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .item-dish-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: #292524;
+      padding: 5px 0;
+      border-bottom: 1px dashed #e7e2d9;
+    }
+
+    .item-dish-line:last-child {
+      border-bottom: none;
+    }
+
+    /* Action Progress Buttons */
+    .cockpit-step-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn-cockpit-step {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      transition: all 0.2s ease;
+    }
+
+    .btn-cockpit-step:active {
+      transform: scale(0.98);
+    }
+
+    .btn-cockpit-pickup {
+      background: #d97706;
+      color: #ffffff;
+    }
+
+    .btn-cockpit-transit {
+      background: linear-gradient(135deg, #c59b4c 0%, #a87930 100%);
+      color: #ffffff;
+    }
+
+    .btn-cockpit-delivered {
+      background: #16a34a;
+      color: #ffffff;
+    }
+
+    /* History Deliveries Cards */
+    .history-card {
+      background: #ffffff;
+      border: 1px solid #e7e2d9;
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .history-meta strong {
+      font-size: 0.95rem;
+      color: #1c1814;
+      display: block;
+    }
+
+    .history-meta small {
+      color: #78716c;
+      font-size: 0.78rem;
+    }
+
+    .history-amt {
+      text-align: right;
+    }
+
+    .history-amt strong {
+      display: block;
+      font-size: 1.05rem;
+      color: #1c1814;
+    }
+
+    .history-amt small {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .history-amt small.cod {
+      background: #fff7ed;
+      color: #9a3412;
+      border: 1px solid #fed7aa;
+    }
+
+    .history-amt small.online {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* Audio Toggle Button in Header */
+    .btn-audio-pill {
+      background: #faf7f2;
+      border: 1px solid #e7e2d9;
+      color: #78716c;
+      padding: 6px 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-audio-pill.active {
+      background: #fbf6ec;
+      border-color: rgba(181, 136, 61, 0.4);
+      color: var(--primary-gold, #b5883d);
+    }
+
+    .btn-rider-logout-pill {
+      background: transparent;
+      border: 1px solid #e7e2d9;
+      color: #dc2626;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-rider-logout-pill:hover {
+      background: #fef2f2;
+      border-color: #fca5a5;
+    }
+
+    /* Toast Notification (Brand Gold) */
+    .toast-box {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1c1917;
+      border: 1px solid var(--primary-gold, #b5883d);
+      color: #ffffff;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ==========================================================================
+       MOBILE-FIRST RESPONSIVE OVERHAUL (SMARTPHONE DELIVERY COCKPIT)
+       ========================================================================== */
+    @media (max-width: 600px) {
+      .rider-header-container {
+        padding: 8px 12px;
+        min-height: 54px;
+      }
+      .brand-logo-img {
+        height: 32px !important;
+      }
+      .rider-badge-pill {
+        font-size: 0.68rem;
+        padding: 3px 8px;
+      }
+      .cockpit-main {
+        padding: 12px 10px 80px;
+        gap: 12px;
+      }
+      .rider-hero-card {
+        padding: 12px 14px;
+        border-radius: 16px;
+      }
+      .rider-avatar-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+      }
+      .rider-name-box strong {
+        font-size: 0.95rem;
+      }
+      .status-pill-toggle {
+        padding: 5px 10px;
+        font-size: 0.74rem;
+      }
+      .dispatch-actions-row {
+        gap: 8px;
+      }
+      .btn-rider-call, .btn-rider-nav {
+        padding: 13px 8px;
+        font-size: 0.86rem;
+        min-height: 48px;
+        border-radius: 12px;
+      }
+      .order-cockpit-header {
+        padding: 12px 14px;
+      }
+      .order-cockpit-body {
+        padding: 14px;
+        gap: 12px;
+      }
+      .order-ref-text {
+        font-size: 1.15rem;
+      }
+      .btn-step-action {
+        padding: 14px;
+        font-size: 0.94rem;
+        min-height: 50px;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .kpi-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .kpi-tile {
+        padding: 12px 8px;
+        border-radius: 14px;
+      }
+      .kpi-val {
+        font-size: 1.35rem;
+      }
+      .kpi-label {
+        font-size: 0.68rem;
+        letter-spacing: 0.2px;
+      }
+    }
+  </style>
+</head>
+<body class="rider-portal-body">
+
+  <!-- Header: Matches Cafe Clean Header Pattern -->
+  <header class="rider-header-clean">
+    <div class="rider-header-container">
+      <div class="brand-group">
+        <a href="/" aria-label="Breeze Cafe Home" style="display: flex; align-items: center; text-decoration: none;">
+          <img src="assets/logo-full.png" alt="Breeze The Rooftop Cafe" class="brand-logo-img">
+        </a>
+        <a href="/" class="btn-back-to-cafe" style="padding: 5px 12px; font-size: 0.78rem;">
+          <i class="fas fa-arrow-left"></i> <span>Cafe</span>
+        </a>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" class="btn-pwa-install" data-portal="Rider" title="Install Breeze Rider App to Home Screen" style="display: none; align-items: center; gap: 6px; padding: 6px 12px; background: #1c1814; color: #ffffff; border: 1px solid #c59b4c; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+          <i class="fas fa-mobile-alt" style="color: #c59b4c;"></i> <span>Install App</span>
+        </button>
+        <span class="rider-badge-pill"><i class="fas fa-motorcycle"></i> Partner</span>
+        <button type="button" class="btn-audio-pill active" id="btnAudioToggle" title="Audio Chime Alerts">
+          <i class="fas fa-volume-up"></i>
+        </button>
+        <button type="button" class="btn-rider-logout-pill" id="btnRiderLogout" style="display: none;">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- VIEW 1: AUTHENTICATION / LOGIN -->
+  <main class="rider-auth-wrapper" id="riderAuthView">
+    <div class="rider-auth-card">
+      <div class="auth-icon-circle">
+        <i class="fas fa-id-badge"></i>
+      </div>
+      <h1 class="auth-title">Delivery Partner Login</h1>
+      <p class="auth-subtitle">Sign in with your assigned Partner ID and passcode to receive live kitchen orders.</p>
+
+      <form id="riderLoginForm">
+        <div class="form-group">
+          <label class="form-label" for="inputRiderId">Delivery Partner ID</label>
+          <input type="text" id="inputRiderId" class="form-input" placeholder="Enter Partner ID (e.g. RIDER-01)" required autocomplete="username" style="font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inputRiderPasscode">Password / Passcode</label>
+          <input type="password" id="inputRiderPasscode" class="form-input" placeholder="Enter rider password (e.g. brz4820)" required autocomplete="current-password">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin: 12px 0; text-align: left;">
+          <input type="checkbox" id="checkRememberRider" checked style="accent-color: var(--primary-gold);">
+          <label for="checkRememberRider" style="font-size: 0.8rem; color: #78716c; cursor: pointer;">Stay signed in on this phone</label>
+        </div>
+
+        <button type="submit" class="btn-rider-gold-submit">
+          <i class="fas fa-shield-alt"></i> Sign In to Cockpit
+        </button>
+      </form>
+
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f0ebe1; font-size: 0.78rem; color: #a8a29e;">
+        <i class="fas fa-shield-alt" style="color: var(--primary-gold);"></i> Breeze Express Logistics • Palghar Rooftop Cafe
+      </div>
+    </div>
+  </main>
+
+  <!-- VIEW 2: LOGGED-IN COCKPIT APP -->
+  <main class="cockpit-main" id="riderCockpitView" style="display: none;">
+
+    <!-- Rider Profile & Status Bar -->
+    <div class="rider-hero-card">
+      <div class="rider-identity-group">
+        <div class="rider-avatar-circle" id="dispRiderAvatar">R</div>
+        <div class="rider-name-box">
+          <strong id="dispRiderName">Rohan Patil</strong>
+          <small id="dispRiderVehicle">Motorcycle • MH-48-AB-1234</small>
+        </div>
+      </div>
+      <div class="status-pill-toggle online" id="statusToggleBtn">
+        <span class="status-dot-pulse"></span>
+        <span id="statusToggleText">Online</span>
+      </div>
+    </div>
+
+    <!-- KPI Summary Row: Clean, Symmetrical 2-Card Mobile-First Grid -->
+    <div class="kpi-row">
+      <div class="kpi-tile">
+        <span class="kpi-val" id="dispTodayDeliveries">0</span>
+        <span class="kpi-label"><i class="fas fa-check-circle" style="color: #16a34a; font-size: 0.75rem;"></i> Deliveries Done</span>
+      </div>
+      <div class="kpi-tile" id="tileCashInHand">
+        <span class="kpi-val" id="dispTodayCash">₹0</span>
+        <span class="kpi-label"><i class="fas fa-wallet" style="color: #d97706; font-size: 0.75rem;"></i> Cash in Hand</span>
+      </div>
+    </div>
+
+    <!-- Active Delivery Section -->
+    <div>
+      <div class="cockpit-section-title">
+        <span><i class="fas fa-satellite-dish" style="color: var(--primary-gold);"></i> Active Delivery Order</span>
+        <small id="liveSyncStatus" style="color: #16a34a; font-size: 0.74rem;"><i class="fas fa-circle" style="font-size: 6px;"></i> Live Sync</small>
+      </div>
+
+      <!-- State A: Empty Cockpit / Waiting -->
+      <div class="cockpit-idle-box" id="emptyCockpitState">
+        <div class="idle-radar-circle">
+          <i class="fas fa-motorcycle"></i>
+        </div>
+        <h3 class="idle-title">You are Online & Ready!</h3>
+        <p style="font-size: 0.86rem; color: #78716c; max-width: 340px; margin: 0 auto 16px; line-height: 1.5;">
+          Waiting for the kitchen or Petpooja cashier to dispatch an order to your rider ID.
+        </p>
+        <span style="font-size: 0.78rem; color: #a8a29e; font-weight: 600;">
+          <i class="fas fa-volume-up" style="color: var(--primary-gold);"></i> Your phone will chime automatically when an order arrives.
+        </span>
+      </div>
+
+      <!-- State B: Active Assigned Order -->
+      <div class="cockpit-active-order" id="activeOrderCard" style="display: none;">
+        <div class="order-cockpit-header">
+          <div>
+            <span class="order-ref-text" id="cardOrderId">#BRZ-0000</span>
+            <div style="font-size: 0.76rem; color: #78716c;" id="cardOrderTime">Placed 2 mins ago</div>
+          </div>
+          <span class="order-step-badge" id="cardOrderStepTag">Assigned to You</span>
+        </div>
+
+        <!-- Payment Warning Bar -->
+        <div class="payment-notice-bar cod" id="cardPaymentAlert">
+          <i class="fas fa-money-bill-wave"></i>
+          <span id="cardPaymentAlertText">CASH ON DELIVERY: Collect ₹0 from customer</span>
+        </div>
+
+        <!-- Kitchen Prep Time & ETA Status Bar -->
+        <div class="rider-eta-notice-box" id="cardKitchenEtaNotice" style="background: #fdfbf7; border: 1.5px solid #e8dec8; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1rem;" id="cardKitchenEtaIcon">
+              <i class="fas fa-utensils"></i>
+            </div>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 800; color: #1e293b;" id="cardKitchenEtaTitle">
+                Kitchen Preparing • Ready in ~15 mins
+              </div>
+              <div style="font-size: 0.74rem; color: #78716c;" id="cardKitchenEtaSubtext">
+                Target Customer Delivery by 1:30 PM
+              </div>
+            </div>
+          </div>
+          <span style="font-size: 0.75rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #e0f2fe; color: #0369a1;" id="cardKitchenStatusBadge">
+            In Kitchen
+          </span>
+        </div>
+
+        <div class="order-cockpit-body">
+          <!-- Customer & Address Quick Card -->
+          <div class="customer-dispatch-card">
+            <div class="cust-row-top">
+              <span class="cust-fullname" id="cardCustomerName">Customer Name</span>
+              <span style="font-size: 0.88rem; font-weight: 800; color: var(--primary-gold);" id="cardOrderTotal">₹0</span>
+            </div>
+            <div class="cust-fulladdress" id="cardCustomerAddress">
+              Address details loading...
+            </div>
+            <div class="dispatch-actions-row">
+              <a href="tel:" class="btn-rider-call" id="btnCallCustomer">
+                <i class="fas fa-phone"></i> Call Customer
+              </a>
+              <a href="#" target="_blank" class="btn-rider-nav" id="btnNavCustomer">
+                <i class="fas fa-location-arrow"></i> Google Maps
+              </a>
+            </div>
+          </div>
+
+          <!-- Items Ordered -->
+          <div class="order-items-box">
+            <div class="items-box-label">Bill Items Breakdown</div>
+            <div id="cardItemsList"></div>
+          </div>
+
+          <!-- Action Progression Step Buttons -->
+          <div class="cockpit-step-actions">
+            <!-- Action 1: Pick Up from Cafe -->
+            <button type="button" class="btn-cockpit-step btn-cockpit-pickup" id="btnActionPickup">
+              <i class="fas fa-box"></i> Picked Up from Cafe Kitchen
+            </button>
+            <!-- Action 2: Out for Delivery -->
+            <button type="button" class="btn-cockpit-step btn-cockpit-transit" id="btnActionTransit" style="display: none;">
+              <i class="fas fa-motorcycle"></i> Out for Delivery / On the Way
+            </button>
+            <!-- Action 3: Delivered -->
+            <button type="button" class="btn-cockpit-step btn-cockpit-delivered" id="btnActionDelivered" style="display: none;">
+              <i class="fas fa-check-circle"></i> Mark Order as Delivered
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Deliveries Section -->
+    <div style="margin-top: 14px;">
+      <div class="cockpit-section-title">
+        <span><i class="fas fa-history" style="color: var(--primary-gold);"></i> Today's Completed Deliveries</span>
+      </div>
+      <div id="completedDeliveriesList">
+        <div style="text-align: center; color: #a8a29e; font-size: 0.82rem; padding: 20px; background: #ffffff; border: 1px solid #e7e2d9; border-radius: 14px;">
+          No deliveries completed today yet.
+        </div>
+      </div>
+    </div>
+
+
+
+  <!-- In-App Toast -->
+  <div class="toast-box" id="riderToast">
+    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+    <span id="riderToastText">Notification message</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/main.js?v=9.2"></script>
+  <script src="js/rider.js?v=9.2"></script>
+  <!-- Progressive Web App Controller & Live-Update Engine -->
+  <script src="js/pwa-install.js?v=9.2"></script>
+</body>
+</html>

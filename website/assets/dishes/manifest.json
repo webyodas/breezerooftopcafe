@@ -1,0 +1,443 @@
+[
+  {
+    "name": "Veg Classic Manchow Soup",
+    "slug": "veg-classic-manchow-soup",
+    "price": 211,
+    "filename": "veg-classic-manchow-soup.jpeg",
+    "relPath": "assets/dishes/veg-classic-manchow-soup.jpeg"
+  },
+  {
+    "name": "Tomato Basil Soup",
+    "slug": "tomato-basil-soup",
+    "price": 211,
+    "filename": "tomato-basil-soup.jpeg",
+    "relPath": "assets/dishes/tomato-basil-soup.jpeg"
+  },
+  {
+    "name": "Cheesy Peri Peri Fries",
+    "slug": "cheesy-peri-peri-fries",
+    "price": 275,
+    "filename": "cheesy-peri-peri-fries.jpeg",
+    "relPath": "assets/dishes/cheesy-peri-peri-fries.jpeg"
+  },
+  {
+    "name": "Peri Peri Fries",
+    "slug": "peri-peri-fries",
+    "price": 225,
+    "filename": "peri-peri-fries.jpeg",
+    "relPath": "assets/dishes/peri-peri-fries.jpeg"
+  },
+  {
+    "name": "Honey Chilli Potatoes",
+    "slug": "honey-chilli-potatoes",
+    "price": 299,
+    "filename": "honey-chilli-potatoes.jpeg",
+    "relPath": "assets/dishes/honey-chilli-potatoes.jpeg"
+  },
+  {
+    "name": "Classic Fries",
+    "slug": "classic-fries",
+    "price": 189,
+    "filename": "classic-fries.jpeg",
+    "relPath": "assets/dishes/classic-fries.jpeg"
+  },
+  {
+    "name": "American Veggie Classic Burger",
+    "slug": "american-veggie-classic-burger",
+    "price": 189,
+    "filename": "american-veggie-classic-burger.jpeg",
+    "relPath": "assets/dishes/american-veggie-classic-burger.jpeg"
+  },
+  {
+    "name": "Paneer Zinger Burger",
+    "slug": "paneer-zinger-burger",
+    "price": 279,
+    "filename": "paneer-zinger-burger.jpeg",
+    "relPath": "assets/dishes/paneer-zinger-burger.jpeg"
+  },
+  {
+    "name": "Cheesy Burger",
+    "slug": "cheesy-burger",
+    "price": 279,
+    "filename": "cheesy-burger.jpeg",
+    "relPath": "assets/dishes/cheesy-burger.jpeg"
+  },
+  {
+    "name": "Veg Cheese Grill Sandwich",
+    "slug": "veg-cheese-grill-sandwich",
+    "price": 199,
+    "filename": "veg-cheese-grill-sandwich.jpeg",
+    "relPath": "assets/dishes/veg-cheese-grill-sandwich.jpeg"
+  },
+  {
+    "name": "Veg Club Sandwich",
+    "slug": "veg-club-sandwich",
+    "price": 275,
+    "filename": "veg-club-sandwich.jpeg",
+    "relPath": "assets/dishes/veg-club-sandwich.jpeg"
+  },
+  {
+    "name": "Veg Grill Sandwich",
+    "slug": "veg-grill-sandwich",
+    "price": 180,
+    "filename": "veg-grill-sandwich.jpeg",
+    "relPath": "assets/dishes/veg-grill-sandwich.jpeg"
+  },
+  {
+    "name": "Cheese Garlic Bread",
+    "slug": "cheese-garlic-bread",
+    "price": 248,
+    "filename": "cheese-garlic-bread.jpeg",
+    "relPath": "assets/dishes/cheese-garlic-bread.jpeg"
+  },
+  {
+    "name": "Cheese Chilly Toast",
+    "slug": "cheese-chilly-toast",
+    "price": 265,
+    "filename": "cheese-chilly-toast.jpeg",
+    "relPath": "assets/dishes/cheese-chilly-toast.jpeg"
+  },
+  {
+    "name": "Exotic Veggies Panini",
+    "slug": "exotic-veggies-panini",
+    "price": 248,
+    "filename": "exotic-veggies-panini.jpeg",
+    "relPath": "assets/dishes/exotic-veggies-panini.jpeg"
+  },
+  {
+    "name": "Paneer Zinger Wrap",
+    "slug": "paneer-zinger-wrap",
+    "price": 289,
+    "filename": "paneer-zinger-wrap.jpeg",
+    "relPath": "assets/dishes/paneer-zinger-wrap.jpeg"
+  },
+  {
+    "name": "BBQ Paneer Wrap",
+    "slug": "bbq-paneer-wrap",
+    "price": 279,
+    "filename": "bbq-paneer-wrap.jpeg",
+    "relPath": "assets/dishes/bbq-paneer-wrap.jpeg"
+  },
+  {
+    "name": "Mix Veg Wrap",
+    "slug": "mix-veg-wrap",
+    "price": 220,
+    "filename": "mix-veg-wrap.jpeg",
+    "relPath": "assets/dishes/mix-veg-wrap.jpeg"
+  },
+  {
+    "name": "Teriyaki Paneer Chilly",
+    "slug": "teriyaki-paneer-chilly",
+    "price": 349,
+    "filename": "teriyaki-paneer-chilly.jpeg",
+    "relPath": "assets/dishes/teriyaki-paneer-chilly.jpeg"
+  },
+  {
+    "name": "Cheese Ball",
+    "slug": "cheese-ball",
+    "price": 259,
+    "filename": "cheese-ball.jpeg",
+    "relPath": "assets/dishes/cheese-ball.jpeg"
+  },
+  {
+    "name": "Hummus With Lavash & Pita",
+    "slug": "hummus-with-lavash-and-pita",
+    "price": 279,
+    "filename": "hummus-with-lavash-and-pita.jpeg",
+    "relPath": "assets/dishes/hummus-with-lavash-and-pita.jpeg"
+  },
+  {
+    "name": "Breeze Classic Caesar Salad",
+    "slug": "breeze-classic-caesar-salad",
+    "price": 269,
+    "filename": "breeze-classic-caesar-salad.jpeg",
+    "relPath": "assets/dishes/breeze-classic-caesar-salad.jpeg"
+  },
+  {
+    "name": "Nachos Salad",
+    "slug": "nachos-salad",
+    "price": 249,
+    "filename": "nachos-salad.jpeg",
+    "relPath": "assets/dishes/nachos-salad.jpeg"
+  },
+  {
+    "name": "Mama Rosso Pasta",
+    "slug": "mama-rosso-pasta",
+    "price": 329,
+    "filename": "mama-rosso-pasta.jpeg",
+    "relPath": "assets/dishes/mama-rosso-pasta.jpeg"
+  },
+  {
+    "name": "Alfredo Pasta",
+    "slug": "alfredo-pasta",
+    "price": 309,
+    "filename": "alfredo-pasta.jpeg",
+    "relPath": "assets/dishes/alfredo-pasta.jpeg"
+  },
+  {
+    "name": "Creamy Pesto Pasta",
+    "slug": "creamy-pesto-pasta",
+    "price": 329,
+    "filename": "creamy-pesto-pasta.jpeg",
+    "relPath": "assets/dishes/creamy-pesto-pasta.jpeg"
+  },
+  {
+    "name": "Arrabiata Pasta",
+    "slug": "arrabiata-pasta",
+    "price": 309,
+    "filename": "arrabiata-pasta.jpeg",
+    "relPath": "assets/dishes/arrabiata-pasta.jpeg"
+  },
+  {
+    "name": "Exotic Veggie Pizza",
+    "slug": "exotic-veggie-pizza",
+    "price": 285,
+    "filename": "exotic-veggie-pizza.jpeg",
+    "relPath": "assets/dishes/exotic-veggie-pizza.jpeg"
+  },
+  {
+    "name": "Mexican Pizza",
+    "slug": "mexican-pizza",
+    "price": 285,
+    "filename": "mexican-pizza.jpeg",
+    "relPath": "assets/dishes/mexican-pizza.jpeg"
+  },
+  {
+    "name": "Classic Margerita Pizza",
+    "slug": "classic-margerita-pizza",
+    "price": 259,
+    "filename": "classic-margerita-pizza.jpeg",
+    "relPath": "assets/dishes/classic-margerita-pizza.jpeg"
+  },
+  {
+    "name": "Panner Makhani Pizza",
+    "slug": "panner-makhani-pizza",
+    "price": 298,
+    "filename": "panner-makhani-pizza.jpeg",
+    "relPath": "assets/dishes/panner-makhani-pizza.jpeg"
+  },
+  {
+    "name": "Pesto Veggie Pizza",
+    "slug": "pesto-veggie-pizza",
+    "price": 285,
+    "filename": "pesto-veggie-pizza.jpg",
+    "relPath": "assets/dishes/pesto-veggie-pizza.jpg"
+  },
+  {
+    "name": "Thai Curry With Basil Rice",
+    "slug": "thai-curry-with-basil-rice",
+    "price": 425,
+    "filename": "thai-curry-with-basil-rice.jpeg",
+    "relPath": "assets/dishes/thai-curry-with-basil-rice.jpeg"
+  },
+  {
+    "name": "Stir Fry Noodles",
+    "slug": "stir-fry-noodles",
+    "price": 355,
+    "filename": "stir-fry-noodles.jpeg",
+    "relPath": "assets/dishes/stir-fry-noodles.jpeg"
+  },
+  {
+    "name": "Kashmiri Rajma Chawal",
+    "slug": "kashmiri-rajma-chawal",
+    "price": 369,
+    "filename": "kashmiri-rajma-chawal.jpeg",
+    "relPath": "assets/dishes/kashmiri-rajma-chawal.jpeg"
+  },
+  {
+    "name": "Iced Americano",
+    "slug": "iced-americano",
+    "price": 135,
+    "filename": "iced-americano.jpeg",
+    "relPath": "assets/dishes/iced-americano.jpeg"
+  },
+  {
+    "name": "Cranberry Coffee",
+    "slug": "cranberry-coffee",
+    "price": 223,
+    "filename": "cranberry-coffee.jpeg",
+    "relPath": "assets/dishes/cranberry-coffee.jpeg"
+  },
+  {
+    "name": "Iced Latte",
+    "slug": "iced-latte",
+    "price": 180,
+    "filename": "iced-latte.jpeg",
+    "relPath": "assets/dishes/iced-latte.jpeg"
+  },
+  {
+    "name": "Vietnamese Iced Coffee",
+    "slug": "vietnamese-iced-coffee",
+    "price": 211,
+    "filename": "vietnamese-iced-coffee.jpeg",
+    "relPath": "assets/dishes/vietnamese-iced-coffee.jpeg"
+  },
+  {
+    "name": "Iced Mocha",
+    "slug": "iced-mocha",
+    "price": 225,
+    "filename": "iced-mocha.jpeg",
+    "relPath": "assets/dishes/iced-mocha.jpeg"
+  },
+  {
+    "name": "Irish Frappe",
+    "slug": "irish-frappe",
+    "price": 285,
+    "filename": "irish-frappe.jpeg",
+    "relPath": "assets/dishes/irish-frappe.jpeg"
+  },
+  {
+    "name": "Chocolate Cookie Frappe",
+    "slug": "chocolate-cookie-frappe",
+    "price": 285,
+    "filename": "chocolate-cookie-frappe.jpeg",
+    "relPath": "assets/dishes/chocolate-cookie-frappe.jpeg"
+  },
+  {
+    "name": "Cold Mocha Frappe",
+    "slug": "cold-mocha-frappe",
+    "price": 265,
+    "filename": "cold-mocha-frappe.jpeg",
+    "relPath": "assets/dishes/cold-mocha-frappe.jpeg"
+  },
+  {
+    "name": "Virgin Mojito",
+    "slug": "virgin-mojito",
+    "price": 220,
+    "filename": "virgin-mojito.jpeg",
+    "relPath": "assets/dishes/virgin-mojito.jpeg"
+  },
+  {
+    "name": "Green Apple Mojito",
+    "slug": "green-apple-mojito",
+    "price": 225,
+    "filename": "green-apple-mojito.jpeg",
+    "relPath": "assets/dishes/green-apple-mojito.jpeg"
+  },
+  {
+    "name": "Blue Curacao",
+    "slug": "blue-curacao",
+    "price": 225,
+    "filename": "blue-curacao.jpeg",
+    "relPath": "assets/dishes/blue-curacao.jpeg"
+  },
+  {
+    "name": "Summer Berries Mojito",
+    "slug": "summer-berries-mojito",
+    "price": 225,
+    "filename": "summer-berries-mojito.jpeg",
+    "relPath": "assets/dishes/summer-berries-mojito.jpeg"
+  },
+  {
+    "name": "Bubble Gum Mojito",
+    "slug": "bubble-gum-mojito",
+    "price": 225,
+    "filename": "bubble-gum-mojito.jpeg",
+    "relPath": "assets/dishes/bubble-gum-mojito.jpeg"
+  },
+  {
+    "name": "Passion Fruit Mojito",
+    "slug": "passion-fruit-mojito",
+    "price": 225,
+    "filename": "passion-fruit-mojito.jpeg",
+    "relPath": "assets/dishes/passion-fruit-mojito.jpeg"
+  },
+  {
+    "name": "Strawberry Mojito",
+    "slug": "strawberry-mojito",
+    "price": 225,
+    "filename": "strawberry-mojito.jpeg",
+    "relPath": "assets/dishes/strawberry-mojito.jpeg"
+  },
+  {
+    "name": "Watermelon Mojito",
+    "slug": "watermelon-mojito",
+    "price": 225,
+    "filename": "watermelon-mojito.jpeg",
+    "relPath": "assets/dishes/watermelon-mojito.jpeg"
+  },
+  {
+    "name": "Pink Guava",
+    "slug": "pink-guava",
+    "price": 211,
+    "filename": "pink-guava.jpeg",
+    "relPath": "assets/dishes/pink-guava.jpeg"
+  },
+  {
+    "name": "Raspberry Cooler",
+    "slug": "raspberry-cooler",
+    "price": 225,
+    "filename": "raspberry-cooler.jpeg",
+    "relPath": "assets/dishes/raspberry-cooler.jpeg"
+  },
+  {
+    "name": "Virgin Pinacolada",
+    "slug": "virgin-pinacolada",
+    "price": 225,
+    "filename": "virgin-pinacolada.jpeg",
+    "relPath": "assets/dishes/virgin-pinacolada.jpeg"
+  },
+  {
+    "name": "Classic Lemon Iced Tea",
+    "slug": "classic-lemon-iced-tea",
+    "price": 211,
+    "filename": "classic-lemon-iced-tea.jpeg",
+    "relPath": "assets/dishes/classic-lemon-iced-tea.jpeg"
+  },
+  {
+    "name": "Strawberry Iced Tea",
+    "slug": "strawberry-iced-tea",
+    "price": 223,
+    "filename": "strawberry-iced-tea.jpeg",
+    "relPath": "assets/dishes/strawberry-iced-tea.jpeg"
+  },
+  {
+    "name": "Oreo Shake",
+    "slug": "oreo-shake",
+    "price": 249,
+    "filename": "oreo-shake.jpeg",
+    "relPath": "assets/dishes/oreo-shake.jpeg"
+  },
+  {
+    "name": "Kitkat Shake.",
+    "slug": "kitkat-shake",
+    "price": 289,
+    "filename": "kitkat-shake.jpeg",
+    "relPath": "assets/dishes/kitkat-shake.jpeg"
+  },
+  {
+    "name": "Strawberry Shake",
+    "slug": "strawberry-shake",
+    "price": 225,
+    "filename": "strawberry-shake.jpeg",
+    "relPath": "assets/dishes/strawberry-shake.jpeg"
+  },
+  {
+    "name": "Blueberry Shake",
+    "slug": "blueberry-shake",
+    "price": 235,
+    "filename": "blueberry-shake.jpeg",
+    "relPath": "assets/dishes/blueberry-shake.jpeg"
+  },
+  {
+    "name": "Chocolate Shake",
+    "slug": "chocolate-shake",
+    "price": 225,
+    "filename": "chocolate-shake.jpeg",
+    "relPath": "assets/dishes/chocolate-shake.jpeg"
+  },
+  {
+    "name": "Vanilla Shake",
+    "slug": "vanilla-shake",
+    "price": 235,
+    "filename": "vanilla-shake.jpeg",
+    "relPath": "assets/dishes/vanilla-shake.jpeg"
+  },
+  {
+    "name": "Mineral Water [1 Ltr]",
+    "slug": "mineral-water-1-ltr",
+    "price": 35,
+    "filename": "mineral-water-1-ltr.jpeg",
+    "relPath": "assets/dishes/mineral-water-1-ltr.jpeg"
+  }
+]

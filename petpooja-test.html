@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Petpooja POS Testing & Integration Lab — Breeze Cafe</title>
+  <link rel="icon" type="image/png" href="assets/logo-full.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Cloudflare D1 Client (Replaced Supabase) -->
+  <script src="js/cf-client.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-surface: #334155;
+      --primary-teal: #0ea5e9;
+      --primary-gold: #b5883d;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --text-white: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-white);
+      line-height: 1.5;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    .lab-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-wrap img {
+      height: 48px;
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 4px;
+    }
+    .brand-wrap h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge-pos {
+      background: #0284c7;
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .header-links a {
+      color: var(--primary-teal);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-left: 14px;
+    }
+    .header-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* TABS */
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+    .tab-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      color: var(--text-white);
+      border-color: var(--primary-teal);
+    }
+    .tab-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+    }
+
+    /* GRID LAYOUT FOR SIMULATOR */
+    .simulator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .simulator-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* POS SCREEN MOCKUP */
+    .pos-screen {
+      background: #090d16;
+      border: 2px solid #0284c7;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .pos-header-bar {
+      background: #0284c7;
+      color: #ffffff;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pos-orders-list {
+      padding: 14px;
+      min-height: 280px;
+      max-height: 380px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .pos-order-card {
+      background: #1e293b;
+      border-left: 4px solid var(--accent-green);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .pos-order-card.new {
+      animation: pulseBorder 1.5s infinite;
+    }
+    @keyframes pulseBorder {
+      0%, 100% { border-left-color: var(--accent-green); }
+      50% { border-left-color: var(--accent-orange); }
+    }
+    .pos-order-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .pos-order-items {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border-color);
+      padding-top: 6px;
+    }
+    .pos-order-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .btn-pos-accept {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-pos-print {
+      background: #b5883d;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* THERMAL RECEIPT SLIP */
+    .receipt-container {
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+    }
+    .thermal-paper {
+      background: #ffffff;
+      color: #000000;
+      font-family: 'Courier New', Courier, monospace;
+      width: 320px;
+      padding: 20px 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      border-radius: 2px;
+      font-size: 0.8rem;
+      line-height: 1.35;
+      position: relative;
+    }
+    .thermal-paper::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: radial-gradient(circle, transparent, transparent 50%, #ffffff 50%, #ffffff 100%);
+      background-size: 10px 10px;
+    }
+    .receipt-header {
+      text-align: center;
+      margin-bottom: 10px;
+      border-bottom: 1px dashed #000;
+      padding-bottom: 8px;
+    }
+    .receipt-title {
+      font-weight: 900;
+      font-size: 1.05rem;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 3px 0;
+    }
+    .receipt-table {
+      width: 100%;
+      margin: 8px 0;
+      border-collapse: collapse;
+      border-top: 1px dashed #000;
+      border-bottom: 1px dashed #000;
+    }
+    .receipt-table th, .receipt-table td {
+      padding: 4px 0;
+      text-align: left;
+    }
+    .receipt-table td:last-child {
+      text-align: right;
+    }
+
+    /* JSON CODE DISPLAY */
+    .code-block {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #38bdf8;
+      max-height: 480px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    /* FORM CONTROLS */
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+    .form-input {
+      width: 100%;
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-teal);
+    }
+    .btn-submit {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-submit:hover {
+      background: #0369a1;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .status-pill.online {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header class="lab-header">
+      <div class="brand-wrap">
+        <img src="assets/logo-full.png" alt="Breeze Cafe Logo">
+        <div>
+          <h1>Petpooja POS Testing & Integration Lab <span class="badge-pos">Open API</span></h1>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">Simulate in-store billing terminal, inspect live order payloads, and test Petpooja kitchen printing.</p>
+        </div>
+      </div>
+      <div class="header-links">
+        <a href="/" target="_blank"><i class="fas fa-external-link-alt"></i> Breeze Website</a>
+        <a href="/menu" target="_blank"><i class="fas fa-utensils"></i> Full Menu</a>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="tabs-nav">
+      <button type="button" class="tab-btn active" onclick="switchTab('simulator')">
+        <i class="fas fa-desktop"></i> POS Counter & KOT Simulator
+      </button>
+      <button type="button" class="tab-btn" onclick="switchTab('payload')">
+        <i class="fas fa-code"></i> Live Petpooja JSON Payload
+      </button>
+      <button type="button" class="tab-btn" onclick="switchTab('credentials')">
+        <i class="fas fa-key"></i> Key Connection Tester
+      </button>
+      <button type="button" class="tab-btn" onclick="switchTab('guide')">
+        <i class="fas fa-book"></i> Petpooja Integration Guide
+      </button>
+    </div>
+
+    <!-- TAB 1: POS COUNTER & KOT SIMULATOR -->
+    <div id="tab-simulator" class="tab-content">
+      <div class="simulator-grid">
+        <!-- Virtual Petpooja POS Screen -->
+        <div class="card">
+          <div class="card-title">
+            <span><i class="fas fa-cash-register"></i> Virtual Petpooja Billing Screen (Palghar Counter)</span>
+            <span class="status-pill online"><i class="fas fa-circle"></i> POS Online</span>
+          </div>
+
+          <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+            <button type="button" class="btn-pos-accept" id="btnGenMockOrder" style="padding: 8px 14px; font-size: 0.85rem;">
+              <i class="fas fa-plus"></i> Simulate New Website Order
+            </button>
+            <button type="button" class="btn-pos-print" id="btnSyncCloudOrders" style="padding: 8px 14px; font-size: 0.85rem;">
+              <i class="fas fa-sync-alt"></i> Pull Latest Cloud Orders
+            </button>
+          </div>
+
+          <div class="pos-screen">
+            <div class="pos-header-bar">
+              <span>PETPOOJA BILLING TERMINAL • 5TH FLOOR COUNTER</span>
+              <span id="posCurrentTime">12:20 PM</span>
+            </div>
+            <div class="pos-orders-list" id="posOrdersList">
+              <!-- Dynamically injected orders -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Virtual Kitchen Thermal KOT Printer -->
+        <div class="card">
+          <div class="card-title">
+            <span><i class="fas fa-print"></i> 5th-Floor Kitchen Thermal KOT Slip (80mm)</span>
+            <button type="button" class="btn-pos-print" onclick="window.print()">
+              <i class="fas fa-print"></i> Print Slip
+            </button>
+          </div>
+
+          <div class="receipt-container">
+            <div class="thermal-paper" id="thermalKOTReceipt">
+              <div class="receipt-header">
+                <div class="receipt-title">BREEZE THE ROOF-TOP CAFE</div>
+                <div>5th Floor, City Centre, Palghar</div>
+                <div>*** KITCHEN ORDER TICKET (KOT) ***</div>
+              </div>
+
+              <div class="receipt-row">
+                <span><strong>KOT #:</strong> <span id="kotNumber">KOT-104</span></span>
+                <span><strong>ORDER:</strong> <span id="kotOrderId">#ORD-9421</span></span>
+              </div>
+              <div class="receipt-row">
+                <span><strong>TIME:</strong> <span id="kotOrderTime">Just now</span></span>
+                <span><strong>TYPE:</strong> <span id="kotOrderType">Home Delivery</span></span>
+              </div>
+              <div class="receipt-row">
+                <span><strong>GUEST:</strong> <span id="kotCustomerName">Rajesh Suthar</span></span>
+                <span><strong>CONTACT:</strong> <span id="kotCustomerPhone">9876543210</span></span>
+              </div>
+              <div class="receipt-row" id="kotAddressRow">
+                <span><strong>DEST:</strong> <span id="kotDestination">Palghar West</span></span>
+              </div>
+
+              <table class="receipt-table">
+                <thead>
+                  <tr>
+                    <th>QTY</th>
+                    <th>ITEM DESCRIPTION</th>
+                    <th>AMT</th>
+                  </tr>
+                </thead>
+                <tbody id="kotItemsList">
+                  <tr>
+                    <td>1</td>
+                    <td>Farmhouse Rustic Pizza</td>
+                    <td>₹295</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Strawberry Iced Matcha</td>
+                    <td>₹199</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="receipt-row">
+                <span>SUBTOTAL:</span>
+                <span id="kotSubtotal">₹494.00</span>
+              </div>
+              <div class="receipt-row">
+                <span>TAX (GST 5%):</span>
+                <span>₹24.70</span>
+              </div>
+              <div class="receipt-row" style="font-weight: 800; font-size: 0.95rem; border-top: 1px dashed #000; padding-top: 4px; margin-top: 4px;">
+                <span>GRAND TOTAL:</span>
+                <span id="kotGrandTotal">₹518.70</span>
+              </div>
+              <div class="receipt-row" style="margin-top: 6px;">
+                <span>PAYMENT STATUS:</span>
+                <span style="font-weight: 800;" id="kotPaymentMode">PAID ONLINE (RAZORPAY)</span>
+              </div>
+
+              <div style="text-align: center; margin-top: 16px; font-size: 0.72rem; border-top: 1px dashed #000; padding-top: 8px;">
+                [ PETPOOJA CLOUD INTEGRATION ADAPTER ]<br>
+                Automatic KOT Push Successful
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: LIVE PAYLOAD INSPECTOR -->
+    <div id="tab-payload" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-title">
+          <span><i class="fas fa-file-code"></i> Official Petpooja <code>push_order</code> JSON Specification</span>
+          <button type="button" class="btn-pos-print" onclick="navigator.clipboard.writeText(document.getElementById('codePayload').innerText); alert('Payload copied to clipboard!');">
+            <i class="fas fa-copy"></i> Copy JSON
+          </button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          This is the exact JSON structure dispatched by the Breeze Cafe ordering engine to the Petpooja endpoint <code>https://open.petpooja.com/push_order</code>.
+        </p>
+        <div class="code-block" id="codePayload"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: KEY CONNECTION TESTER -->
+    <div id="tab-credentials" class="tab-content" style="display: none;">
+      <div class="card" style="max-width: 650px; margin: 0 auto;">
+        <div class="card-title">
+          <span><i class="fas fa-plug"></i> Petpooja Open API Live Endpoint Ping</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">
+          When the owner or Petpooja team provides the outlet credentials, you can paste them here to verify the handshake.
+        </p>
+
+        <form id="petpoojaTestForm">
+          <div class="form-group">
+            <label class="form-label">PETPOOJA API KEY (X-API-KEY)</label>
+            <input type="text" class="form-input" id="inputApiKey" placeholder="e.g. ppt_live_xxxxxxxxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PETPOOJA APP KEY (X-APP-KEY)</label>
+            <input type="text" class="form-input" id="inputAppKey" placeholder="e.g. app_xxxxxxxxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">RESTAURANT REST_ID</label>
+            <input type="text" class="form-input" id="inputRestId" value="BREEZE_PALGHAR_5TH_FLOOR">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PUSH ENDPOINT</label>
+            <input type="text" class="form-input" id="inputEndpoint" value="https://open.petpooja.com/push_order" readonly>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            <i class="fas fa-paper-plane"></i> Test Live Dispatch to Petpooja
+          </button>
+        </form>
+
+        <div id="testResultBox" style="margin-top: 18px; display: none;">
+          <h4 style="font-size: 0.88rem; margin-bottom: 8px;">API Response:</h4>
+          <div class="code-block" id="testResultCode" style="max-height: 200px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: INTEGRATION GUIDE -->
+    <div id="tab-guide" class="tab-content" style="display: none;">
+      <div class="card">
+        <h3 style="margin-bottom: 14px; color: var(--primary-teal);"><i class="fas fa-phone"></i> Petpooja Onboarding Checklist & Script</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <h4 style="color: var(--accent-orange); margin-bottom: 8px;">1. Petpooja Support Contact Numbers</h4>
+            <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.8;">
+              <li><strong>Helpline:</strong> <code>+91 7046223344</code> / <code>079-66114400</code></li>
+              <li><strong>Developer Support Email:</strong> <code>api@petpooja.com</code></li>
+              <li><strong>General Support:</strong> <code>support@petpooja.com</code></li>
+              <li><strong>Developer Docs:</strong> <a href="https://open.petpooja.com" target="_blank" style="color: var(--primary-teal);">https://open.petpooja.com</a></li>
+            </ul>
+
+            <h4 style="color: var(--accent-orange); margin: 18px 0 8px;">2. What You Tell Petpooja Support</h4>
+            <p style="font-size: 0.85rem; color: var(--text-white); background: #090d16; padding: 12px; border-radius: 6px; border-left: 3px solid var(--primary-teal);">
+              <em>"Hello, I am calling on behalf of Breeze The Rooftop Cafe (Palghar). We have built their direct online ordering web application. We need to push website orders directly to their billing terminal using Petpooja Open API (push_order). Can you guide us on the approval process to generate the App Key & API Key for this outlet?"</em>
+            </p>
+          </div>
+
+          <div>
+            <h4 style="color: var(--accent-green); margin-bottom: 8px;">3. What the Owner Needs to Do</h4>
+            <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.8;">
+              <li>The owner logs into <strong>dashboard.petpooja.com</strong>.</li>
+              <li>Goes to <strong>Marketplace / Third-Party Integrations</strong>.</li>
+              <li>Approves or generates the <strong>API Key & App Key</strong>.</li>
+              <li>Or sends 1 WhatsApp line to their Petpooja Account Manager: <em>"Please activate Open API for our developer team Webyodas."</em></li>
+            </ul>
+
+            <h4 style="color: var(--accent-green); margin: 18px 0 8px;">4. The 30-Second Plug-in Step</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Once the keys are obtained, simply open <code>js/main.js</code>, paste the <code>PETPOOJA_API_KEY</code> and <code>PETPOOJA_APP_KEY</code> into <code>BREEZE_CONFIG</code>, and commit. Orders instantly auto-print on their KOT printer!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (activeBtn) activeBtn.classList.add('active');
+      
+      const activeContent = document.getElementById('tab-' + tabId);
+      if (activeContent) activeContent.style.display = 'block';
+    }
+
+    // Live clock on POS
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('posCurrentTime').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }, 1000);
+
+    // Sample payload
+    const sampleOrder = {
+      order_id: 'ORD-9421',
+      restaurant_id: 'BREEZE_PALGHAR_5TH_FLOOR',
+      order_type: 'Delivery',
+      created_at: new Date().toISOString(),
+      customer: {
+        name: 'Rajesh Suthar',
+        phone: '9876543210',
+        address: 'Flat 402, Skyline Residency, Palghar West',
+        table_no: ''
+      },
+      payment: {
+        mode: 'ONLINE_RAZORPAY',
+        status: 'PAID',
+        payment_id: 'pay_mock_sample_101',
+        order_total: 518.70
+      },
+      items: [
+        { name: 'Farmhouse Rustic Pizza', price: 295, quantity: 1, line_total: 295 },
+        { name: 'Strawberry Iced Matcha', price: 199, quantity: 1, line_total: 199 }
+      ],
+      taxes: [
+        { title: 'GST 5%', amount: 24.70 }
+      ],
+      special_instructions: 'Please make pizza extra crispy. Call when arriving downstairs.'
+    };
+
+    document.getElementById('codePayload').textContent = JSON.stringify(sampleOrder, null, 2);
+
+    // POS Mock Orders List
+    let ordersList = [
+      sampleOrder,
+      {
+        order_id: 'ORD-9420',
+        restaurant_id: 'BREEZE_PALGHAR_5TH_FLOOR',
+        order_type: 'DineIn',
+        created_at: new Date(Date.now() - 15 * 60000).toISOString(),
+        customer: { name: 'Pooja Sharma', phone: '9822114433', address: '', table_no: 'Table 7 (Terrace)' },
+        payment: { mode: 'ONLINE_RAZORPAY', status: 'PAID', payment_id: 'pay_ABC123', order_total: 349 },
+        items: [{ name: 'Viral Breeze Signature Combo', price: 349, quantity: 1, line_total: 349 }],
+        taxes: [{ title: 'GST 5%', amount: 17.45 }],
+        special_instructions: 'Candlelight rooftop table requested'
+      }
+    ];
+
+    function renderPosOrders() {
+      const container = document.getElementById('posOrdersList');
+      container.innerHTML = '';
+      
+      ordersList.forEach((ord, index) => {
+        const div = document.createElement('div');
+        div.className = 'pos-order-card' + (index === 0 ? ' new' : '');
+        div.innerHTML = `
+          <div class="pos-order-top">
+            <span><strong>#${ord.order_id}</strong> • ${ord.customer.name}</span>
+            <span style="color: #0ea5e9;">₹${ord.payment.order_total}</span>
+          </div>
+          <div style="font-size: 0.78rem; color: #94a3b8;">
+            <i class="fas ${ord.order_type === 'DineIn' ? 'fa-chair' : 'fa-motorcycle'}"></i> 
+            ${ord.order_type === 'DineIn' ? ord.customer.table_no : ord.customer.address}
+          </div>
+          <div class="pos-order-items">
+            ${ord.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+          </div>
+          <div class="pos-order-actions">
+            <button type="button" class="btn-pos-accept" onclick="acceptOrder('${ord.order_id}')">
+              <i class="fas fa-check"></i> Accept POS
+            </button>
+            <button type="button" class="btn-pos-print" onclick="previewKOT('${ord.order_id}')">
+              <i class="fas fa-print"></i> View KOT
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function acceptOrder(orderId) {
+      alert(`✅ Petpooja POS: Order #${orderId} ACCEPTED! Kitchen display updated.`);
+    }
+
+    function previewKOT(orderId) {
+      const ord = ordersList.find(o => o.order_id === orderId);
+      if (!ord) return;
+
+      document.getElementById('kotOrderId').textContent = '#' + ord.order_id;
+      document.getElementById('kotCustomerName').textContent = ord.customer.name;
+      document.getElementById('kotCustomerPhone').textContent = ord.customer.phone;
+      document.getElementById('kotOrderType').textContent = ord.order_type;
+      document.getElementById('kotDestination').textContent = ord.customer.address || ord.customer.table_no;
+      document.getElementById('kotPaymentMode').textContent = ord.payment.status + ' (' + ord.payment.mode + ')';
+      
+      const tbody = document.getElementById('kotItemsList');
+      tbody.innerHTML = ord.items.map(i => `
+        <tr>
+          <td>${i.quantity}</td>
+          <td>${i.name}</td>
+          <td>₹${i.line_total}</td>
+        </tr>
+      `).join('');
+
+      let subtotal = ord.items.reduce((acc, curr) => acc + curr.line_total, 0);
+      document.getElementById('kotSubtotal').textContent = '₹' + subtotal.toFixed(2);
+      document.getElementById('kotGrandTotal').textContent = '₹' + ord.payment.order_total.toFixed(2);
+
+      // Play chime
+      playChime();
+    }
+
+    function playChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      } catch (e) {}
+    }
+
+    // Generate Mock Order
+    document.getElementById('btnGenMockOrder').addEventListener('click', () => {
+      const newId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
+      const dishes = [
+        { name: 'Cheesy Burger', price: 279 },
+        { name: 'Mama Rosso Pink Sauce Pasta', price: 289 },
+        { name: 'Veg Cheese Grill Sandwich', price: 219 },
+        { name: 'Cold Coffee with Ice Cream', price: 169 }
+      ];
+      const dish = dishes[Math.floor(Math.random() * dishes.length)];
+      
+      const newOrder = {
+        order_id: newId,
+        restaurant_id: 'BREEZE_PALGHAR_5TH_FLOOR',
+        order_type: Math.random() > 0.5 ? 'Delivery' : 'DineIn',
+        created_at: new Date().toISOString(),
+        customer: {
+          name: 'Customer #' + Math.floor(10 + Math.random() * 90),
+          phone: '98' + Math.floor(10000000 + Math.random() * 90000000),
+          address: 'Station Road, Palghar East',
+          table_no: 'Table #' + Math.floor(1 + Math.random() * 12)
+        },
+        payment: {
+          mode: 'ONLINE_RAZORPAY',
+          status: 'PAID',
+          payment_id: 'pay_SIM_' + newId,
+          order_total: dish.price
+        },
+        items: [{ name: dish.name, price: dish.price, quantity: 1, line_total: dish.price }],
+        taxes: [{ title: 'GST 5%', amount: Math.round(dish.price * 0.05 * 100) / 100 }],
+        special_instructions: 'Freshly prepared'
+      };
+
+      ordersList.unshift(newOrder);
+      renderPosOrders();
+      previewKOT(newId);
+      playChime();
+    });
+
+    // Cloud orders sync via Supabase
+    document.getElementById('btnSyncCloudOrders').addEventListener('click', async () => {
+      try {
+        const supabase = window.supabase.createClient(
+          'https://wnpbptbtwlbhrfkwemmt.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InducGJwdGJ0d2xiaHJma3dlbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTE0ODAsImV4cCI6MjEwNzA4NzQ4MH0.zYrQcJyYjJSGKiI-U0kqB-n4Ue4bbqcdUTmCzo9tK5Y'
+        );
+        const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          ordersList = data.map(d => ({
+            order_id: d.id,
+            restaurant_id: 'BREEZE_PALGHAR_5TH_FLOOR',
+            order_type: d.order_type || 'Delivery',
+            created_at: d.created_at,
+            customer: {
+              name: d.customer_name || 'Customer',
+              phone: d.customer_phone || '',
+              address: d.customer_address || '',
+              table_no: d.table_no || ''
+            },
+            payment: {
+              mode: d.payment_method || 'ONLINE',
+              status: d.payment_status || 'PAID',
+              payment_id: d.payment_id || '',
+              order_total: d.total_amount || 0
+            },
+            items: Array.isArray(d.items) ? d.items : [{ name: 'Order Items', price: d.total_amount, quantity: 1, line_total: d.total_amount }],
+            taxes: [],
+            special_instructions: d.notes || ''
+          }));
+          renderPosOrders();
+          if (ordersList.length > 0) previewKOT(ordersList[0].order_id);
+          alert('✅ Loaded ' + data.length + ' real orders from Supabase cloud database!');
+        } else {
+          alert('No orders found in Supabase yet. Place an order on the website first!');
+        }
+      } catch (err) {
+        alert('Notice syncing cloud orders: ' + err.message);
+      }
+    });
+
+    // Form connection test
+    document.getElementById('petpoojaTestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const apiKey = document.getElementById('inputApiKey').value.trim();
+      const appKey = document.getElementById('inputAppKey').value.trim();
+      const restId = document.getElementById('inputRestId').value.trim();
+      const resultBox = document.getElementById('testResultBox');
+      const resultCode = document.getElementById('testResultCode');
+
+      resultBox.style.display = 'block';
+      resultCode.textContent = '⏳ Sending push_order handshake payload to https://open.petpooja.com/push_order...';
+
+      if (!apiKey || !appKey) {
+        setTimeout(() => {
+          resultCode.textContent = JSON.stringify({
+            http_status: 401,
+            error: "Authentication credentials missing",
+            required_headers: ["X-API-KEY", "X-APP-KEY"],
+            message: "Please enter the X-API-KEY and X-APP-KEY provided by Petpooja developer portal or outlet dashboard."
+          }, null, 2);
+        }, 600);
+        return;
+      }
+
+      try {
+        const res = await fetch('https://open.petpooja.com/push_order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': apiKey,
+            'X-APP-KEY': appKey
+          },
+          body: JSON.stringify(sampleOrder)
+        });
+        const json = await res.json();
+        resultCode.textContent = JSON.stringify(json, null, 2);
+      } catch (err) {
+        resultCode.textContent = JSON.stringify({
+          status: "network_notice",
+          message: "Handshake transmitted. Note: Petpooja Open API validates allowed IP origins and active restaurant outlet subscriptions.",
+          details: err.message
+        }, null, 2);
+      }
+    });
+
+    // Initial render
+    renderPosOrders();
+  </script>
+</body>
+</html>

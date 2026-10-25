@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "title": "Under the Twilight Fairy Lights",
+    "caption": "Palghar's high-sky dining terrace",
+    "image": "assets/rooftop-night.jpg",
+    "tag": "Rooftop Nights"
+  },
+  {
+    "id": 2,
+    "title": "Gourmet Combos",
+    "caption": "Crafted for flavor lovers",
+    "image": "assets/signature-combo.jpg",
+    "tag": "Signature Delights"
+  },
+  {
+    "id": 3,
+    "title": "Panoramic Sunset Terrace",
+    "caption": "Soak in the fresh open breeze",
+    "image": "assets/rooftop-daylight.jpg",
+    "tag": "Sunset Lounge"
+  },
+  {
+    "id": 5,
+    "title": "Rooftop Ambiance",
+    "image": "/assets/dishes/dish_3.jpeg",
+    "tag": "Ambiance"
+  }
+]

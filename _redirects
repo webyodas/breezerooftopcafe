@@ -1,0 +1,54 @@
+/website       /          301
+/website/      /          301
+/website/*     /:splat    301
+
+# Subdirectory Asset Rewrites
+/admin/js/*       /js/:splat       200
+/admin/css/*      /css/:splat      200
+/admin/assets/*   /assets/:splat   200
+
+/rider/js/*       /js/:splat       200
+/rider/css/*      /css/:splat      200
+/rider/assets/*   /assets/:splat   200
+
+/menu/js/*        /js/:splat       200
+/menu/css/*       /css/:splat      200
+/menu/assets/*    /assets/:splat   200
+
+/profile/js/*     /js/:splat       200
+/profile/css/*    /css/:splat      200
+/profile/assets/* /assets/:splat   200
+
+/about/js/*       /js/:splat       200
+/about/css/*      /css/:splat      200
+/about/assets/*   /assets/:splat   200
+
+/contact/js/*     /js/:splat       200
+/contact/css/*    /css/:splat      200
+/contact/assets/* /assets/:splat   200
+
+# Route Mappings
+/admin         /admin/index.html   200
+/admin/        /admin/index.html   200
+/admin.html    /admin              301
+
+/menu          /menu/index.html    200
+/menu/         /menu/index.html    200
+/menu.html     /menu               301
+
+/profile       /profile/index.html 200
+/profile/      /profile/index.html 200
+/profile.html  /profile            301
+
+/about         /about/index.html   200
+/about/        /about/index.html   200
+/about.html    /about              301
+
+/contact       /contact/index.html 200
+/contact/      /contact/index.html 200
+/contact.html  /contact            301
+
+/rider         /rider/index.html   200
+/rider/        /rider/index.html   200
+/delivery      /rider              301
+/delivery/     /rider              301

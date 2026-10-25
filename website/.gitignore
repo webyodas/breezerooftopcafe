@@ -1,0 +1,9 @@
+.DS_Store
+Thumbs.db
+*.log
+.system_generated/
+*.tmp
+# Local mobile demo preview (stays on device only)
+mobile/
+/mobile/
+

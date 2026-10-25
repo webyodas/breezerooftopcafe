@@ -1,0 +1,672 @@
+[
+  {
+    "id": 1,
+    "name": "Cheesy Burger",
+    "category": "burgers",
+    "price": "1",
+    "image": "assets/dishes/cheesy-burger.jpeg",
+    "description": "Our viral molten cheese burst burger featuring double cheese layers, crispy patty, and grilled brioche buns.",
+    "badge": "Signature",
+    "isVeg": true
+  },
+  {
+    "id": 2,
+    "name": "Strawberry Iced Matcha",
+    "category": "beverages",
+    "price": "199",
+    "image": "assets/signature-combo.jpg",
+    "description": "Artisanal ceremonial Japanese matcha layered over chilled milk and handcrafted strawberry puree.",
+    "badge": "Viral Bestseller",
+    "isVeg": true
+  },
+  {
+    "id": 3,
+    "name": "Farmhouse Rustic Pizza",
+    "category": "pizzas",
+    "price": "295",
+    "image": "assets/dishes/dish_11.jpeg",
+    "description": "Hand-stretched sourdough pizza loaded with grilled zucchini, sweet baby corn, broccoli, bell peppers, and fresh herbs.",
+    "badge": "Chef Special",
+    "isVeg": true
+  },
+  {
+    "id": 4,
+    "name": "Cheesy Peri Peri Fries",
+    "category": "starters",
+    "price": "275",
+    "image": "assets/dishes/cheesy-peri-peri-fries.jpeg",
+    "description": "Crispy skin-on french fries tossed in zesty African peri peri spices, smothered in velvety melted cheese sauce.",
+    "badge": "Bestseller",
+    "isVeg": true
+  },
+  {
+    "id": 5,
+    "name": "Alfredo Pasta",
+    "category": "pastas",
+    "price": "309",
+    "image": "assets/dishes/alfredo-pasta.jpeg",
+    "description": "Silky fettuccine smothered in a rich, buttery parmesan cream sauce infused with roasted garlic and herbs.",
+    "badge": "Bestseller",
+    "isVeg": true
+  },
+  {
+    "id": 6,
+    "name": "Exotic Veggie Pizza",
+    "category": "pizzas",
+    "price": "285",
+    "image": "assets/dishes/exotic-veggie-pizza.jpeg",
+    "description": "Hand-stretched thin crust topped with baby corn, zucchini, bell peppers, black olives, and 100% mozzarella.",
+    "badge": "Bestseller",
+    "isVeg": true
+  },
+  {
+    "id": 7,
+    "name": "Thai Curry With Basil Rice",
+    "category": "mains",
+    "price": "425",
+    "image": "assets/dishes/thai-curry-with-basil-rice.jpeg",
+    "description": "Aromatic coconut green curry loaded with exotic Asian vegetables, accompanied by fragrant steamed basil rice.",
+    "badge": "Signature",
+    "isVeg": true
+  },
+  {
+    "id": 8,
+    "name": "Paneer Zinger Burger",
+    "category": "burgers",
+    "price": "279",
+    "image": "assets/dishes/paneer-zinger-burger.jpeg",
+    "description": "Crispy spiced paneer steak coated in crunchy batter, layered with cheddar cheese, shredded lettuce, and chipotle mayo.",
+    "badge": "Must Try",
+    "isVeg": true
+  },
+  {
+    "id": 9,
+    "name": "Loaded Mexican Fiesta Platter",
+    "category": "starters",
+    "price": "259",
+    "image": "assets/dishes/dish_6.png",
+    "description": "Crispy seasoned nachos layered with fresh salsa fresca, chipotle crema, sour cream drizzle, and jalapeños.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 10,
+    "name": "Vietnamese Iced Coffee",
+    "category": "coffee",
+    "price": "211",
+    "image": "assets/dishes/vietnamese-iced-coffee.jpeg",
+    "description": "Traditional strong dark roast coffee blended with sweet condensed milk, served ice-cold.",
+    "badge": "Must Try",
+    "isVeg": true
+  },
+  {
+    "id": 11,
+    "name": "Oreo Shake",
+    "category": "shakes",
+    "price": "249",
+    "image": "assets/dishes/oreo-shake.jpeg",
+    "description": "Rich vanilla ice cream blended with crushed Oreo cookies, chocolate sauce, and whipped swirl.",
+    "badge": "Bestseller",
+    "isVeg": true
+  },
+  {
+    "id": 12,
+    "name": "Creamy Pesto Pasta",
+    "category": "pastas",
+    "price": "329",
+    "image": "assets/dishes/creamy-pesto-pasta.jpeg",
+    "description": "Fresh basil and pine nut pesto blended with light cream, tossed with al dente pasta and black olives.",
+    "badge": "Must Try",
+    "isVeg": true
+  },
+  {
+    "id": 13,
+    "name": "Honey Chilli Potatoes",
+    "category": "starters",
+    "price": "299",
+    "image": "assets/dishes/honey-chilli-potatoes.jpeg",
+    "description": "Crispy glazed potato fingers tossed with roasted sesame seeds, honey-chilli sauce, and fresh scallions.",
+    "badge": "Chef Special",
+    "isVeg": true
+  },
+  {
+    "id": 14,
+    "name": "Strawberry New York Cheesecake",
+    "category": "desserts",
+    "price": "249",
+    "image": "assets/dishes/dish_10.jpeg",
+    "description": "Classic dense baked cream cheese slice glazed with sweet wild strawberry compote.",
+    "badge": "Chef Special",
+    "isVeg": true
+  },
+  {
+    "id": 15,
+    "name": "Veg Classic Manchow Soup",
+    "category": "soups-salads",
+    "price": "211",
+    "image": "assets/dishes/veg-classic-manchow-soup.jpeg",
+    "description": "Spicy Indo-Chinese broth infused with finely chopped vegetables, garlic, and fresh herbs, served with crisp fried noodles.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 16,
+    "name": "Veg Club Sandwich",
+    "category": "sandwiches",
+    "price": "275",
+    "image": "assets/dishes/veg-club-sandwich.jpeg",
+    "description": "Classic cafe club sandwich with layers of crisp cucumber, tomatoes, cheese slice, and seasoned spread.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 17,
+    "name": "Cheese Garlic Bread",
+    "category": "sandwiches",
+    "price": "248",
+    "image": "assets/dishes/cheese-garlic-bread.jpeg",
+    "description": "Artisanal baguette slices slathered in roasted garlic butter and baked with melted golden cheese.",
+    "badge": "Bestseller",
+    "isVeg": true
+  },
+  {
+    "id": 18,
+    "name": "Exotic Veggies Panini",
+    "category": "sandwiches",
+    "price": "248",
+    "image": "assets/dishes/exotic-veggies-panini.jpeg",
+    "description": "Pressed Italian panini stuffed with zucchini, bell peppers, olives, and herb pesto cream.",
+    "badge": "Chef Special",
+    "isVeg": true
+  },
+  {
+    "id": 19,
+    "name": "Paneer Zinger Wrap",
+    "category": "wraps",
+    "price": "289",
+    "image": "assets/dishes/paneer-zinger-wrap.jpeg",
+    "description": "Flaky tortilla wrap loaded with crunchy zinger spiced paneer, pickled onions, and smoky dressing.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 20,
+    "name": "Teriyaki Paneer Chilly",
+    "category": "starters",
+    "price": "349",
+    "image": "assets/dishes/teriyaki-paneer-chilly.jpeg",
+    "description": "Wok-tossed paneer cubes glazed in sweet-savory Japanese teriyaki sauce with bell peppers and toasted sesame.",
+    "badge": "Chef Special",
+    "isVeg": true
+  },
+  {
+    "id": 21,
+    "name": "Cheese Ball",
+    "category": "starters",
+    "price": "259",
+    "image": "assets/dishes/cheese-ball.jpeg",
+    "description": "Golden-fried crunchy croquettes filled with gooey molten cheese and jalapeño bits.",
+    "badge": "Must Try",
+    "isVeg": true
+  },
+  {
+    "id": 22,
+    "name": "Hummus With Lavash & Pita",
+    "category": "starters",
+    "price": "279",
+    "image": "assets/dishes/hummus-with-lavash-and-pita.jpeg",
+    "description": "Velvety authentic chickpea tahini hummus served with crispy baked lavash crackers and warm pita pockets.",
+    "badge": "Authentic",
+    "isVeg": true
+  },
+  {
+    "id": 23,
+    "name": "Nachos Salad",
+    "category": "soups-salads",
+    "price": "249",
+    "image": "assets/dishes/nachos-salad.jpeg",
+    "description": "Crispy Mexican corn tortilla chips topped with salsa fresco, sour cream drizzle, refried beans, and cheese.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 24,
+    "name": "Mama Rosso Pasta",
+    "category": "pastas",
+    "price": "329",
+    "image": "assets/dishes/mama-rosso-pasta.jpeg",
+    "description": "Penne tossed in our luscious pink sauce — a velvety blend of rich cream and zesty tomato pomodoro.",
+    "badge": "Chef Special",
+    "isVeg": true
+  },
+  {
+    "id": 25,
+    "name": "Mexican Pizza",
+    "category": "pizzas",
+    "price": "285",
+    "image": "assets/dishes/mexican-pizza.jpeg",
+    "description": "Fiery Mexican salsa base topped with spiced beans, sweet corn, jalapeños, onions, and gooey melted cheese.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 26,
+    "name": "Panner Makhani Pizza",
+    "category": "pizzas",
+    "price": "298",
+    "image": "assets/dishes/panner-makhani-pizza.jpeg",
+    "description": "Rich makhani gravy sauce topped with marinated paneer tikka chunks, sliced onions, and fresh coriander.",
+    "badge": "Fusion",
+    "isVeg": true
+  },
+  {
+    "id": 27,
+    "name": "Pesto Veggie Pizza",
+    "category": "pizzas",
+    "price": "284",
+    "image": "assets/dishes/pesto-veggie-pizza.jpg",
+    "description": "Aromatic basil pesto base loaded with grilled zucchini, sun-dried tomatoes, and melted mozzarella.",
+    "badge": "Chef Special",
+    "isVeg": true
+  },
+  {
+    "id": 28,
+    "name": "Stir Fry Noodles",
+    "category": "mains",
+    "price": "355",
+    "image": "assets/dishes/stir-fry-noodles.jpeg",
+    "description": "Wok-tossed Hakka noodles with julienned vegetables, spring onions, and savory Asian sauces.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 29,
+    "name": "Kashmiri Rajma Chawal",
+    "category": "mains",
+    "price": "369",
+    "image": "assets/dishes/kashmiri-rajma-chawal.jpeg",
+    "description": "Slow-cooked Jammu rajma in aromatic whole spices, served with steaming jeera basmati rice and roasted papad.",
+    "badge": "Comfort Bowl",
+    "isVeg": true
+  },
+  {
+    "id": 30,
+    "name": "Iced Americano",
+    "category": "coffee",
+    "price": "135",
+    "image": "assets/dishes/iced-americano.jpeg",
+    "description": "Double espresso shots pulled fresh from 100% Arabica beans, poured over ice and chilled mineral water.",
+    "badge": "House Brew",
+    "isVeg": true
+  },
+  {
+    "id": 31,
+    "name": "Cranberry Coffee",
+    "category": "coffee",
+    "price": "223",
+    "image": "assets/dishes/cranberry-coffee.jpeg",
+    "description": "Layered artisan cooler combining tart cranberry juice with bold chilled espresso over ice.",
+    "badge": "Unique Sip",
+    "isVeg": true
+  },
+  {
+    "id": 32,
+    "name": "Irish Frappe",
+    "category": "coffee",
+    "price": "285",
+    "image": "assets/dishes/irish-frappe.jpeg",
+    "description": "Thick blended coffee shake infused with non-alcoholic Irish cream notes and whipped topping.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 33,
+    "name": "Chocolate Cookie Frappe",
+    "category": "coffee",
+    "price": "285",
+    "image": "assets/dishes/chocolate-cookie-frappe.jpeg",
+    "description": "Chunky cookies blended with rich chocolate espresso frappe, topped with crunchy cookie crumbs.",
+    "badge": "Bestseller",
+    "isVeg": true
+  },
+  {
+    "id": 34,
+    "name": "Virgin Mojito",
+    "category": "beverages",
+    "price": "220",
+    "image": "assets/dishes/virgin-mojito.jpeg",
+    "description": "Muddled fresh mint leaves, lime wedges, and sparkling soda sweetened with pure cane syrup.",
+    "badge": "Classic",
+    "isVeg": true
+  },
+  {
+    "id": 35,
+    "name": "Blue Curacao",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/blue-curacao.jpeg",
+    "description": "Vibrant tropical citrus cooler with blue curaçao syrup, lemon juice, and chilled soda.",
+    "badge": "Eye-Catcher",
+    "isVeg": true
+  },
+  {
+    "id": 36,
+    "name": "Summer Berries Mojito",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/summer-berries-mojito.jpeg",
+    "description": "Muddled mixed forest berries with fragrant mint and fizzy soda for the ultimate rooftop refresher.",
+    "badge": "Bestseller",
+    "isVeg": true
+  },
+  {
+    "id": 37,
+    "name": "Bubble Gum Mojito",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/bubble-gum-mojito.jpeg",
+    "description": "Nostalgic bubble gum syrup paired with fresh citrus and cooling mint soda.",
+    "badge": "Fun Flavor",
+    "isVeg": true
+  },
+  {
+    "id": 38,
+    "name": "Passion Fruit Mojito",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/passion-fruit-mojito.jpeg",
+    "description": "Tangy tropical passion fruit pulp shaken with crushed ice, mint sprigs, and lemon soda.",
+    "badge": "Must Try",
+    "isVeg": true
+  },
+  {
+    "id": 39,
+    "name": "Pink Guava",
+    "category": "beverages",
+    "price": "211",
+    "image": "assets/dishes/pink-guava.jpeg",
+    "description": "Rich pink guava nectar with a hint of red chili salt rim and fresh lemon.",
+    "badge": "Desi Twist",
+    "isVeg": true
+  },
+  {
+    "id": 40,
+    "name": "Classic Lemon Iced Tea",
+    "category": "beverages",
+    "price": "211",
+    "image": "assets/dishes/classic-lemon-iced-tea.jpeg",
+    "description": "Slow-steeped black tea infused with real lemon juice and served chilled over ice.",
+    "badge": "Classic",
+    "isVeg": true
+  },
+  {
+    "id": 41,
+    "name": "Kitkat Shake",
+    "category": "shakes",
+    "price": "289",
+    "image": "assets/dishes/kitkat-shake.jpeg",
+    "description": "Crisp KitKat wafers blended into thick creamy milk and chocolate fudge.",
+    "badge": "Must Try",
+    "isVeg": true
+  },
+  {
+    "id": 42,
+    "name": "Blueberry Shake",
+    "category": "shakes",
+    "price": "235",
+    "image": "assets/dishes/blueberry-shake.jpeg",
+    "description": "Vibrant wild blueberries blended into rich, velvety vanilla shake.",
+    "badge": "Popular",
+    "isVeg": true
+  },
+  {
+    "id": 43,
+    "name": "Crispy Veg Manchurian Gravy",
+    "category": "starters",
+    "price": "245",
+    "image": "assets/dishes/dish_4.png",
+    "description": "Golden-fried vegetable dumplings tossed in rich, fiery Indo-Chinese garlic gravy garnished with fresh scallions.",
+    "badge": "Must Try",
+    "isVeg": true
+  },
+  {
+    "id": 44,
+    "name": "Tomato Basil Soup",
+    "category": "soups-salads",
+    "price": "211",
+    "image": "assets/dishes/tomato-basil-soup.jpeg",
+    "description": "Slow-simmered vine-ripened tomatoes blended with Italian basil, aromatic herbs, and warm toasted croutons.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 45,
+    "name": "Peri Peri Fries",
+    "category": "starters",
+    "price": "225",
+    "image": "assets/dishes/peri-peri-fries.jpeg",
+    "description": "Golden crisp fries dusted generously with our house-blend spicy peri peri seasonings.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 46,
+    "name": "Classic Fries",
+    "category": "starters",
+    "price": "189",
+    "image": "assets/dishes/classic-fries.jpeg",
+    "description": "Classic golden salted fries fried to crisp perfection, served with house special mayo.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 47,
+    "name": "American Veggie Classic Burger",
+    "category": "burgers",
+    "price": "189",
+    "image": "assets/dishes/american-veggie-classic-burger.jpeg",
+    "description": "Handcrafted seasoned herb veggie patty nestled in butter-toasted bun with crisp lettuce, onion, and tangy relish.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 48,
+    "name": "Veg Cheese Grill Sandwich",
+    "category": "sandwiches",
+    "price": "199",
+    "image": "assets/dishes/veg-cheese-grill-sandwich.jpeg",
+    "description": "Triple-decker butter-grilled sandwich stuffed with spiced potatoes, vegetables, and molten mozzarella.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 49,
+    "name": "Veg Grill Sandwich",
+    "category": "sandwiches",
+    "price": "180",
+    "image": "assets/dishes/veg-grill-sandwich.jpeg",
+    "description": "Golden toasted bread stuffed with fresh farm veggies and mint-coriander chutney.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 50,
+    "name": "Cheese Chilly Toast",
+    "category": "sandwiches",
+    "price": "265",
+    "image": "assets/dishes/cheese-chilly-toast.jpeg",
+    "description": "Crispy toasted bread topped with spicy green chillies, bell peppers, and bubbling melted cheese.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 51,
+    "name": "BBQ Paneer Wrap",
+    "category": "wraps",
+    "price": "279",
+    "image": "assets/dishes/bbq-paneer-wrap.jpeg",
+    "description": "Char-grilled cottage cheese cubes coated in sweet and smoky hickory BBQ sauce wrapped in soft flatbread.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 52,
+    "name": "Mix Veg Wrap",
+    "category": "wraps",
+    "price": "220",
+    "image": "assets/dishes/mix-veg-wrap.jpeg",
+    "description": "Wholesome garden veggies sautéed in light spices, rolled in a warm tortilla with creamy ranch.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 53,
+    "name": "Breeze Classic Caesar Salad",
+    "category": "soups-salads",
+    "price": "269",
+    "image": "assets/dishes/breeze-classic-caesar-salad.jpeg",
+    "description": "Crisp iceberg lettuce tossed with artisanal Caesar emulsion, garlic croutons, and parmesan shavings.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 54,
+    "name": "Arrabiata Pasta",
+    "category": "pastas",
+    "price": "309",
+    "image": "assets/dishes/arrabiata-pasta.jpeg",
+    "description": "Al dente penne in a spicy slow-simmered tomato sauce with crushed garlic, red chili flakes, and fresh basil.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 55,
+    "name": "Classic Margerita Pizza",
+    "category": "pizzas",
+    "price": "259",
+    "image": "assets/dishes/classic-margerita-pizza.jpeg",
+    "description": "Traditional Neapolitan style pizza with San Marzano tomato sauce, fresh mozzarella, and sweet basil leaves.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 56,
+    "name": "Iced Latte",
+    "category": "coffee",
+    "price": "180",
+    "image": "assets/dishes/iced-latte.jpeg",
+    "description": "Smooth espresso poured over cold silky milk and ice for a rich, refreshing caffeine kick.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 57,
+    "name": "Iced Mocha",
+    "category": "coffee",
+    "price": "225",
+    "image": "assets/dishes/iced-mocha.jpeg",
+    "description": "Decadent dark cocoa syrup stirred with chilled espresso and milk, finished with chocolate drizzle.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 58,
+    "name": "Cold Mocha Frappe",
+    "category": "coffee",
+    "price": "265",
+    "image": "assets/dishes/cold-mocha-frappe.jpeg",
+    "description": "Frosty blended coffee shake with Dutch cocoa, milk, and crushed ice.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 59,
+    "name": "Green Apple Mojito",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/green-apple-mojito.jpeg",
+    "description": "Crisp granny smith green apple syrup muddled with fresh mint, lime, and fizzy soda.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 60,
+    "name": "Strawberry Mojito",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/strawberry-mojito.jpeg",
+    "description": "Fresh crushed strawberries muddled with mint leaves, lemon juice, and sparkling soda.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 61,
+    "name": "Watermelon Mojito",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/watermelon-mojito.jpeg",
+    "description": "Crisp watermelon puree shaken with lime, garden mint, and chilled fizz.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 62,
+    "name": "Raspberry Cooler",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/raspberry-cooler.jpeg",
+    "description": "Sweet and tart raspberry syrup shaken with ice and topped with fizzy club soda.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 63,
+    "name": "Virgin Pinacolada",
+    "category": "beverages",
+    "price": "225",
+    "image": "assets/dishes/virgin-pinacolada.jpeg",
+    "description": "Creamy coconut cream and pineapple juice blended smooth with crushed ice.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 64,
+    "name": "Strawberry Iced Tea",
+    "category": "beverages",
+    "price": "223",
+    "image": "assets/dishes/strawberry-iced-tea.jpeg",
+    "description": "Refreshing iced tea infused with macerated strawberry fruit puree.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 65,
+    "name": "Strawberry Shake",
+    "category": "shakes",
+    "price": "225",
+    "image": "assets/dishes/strawberry-shake.jpeg",
+    "description": "Creamy shake made with luscious strawberries and whole milk ice cream.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 66,
+    "name": "Chocolate Shake",
+    "category": "shakes",
+    "price": "225",
+    "image": "assets/dishes/chocolate-shake.jpeg",
+    "description": "Classic thick chocolate milkshake made with rich Belgian cocoa syrup and milk.",
+    "badge": "",
+    "isVeg": true
+  },
+  {
+    "id": 67,
+    "name": "Vanilla Shake",
+    "category": "shakes",
+    "price": "235",
+    "image": "assets/dishes/vanilla-shake.jpeg",
+    "description": "Smooth vanilla bean shake made with premium dairy cream and ice cream.",
+    "badge": "",
+    "isVeg": true
+  }
+]

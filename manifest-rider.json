@@ -1,0 +1,39 @@
+{
+  "name": "Breeze Express Rider Cockpit",
+  "short_name": "Breeze Rider",
+  "description": "Delivery partner cockpit for Breeze Cafe riders — Live orders, 1-tap navigation, and doorstep cash settlements.",
+  "start_url": "/rider/",
+  "scope": "/rider/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf7f2",
+  "theme_color": "#1c1814",
+  "id": "breeze-rider-pwa",
+  "categories": ["business", "navigation", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/pwa/rider-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa/rider-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa/rider-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/pwa/rider-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

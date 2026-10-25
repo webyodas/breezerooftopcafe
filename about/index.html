@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About & Rooftop Vibe | Breeze The Roof-Top Café, Palghar</title>
+  <meta name="description" content="Discover the story, skyline ambiance, and open-air sunset views of Breeze The Rooftop Café on the 5th floor of Kanchan Aura, Palghar. Watch our reels, explore photos & reserve a table.">
+  <meta name="keywords" content="Breeze Rooftop Cafe Palghar, About Breeze Cafe, Rooftop cafe ambience, Kanchan Aura rooftop, Palghar cafe photos, Best sunset cafe Palghar">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:title" content="About & Rooftop Vibe | Breeze The Roof-Top Café">
+  <meta property="og:description" content="Where open sky meets unmatched ambiance. Experience the 5th-floor terrace, fairy lights, and culinary craft at Breeze Palghar.">
+  <meta property="og:image" content="assets/rooftop-night.jpg">
+  <meta property="og:type" content="website">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/assets/logo-emblem.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  <!-- Progressive Web App Configuration -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Breeze Cafe">
+  <link rel="apple-touch-icon" href="assets/pwa/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css?v=9.5">
+
+  <!-- Google Identity Services for Real 1-Tap Google Sign-In -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Supabase JS Client for Cloud Customer & Order Database -->
+  <!-- Cloudflare D1 Client (Replaced Supabase) -->
+  <script src="/js/cf-client.js"></script>
+  <!-- Official Razorpay Checkout Gateway -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <!-- Pre-hydration for store settings -->
+  <script>
+    (function() {
+      try {
+        var rawSettings = localStorage.getItem('breeze_store_settings');
+        if (rawSettings) {
+          window.breezeStoreSettings = Object.assign({}, window.breezeStoreSettings || {}, JSON.parse(rawSettings));
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body class="about-page">
+
+  <!-- ==========================================================================
+       HEADER & NAVIGATION
+       ========================================================================== -->
+  <header class="header">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo-link" aria-label="Breeze The Rooftop Cafe Home">
+        <img src="assets/logo-full.png" alt="Breeze The Rooftop Cafe" class="brand-logo-img">
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/menu" class="nav-link">Menu</a></li>
+          <li><a href="/about" class="nav-link active">About & Vibe</a></li>
+          <li><a href="/contact" class="nav-link">Contact & Desk</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav CTA -->
+      <div class="nav-actions">
+
+        <!-- Customer Account Pill / Sign In -->
+        <div class="nav-user-area" id="navUserArea">
+          <button type="button" class="btn btn-outline-gold btn-sm nav-auth-btn" id="navAuthBtn">
+            <i class="fas fa-user-circle"></i> <span>Sign In</span>
+          </button>
+          <div class="nav-user-dropdown" id="navUserDropdown" style="display: none;">
+            <button type="button" class="nav-user-profile-btn" id="navUserProfileToggle" aria-label="Customer profile menu">
+              <span class="user-avatar-initial" id="navUserAvatar">R</span>
+              <span class="user-name-label" id="navUserName">Account</span>
+              <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
+            </button>
+            <div class="nav-user-menu" id="navUserMenu">
+              <a href="/profile" class="user-menu-profile-card" id="userMenuProfileHeaderCard" style="cursor: pointer; text-decoration: none;" title="Open Customer Profile">
+                <div class="menu-avatar" id="dropdownAvatar">R</div>
+                <div style="flex: 1; min-width: 0;">
+                  <strong id="dropdownUserName">Customer Profile</strong>
+                  <span id="dropdownUserPhone">Verified Customer</span>
+                </div>
+                <i class="fas fa-chevron-right" style="color: var(--primary-gold); font-size: 0.8rem; margin-left: 6px;"></i>
+              </a>
+              <div class="user-menu-divider"></div>
+              <a href="/profile?tab=addresses" class="user-menu-item" id="menuProfileBtn" style="text-decoration: none;">
+                <i class="fas fa-map-marker-alt"></i> Saved Addresses
+              </a>
+              <a href="/profile?tab=orders" class="user-menu-item" id="menuOrderHistoryBtn" style="text-decoration: none;">
+                <i class="fas fa-receipt"></i> Order History & Receipts
+              </a>
+              <div class="user-menu-divider"></div>
+              <button type="button" class="user-menu-item text-danger" id="menuSignOutBtn">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="nav-cart-btn" id="navCartBtn" aria-label="View Cart">
+          <i class="fas fa-shopping-bag"></i> <span>Cart</span>
+          <span class="nav-cart-badge" id="navCartBadge">0</span>
+        </button>
+
+        <button type="button" class="btn btn-secondary btn-sm nav-reserve-btn" id="navBookTableBtn">
+          <i class="fas fa-calendar-check"></i> Book Table
+        </button>
+
+        <button class="mobile-nav-toggle" aria-label="Open navigation menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Backdrop & Menu -->
+  <div class="drawer-backdrop"></div>
+  <div class="mobile-nav-drawer">
+    <div class="drawer-header">
+      <a href="/" class="brand-logo-link" aria-label="Breeze Home">
+        <img src="assets/logo-full.png" alt="Breeze Logo" style="height: 52px; width: auto; object-fit: contain;">
+      </a>
+      <button class="drawer-close" aria-label="Close navigation menu">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <ul class="mobile-nav-links">
+      <li><a href="/" class="mobile-nav-link"><i class="fas fa-home"></i> Home</a></li>
+      <li><a href="/menu" class="mobile-nav-link"><i class="fas fa-utensils"></i> Full Food & Beverage Menu</a></li>
+      <li><a href="/about" class="mobile-nav-link active"><i class="fas fa-info-circle"></i> About & Rooftop Vibe</a></li>
+      <li><a href="/contact" class="mobile-nav-link"><i class="fas fa-map-marked-alt"></i> Location, Map & Timings</a></li>
+      <li><a href="/profile" class="mobile-nav-link"><i class="fas fa-user"></i> My Account & Orders</a></li>
+    </ul>
+    <div class="drawer-actions">
+      <div class="drawer-user-section" id="drawerUserSection" style="margin-bottom: 12px;">
+        <button type="button" class="btn btn-outline-gold btn-block drawer-auth-btn" id="drawerAuthBtn">
+          <i class="fas fa-user-circle"></i> <span>Sign In / My Account</span>
+        </button>
+        <button type="button" class="btn btn-block drawer-signout-btn" id="drawerSignOutBtn" style="display: none; margin-top: 8px; border: 1px solid rgba(220, 53, 69, 0.4); color: #dc3545; background: transparent;">
+          <i class="fas fa-sign-out-alt"></i> <span>Sign Out</span>
+        </button>
+      </div>
+      <button type="button" class="btn btn-primary btn-block drawer-reserve-btn" id="drawerBookTableBtn"><i class="fas fa-calendar-check"></i> Reserve a Table</button>
+      <a href="tel:9623999095" class="btn btn-secondary">
+        <i class="fas fa-phone"></i> Call +91 9623999095
+      </a>
+      <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold">
+        <i class="fas fa-directions"></i> Get Directions
+      </a>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ABOUT PAGE HERO BANNER
+       ========================================================================== -->
+  <section class="page-header-banner" style="background: radial-gradient(circle at 50% 20%, #1f1a14 0%, #0d0f14 100%); padding: 60px 0 45px; text-align: center; border-bottom: 1px solid rgba(200, 155, 60, 0.15);">
+    <div class="container">
+      <span class="badge-tag" style="background: rgba(200, 155, 60, 0.15); color: var(--primary-gold); border: 1px solid rgba(200, 155, 60, 0.3); margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px;">
+        <i class="fas fa-wind"></i> 5th Floor Rooftop Terrace
+      </span>
+      <h1 style="font-family: var(--font-serif); font-size: clamp(2rem, 4.5vw, 3.2rem); color: #ffffff; margin-bottom: 12px; font-weight: 700;">
+        The Breeze Story & Rooftop Vibe
+      </h1>
+      <p style="color: #a8a29e; font-size: clamp(0.95rem, 1.8vw, 1.15rem); max-width: 620px; margin: 0 auto; line-height: 1.6;">
+        Where open sky meets unmatched ambiance, artisanal culinary craft, and Palghar's golden hour skyline views.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       ABOUT & THE ROOFTOP EXPERIENCE
+       ========================================================================== -->
+  <section class="section-padding" id="about">
+    <div class="container about-grid">
+      <div class="about-text">
+        <span class="badge-tag"><i class="fas fa-sparkles"></i> The Breeze Sanctuary</span>
+        <h2 class="section-title">Where Open Sky Meets Unmatched Ambiance</h2>
+        <div class="about-quote">
+          “A cafe that has the incredible atmosphere and the ambiance is absolutely incredible and totally unmatched.”
+        </div>
+        <p class="about-p">
+          Welcome to Breeze The Rooftop Café — Palghar's premier destination for elevated culinary moments. Situated on the breezy 5th floor terrace of Kanchan Aura on Mahim Road, Breeze offers an escape from the city bustle into a scenic open-air oasis.
+        </p>
+        <p class="about-p">
+          Whether you are catching the golden sunset over Palghar, celebrating special milestones with friends, or enjoying a cozy candle-lit dinner under glowing fairy lights, our cafe sets the perfect mood with soul-satisfying flavors and soothing tunes.
+        </p>
+
+        <ul class="about-features-list">
+          <li class="about-feature-item"><i class="fas fa-check-circle"></i> Open Rooftop Terrace with Cozy Cabanas</li>
+          <li class="about-feature-item"><i class="fas fa-check-circle"></i> 100% Pure Veg Gourmet Delights & Jain Options</li>
+          <li class="about-feature-item"><i class="fas fa-check-circle"></i> Signature Ceremonial Matcha & Cold Brews</li>
+          <li class="about-feature-item"><i class="fas fa-check-circle"></i> Warm Acoustic Lighting, Sunset Breezes & Music</li>
+        </ul>
+
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 24px;">
+          <a href="/menu" class="btn btn-primary"><i class="fas fa-utensils"></i> Discover Full Menu</a>
+          <button type="button" class="btn btn-secondary open-reserve-modal-btn"><i class="fas fa-calendar-check"></i> Reserve a Table</button>
+          <a href="https://www.instagram.com/breezetherooftopcafe/?hl=en" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold">
+            <i class="fab fa-instagram"></i> Instagram (@breezetherooftopcafe)
+          </a>
+        </div>
+      </div>
+
+      <div class="about-visual-stack">
+        <div class="about-card-primary">
+          <img src="assets/rooftop-night.jpg" alt="Breeze Rooftop Cafe Night Fairy Lights">
+          <div class="about-card-overlay">
+            <h4 style="font-family: var(--font-serif); font-size: 1.4rem; color: #fff;">Evening Fairy Lights & Skyline</h4>
+            <p style="color: var(--primary-gold-light); font-size: 0.88rem;">5th Floor Rooftop Ambiance</p>
+          </div>
+        </div>
+        <div class="about-card-floating">
+          <img src="assets/rooftop-daylight.jpg" alt="Breeze Cafe Daylight Terrace">
+          <div class="about-card-floating-badge">
+            <i class="fas fa-sun"></i> Golden Hour Terrace
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       VIDEO REELS & SHORTS (Breeze Vibe & Stories)
+       ========================================================================== -->
+  <section class="section-padding reels-section" id="reels">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge-tag"><i class="fas fa-video"></i> Watch The Breeze Vibe</span>
+        <h2 class="section-title">Reels & Rooftop Stories</h2>
+        <p class="section-subtitle">
+          Experience our vibrant energy, barista craft, and sizzling kitchen moments straight from our rooftop lounge!
+        </p>
+      </div>
+
+      <div class="reels-grid">
+
+        <!-- Reel 1: Influencer & Barista Fun Skit -->
+        <div class="reel-card" title="Click to play/pause">
+          <video class="reel-video" loop playsinline muted preload="metadata">
+            <source src="assets/influencer-vibe.mp4" type="video/mp4">
+          </video>
+          <div class="reel-center-play"><i class="fas fa-play"></i></div>
+          <div class="reel-overlay">
+            <div class="reel-top-row">
+              <span class="reel-brand-tag"><i class="fas fa-sparkles"></i> Barista Vibes</span>
+              <button class="reel-controls-btn reel-mute-btn" title="Toggle Sound">
+                <i class="fas fa-volume-mute"></i>
+              </button>
+            </div>
+            <div class="reel-bottom-info">
+              <h4 class="reel-title">Friendly Barista Moments</h4>
+              <p class="reel-caption">Always warm, welcoming, and brewing pure happiness at the Breeze counter!</p>
+              <div class="reel-action-bar">
+                <span class="reel-play-indicator"><i class="fas fa-play"></i> Tap to Play</span>
+                <span style="font-size: 0.75rem; color: var(--primary-gold);"><i class="fab fa-instagram"></i> @breezetherooftopcafe</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reel 2: Signature Plating Spread -->
+        <div class="reel-card" title="Click to play/pause">
+          <video class="reel-video" loop playsinline muted preload="metadata">
+            <source src="assets/combo-dish.mp4" type="video/mp4">
+          </video>
+          <div class="reel-center-play"><i class="fas fa-play"></i></div>
+          <div class="reel-overlay">
+            <div class="reel-top-row">
+              <span class="reel-brand-tag"><i class="fas fa-fire"></i> Signature Feast</span>
+              <button class="reel-controls-btn reel-mute-btn" title="Toggle Sound">
+                <i class="fas fa-volume-mute"></i>
+              </button>
+            </div>
+            <div class="reel-bottom-info">
+              <h4 class="reel-title">The Grand Table Spread</h4>
+              <p class="reel-caption">Burgers, paninis, crisp fries, and artisanal coolers ready for your table.</p>
+              <div class="reel-action-bar">
+                <span class="reel-play-indicator"><i class="fas fa-play"></i> Tap to Play</span>
+                <span style="font-size: 0.75rem; color: var(--primary-gold);"><i class="fas fa-crown"></i> Chef's Pick</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reel 3: Craft Mocktails & Sips -->
+        <div class="reel-card" title="Click to play/pause">
+          <video class="reel-video" loop playsinline muted preload="metadata">
+            <source src="assets/drinks.mp4" type="video/mp4">
+          </video>
+          <div class="reel-center-play"><i class="fas fa-play"></i></div>
+          <div class="reel-overlay">
+            <div class="reel-top-row">
+              <span class="reel-brand-tag"><i class="fas fa-cocktail"></i> Craft Sips</span>
+              <button class="reel-controls-btn reel-mute-btn" title="Toggle Sound">
+                <i class="fas fa-volume-mute"></i>
+              </button>
+            </div>
+            <div class="reel-bottom-info">
+              <h4 class="reel-title">Artisan Cold Brews & Sips</h4>
+              <p class="reel-caption">Handcrafted cold brews, rose refreshers, and mojitos crafted by our mixologist.</p>
+              <div class="reel-action-bar">
+                <span class="reel-play-indicator"><i class="fas fa-play"></i> Tap to Play</span>
+                <span style="font-size: 0.75rem; color: var(--primary-gold);"><i class="fas fa-bolt"></i> Refreshing</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reel 4: Fresh Dishes & Matcha Spotlight -->
+        <div class="reel-card" title="Click to play/pause">
+          <video class="reel-video" loop playsinline muted preload="metadata">
+            <source src="assets/dish-show.mp4" type="video/mp4">
+          </video>
+          <div class="reel-center-play"><i class="fas fa-play"></i></div>
+          <div class="reel-overlay">
+            <div class="reel-top-row">
+              <span class="reel-brand-tag"><i class="fas fa-leaf"></i> Fresh Craft</span>
+              <button class="reel-controls-btn reel-mute-btn" title="Toggle Sound">
+                <i class="fas fa-volume-mute"></i>
+              </button>
+            </div>
+            <div class="reel-bottom-info">
+              <h4 class="reel-title">Strawberry Matcha & Panini</h4>
+              <p class="reel-caption">Watch our signature grilled pesto panini and chilled strawberry iced matcha served fresh!</p>
+              <div class="reel-action-bar">
+                <span class="reel-play-indicator"><i class="fas fa-play"></i> Tap to Play</span>
+                <span style="font-size: 0.75rem; color: var(--primary-gold);"><i class="fas fa-heart"></i> Viral Dish</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="reel-swipe-hint">
+        <i class="fas fa-arrows-left-right"></i> Swipe sideways to watch more reels
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       PHOTO GALLERY SECTION
+       ========================================================================== -->
+  <section class="section-padding" id="gallery">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge-tag"><i class="fas fa-camera"></i> Visual Gallery</span>
+        <h2 class="section-title">Moments at Breeze</h2>
+        <p class="section-subtitle">
+          Take a look at the ambiance, rooftop terrace vistas, and gourmet culinary creations waiting for you.
+        </p>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="gallery-item span-2">
+          <img src="assets/rooftop-night.jpg" alt="Rooftop Night Ambience with Fairy Lights">
+          <div class="gallery-item-overlay">
+            <h4 class="gallery-item-title">Under the Twilight Fairy Lights</h4>
+            <span class="gallery-item-sub">Palghar's high-sky dining terrace</span>
+          </div>
+        </div>
+
+        <div class="gallery-item">
+          <img src="assets/signature-combo.jpg" alt="Strawberry Iced Matcha and Cheesy Burger">
+          <div class="gallery-item-overlay">
+            <h4 class="gallery-item-title">Gourmet Combos</h4>
+            <span class="gallery-item-sub">Crafted for flavor lovers</span>
+          </div>
+        </div>
+
+        <div class="gallery-item">
+          <img src="assets/rooftop-daylight.jpg" alt="Open Terrace Lounge at Dusk">
+          <div class="gallery-item-overlay">
+            <h4 class="gallery-item-title">Panoramic Sunset Terrace</h4>
+            <span class="gallery-item-sub">Soak in the fresh open breeze</span>
+          </div>
+        </div>
+
+        <div class="gallery-item span-2 open-menu-modal-btn" style="cursor: pointer;">
+          <img src="assets/menu.avif" alt="Official Menu Card of Breeze Cafe">
+          <div class="gallery-item-overlay">
+            <h4 class="gallery-item-title">Authentic Printed Menu Card</h4>
+            <span class="gallery-item-sub"><i class="fas fa-search-plus"></i> Tap to view complete menu card</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="assets/logo-full.png" alt="Breeze Logo" class="brand-logo-img" style="height: 64px; width: auto; margin-bottom: 14px;">
+          <p>
+            Palghar's premier open-sky dining lounge. High above the city on the 5th floor of Kanchan Aura, offering artisan matchas, messy burgers, and fairy-lit evenings.
+          </p>
+          <div class="social-links">
+            <a href="https://www.instagram.com/breezetherooftopcafe/?hl=en" target="_blank" rel="noopener noreferrer" class="social-link" title="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="social-link" title="Google Maps">
+              <i class="fas fa-map-marker-alt"></i>
+            </a>
+            <a href="tel:9623999095" class="social-link" title="Call Cafe Desk"><i class="fas fa-phone"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Quick Navigation</h4>
+          <ul class="footer-links-list">
+            <li><a href="/" class="footer-link">Home</a></li>
+            <li><a href="/menu" class="footer-link">Food & Drink Menu</a></li>
+            <li><a href="/about" class="footer-link">About & Rooftop Vibe</a></li>
+            <li><a href="/contact" class="footer-link">Location & Timings</a></li>
+            <li><a href="/profile" class="footer-link">Customer Account & Orders</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Menu Highlights</h4>
+          <ul class="footer-links-list">
+            <li><a href="/menu" class="footer-link">Strawberry Iced Matcha</a></li>
+            <li><a href="/menu" class="footer-link">Cheesy Burst Burger</a></li>
+            <li><a href="/menu" class="footer-link">Paneer Zinger Burger</a></li>
+            <li><a href="/menu" class="footer-link">Cheesy Peri Peri Fries</a></li>
+            <li><a href="/menu" class="footer-link">Exotic Veggie Pizza</a></li>
+            <li><a href="/menu" class="footer-link">Alfredo Pasta</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col footer-contact-col">
+          <h4>Visit & Contact</h4>
+          <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="footer-contact-link" title="Open Google Maps Location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>5th Floor Kanchan Aura, Mahim Rd, Palghar 401404</span>
+          </a>
+          <div class="footer-contact-item">
+            <i class="fas fa-clock"></i>
+            <span class="store-hours-display">11:00 AM – 11:00 PM Daily</span>
+          </div>
+          <a href="tel:+919623999095" class="footer-contact-link" title="Call Breeze Cafe">
+            <i class="fas fa-phone"></i>
+            <span>+91 9623999095</span>
+          </a>
+          <div class="footer-contact-actions">
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold btn-sm" title="Directions on Google Maps">
+              <i class="fas fa-location-arrow"></i> Directions
+            </a>
+            <a href="tel:+919623999095" class="btn btn-primary btn-sm" title="Call directly">
+              <i class="fas fa-phone"></i> Call Us
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          © 2026 Breeze The Roof-Top Café. All Rights Reserved.
+        </div>
+        <div>
+          Crafted by <a href="https://webyodas.pages.dev" target="_blank" rel="noopener noreferrer" class="webyodas-link">Webyodas</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       MOBILE STICKY QUICK ACTION BOTTOM BAR (Strictly 3 Clean Tabs)
+       ========================================================================== -->
+  <nav class="mobile-bottom-bar" aria-label="Mobile quick actions">
+    <div class="mobile-bottom-bar-inner">
+      <a href="/" class="mobile-bar-btn" aria-label="Home">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="/menu" class="mobile-bar-btn" aria-label="Menu">
+        <i class="fas fa-utensils"></i>
+        <span>Menu</span>
+      </a>
+      <a href="/profile" class="mobile-bar-btn" aria-label="Profile">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Floating Cart Pill -->
+  <aside class="floating-cart-pill" id="floatingCartPill" aria-label="View current cart summary" style="display: none;">
+    <div class="floating-cart-info">
+      <div class="cart-pill-icon"><i class="fas fa-shopping-bag"></i></div>
+      <div class="cart-pill-text">
+        <strong id="floatingCartCount">0 Items</strong>
+        <span id="floatingCartTotal">₹0</span>
+      </div>
+    </div>
+    <button type="button" class="cart-pill-action" id="floatingCartActionBtn">
+      <span>View Cart</span>
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </aside>
+
+  <!-- Back to Top Button -->
+  <button id="backToTopBtn" class="back-to-top" aria-label="Scroll back to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="toast-notification" role="status" aria-live="polite"></div>
+
+  <!-- Cart Drawer Component -->
+  <div class="cart-drawer-backdrop" id="cartDrawerBackdrop"></div>
+  <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Your Cart">
+    <div class="cart-drawer-header">
+      <div class="cart-drawer-title">
+        <i class="fas fa-shopping-bag" style="color: var(--primary-gold);"></i>
+        <h3>Your Rooftop Order</h3>
+        <span class="cart-count-pill" id="cartItemsCountPill">0</span>
+      </div>
+      <button type="button" class="cart-close-btn" id="cartCloseBtn" aria-label="Close Cart">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="cart-items-wrap" id="cartItemsContainer">
+      <div class="cart-empty-state">
+        <i class="fas fa-utensils"></i>
+        <h4>Your plate is empty</h4>
+        <p>Explore our menu and add your favorite dishes to begin your order.</p>
+        <a href="/menu" class="btn btn-primary btn-sm" style="margin-top: 14px;">Browse Food Menu</a>
+      </div>
+    </div>
+    <div class="cart-drawer-footer" id="cartDrawerFooter" style="display: none;">
+      <div class="cart-price-summary">
+        <div class="cart-price-row">
+          <span>Item Total</span>
+          <span id="cartSubtotal">₹0</span>
+        </div>
+        <div class="cart-price-row" id="cartDeliveryRow" style="display: none;">
+          <span>Delivery Fee</span>
+          <span id="cartDeliveryFee">₹0</span>
+        </div>
+        <div class="cart-price-row" id="cartTaxRow" style="display: none;">
+          <span>Govt Taxes & GST</span>
+          <span id="cartTax">₹0</span>
+        </div>
+        <div class="cart-price-divider"></div>
+        <div class="cart-price-row cart-total-row">
+          <span>To Pay</span>
+          <strong id="cartGrandTotal">₹0</strong>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="cartCheckoutBtn">
+        Proceed to Checkout <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Table Reservation Modal -->
+  <div class="modal-overlay" id="reservationModal" role="dialog" aria-modal="true" aria-labelledby="modalReserveTitle" style="display: none;">
+    <div class="modal-container">
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-calendar-check"></i> 5th Floor Rooftop</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.45rem; color: var(--text-dark); margin: 0;" id="modalReserveTitle">
+            Reserve Your Rooftop Table
+          </h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="modalReserveCloseBtn" aria-label="Close reservation form">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 18px;">
+        Book your sunset or twilight table at Breeze. For immediate reservations within 1 hour, please call <a href="tel:9623999095" style="color: var(--primary-gold); font-weight: 700;">+91 9623999095</a>.
+      </p>
+
+      <form id="reservationForm" class="reservation-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="reserveName">Your Full Name *</label>
+            <input type="text" id="reserveName" class="form-control" placeholder="e.g. Rajesh Suthar" required>
+          </div>
+          <div class="form-group">
+            <label for="reservePhone">WhatsApp / Mobile Number *</label>
+            <input type="tel" id="reservePhone" class="form-control" placeholder="10-digit number" pattern="[0-9]{10}" required>
+          </div>
+          <div class="form-group">
+            <label for="reserveDate">Reservation Date *</label>
+            <input type="date" id="reserveDate" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="reserveTime">Seating Time *</label>
+            <select id="reserveTime" class="form-control" required>
+              <option value="">Select Time Slot</option>
+              <option value="12:00 PM">12:00 PM (Lunch)</option>
+              <option value="01:00 PM">01:00 PM</option>
+              <option value="02:00 PM">02:00 PM</option>
+              <option value="04:30 PM">04:30 PM (Golden Hour Teaser)</option>
+              <option value="05:30 PM">05:30 PM (Sunset View)</option>
+              <option value="06:30 PM">06:30 PM (Twilight Fairy Lights)</option>
+              <option value="07:30 PM">07:30 PM (Prime Dinner)</option>
+              <option value="08:30 PM">08:30 PM (Prime Dinner)</option>
+              <option value="09:30 PM">09:30 PM (Late Night Vibe)</option>
+              <option value="10:00 PM">10:00 PM (Last Seating)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reserveGuests">Number of Guests *</label>
+            <select id="reserveGuests" class="form-control" required>
+              <option value="1">1 Person</option>
+              <option value="2" selected>2 Guests (Romantic / Duo)</option>
+              <option value="3">3 Guests</option>
+              <option value="4">4 Guests (Family / Friends)</option>
+              <option value="5">5 - 6 Guests</option>
+              <option value="7">7 - 10 Guests (Party Seating)</option>
+              <option value="12">10+ Guests (Celebration / Event)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reserveOccasion">Occasion / Special Request</label>
+            <select id="reserveOccasion" class="form-control">
+              <option value="Casual Rooftop Hangout">Casual Rooftop Dining</option>
+              <option value="Romantic Date Night">Romantic Date Night</option>
+              <option value="Birthday Celebration">Birthday Celebration</option>
+              <option value="Anniversary">Anniversary</option>
+              <option value="Friends Reunion">Friends Reunion</option>
+              <option value="Business / Family Dinner">Family Dinner</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <label for="reserveNotes">Special Seating Requests (Optional)</label>
+          <textarea id="reserveNotes" class="form-control" rows="2" placeholder="e.g. Near edge for sunset view, birthday decor assistance..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 18px; padding: 14px;">
+          <i class="fas fa-check-circle"></i> Confirm Table Reservation via WhatsApp
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Printed Menu Card Modal -->
+  <div class="modal-overlay" id="menuCardModal">
+    <div class="modal-container">
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-book-open"></i> Printed Menu Card</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.45rem; color: var(--text-dark); margin: 0;">
+            Authentic Breeze Menu Card
+          </h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="menuCardCloseBtn" aria-label="Close menu image view">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="menu-modal-body">
+        <img src="assets/menu.avif" alt="Full Breeze Menu Card" class="menu-modal-img" loading="lazy">
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: VISUAL GALLERY PHOTO LIGHTBOX
+       ========================================================================== -->
+  <div class="modal-overlay" id="galleryPhotoLightboxModal">
+    <div class="modal-container gallery-lightbox-container" style="max-width: 900px; padding: 20px; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; color: #ffffff;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="badge-tag" style="background: rgba(181, 136, 61, 0.2); color: #d4af37; border-color: rgba(181, 136, 61, 0.4);"><i class="fas fa-camera"></i> Moments at Breeze</span>
+          <span id="galleryLightboxCounter" style="font-size: 0.82rem; color: #94a3b8; font-weight: 700;">1 of 4</span>
+        </div>
+        <button type="button" class="modal-close-btn" id="galleryLightboxCloseBtn" aria-label="Close photo preview" style="background: rgba(255,255,255,0.12); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 1rem;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div style="position: relative; display: flex; align-items: center; justify-content: center; min-height: 280px; max-height: 68vh; overflow: hidden; border-radius: 14px; background: #000000;">
+        <img id="galleryLightboxImage" src="assets/rooftop-night.jpg" alt="Breeze Gallery Photo" style="max-width: 100%; max-height: 68vh; object-fit: contain; border-radius: 12px; transition: opacity 0.2s ease;">
+        <button type="button" id="galleryLightboxPrev" aria-label="Previous photo" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.65); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.15rem; transition: all 0.2s;">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button type="button" id="galleryLightboxNext" aria-label="Next photo" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.65); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.15rem; transition: all 0.2s;">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h4 id="galleryLightboxTitle" style="font-family: var(--font-serif); font-size: 1.25rem; color: #ffffff; margin: 0 0 4px;">Photo Title</h4>
+          <p id="galleryLightboxSub" style="font-size: 0.85rem; color: #94a3b8; margin: 0;">Photo description</p>
+        </div>
+        <a id="galleryLightboxFullLink" href="assets/rooftop-night.jpg" target="_blank" class="btn btn-secondary" style="padding: 7px 16px; font-size: 0.82rem; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); color: #ffffff; border-radius: 10px;">
+          <i class="fas fa-expand"></i> Full Screen
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       SCRIPTS
+       ========================================================================== -->
+  <script src="js/main.js?v=9.6"></script>
+  <script src="js/pwa-install.js?v=9.5"></script>
+</body>
+</html>

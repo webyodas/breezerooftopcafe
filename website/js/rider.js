@@ -1,0 +1,913 @@
+/**
+ * ============================================================================
+ * BREEZE THE ROOFTOP CAFE — DELIVERY PARTNER ENGINE (/rider)
+ * ============================================================================
+ * Real-time rider cockpit: Multi-rider authentication, Supabase Realtime order
+ * assignment alerts, Web Audio chime, 1-tap navigation, and delivery lifecycle.
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  const RIDER_SESSION_KEY = 'breeze_rider_session';
+  const RIDER_AUDIO_KEY = 'breeze_rider_audio_pref';
+
+  // Config fallback
+  const config = window.BREEZE_CONFIG || {
+    API_BASE_URL: '',
+    SUPABASE_URL: 'cloudflare-d1',
+    SUPABASE_ANON_KEY: 'cloudflare-d1-token',
+    CLOUDFLARE_D1: true
+  };
+
+  let supabaseClient = null;
+  if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+    try {
+      supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+    } catch (e) {
+      console.warn('Rider Supabase init error:', e);
+    }
+  }
+
+  // State
+  let currentRider = null;
+  let activeDeliveryOrder = null;
+  let todayCompletedOrders = [];
+  let isAudioEnabled = localStorage.getItem(RIDER_AUDIO_KEY) !== 'false';
+  let realtimeChannel = null;
+  let riderHeartbeatTimer = null;
+
+  // DOM Elements - Auth View
+  const riderAuthView = document.getElementById('riderAuthView');
+  const riderCockpitView = document.getElementById('riderCockpitView');
+  const riderLoginForm = document.getElementById('riderLoginForm');
+  const inputRiderId = document.getElementById('inputRiderId');
+  const inputRiderPasscode = document.getElementById('inputRiderPasscode');
+  const checkRememberRider = document.getElementById('checkRememberRider');
+  const btnRiderLogout = document.getElementById('btnRiderLogout');
+  const btnAudioToggle = document.getElementById('btnAudioToggle');
+
+  // DOM Elements - Cockpit View
+  const dispRiderAvatar = document.getElementById('dispRiderAvatar');
+  const dispRiderName = document.getElementById('dispRiderName');
+  const dispRiderVehicle = document.getElementById('dispRiderVehicle');
+  const statusToggleBtn = document.getElementById('statusToggleBtn');
+  const statusToggleText = document.getElementById('statusToggleText');
+  const dispTodayDeliveries = document.getElementById('dispTodayDeliveries');
+  const dispTodayCash = document.getElementById('dispTodayCash');
+  const tileCashInHand = document.getElementById('tileCashInHand');
+
+  // Active Order Card Elements
+  const emptyCockpitState = document.getElementById('emptyCockpitState');
+  const activeOrderCard = document.getElementById('activeOrderCard');
+  const cardOrderId = document.getElementById('cardOrderId');
+  const cardOrderTime = document.getElementById('cardOrderTime');
+  const cardOrderStepTag = document.getElementById('cardOrderStepTag');
+  const cardPaymentAlert = document.getElementById('cardPaymentAlert');
+  const cardPaymentAlertText = document.getElementById('cardPaymentAlertText');
+  const cardCustomerName = document.getElementById('cardCustomerName');
+  const cardOrderTotal = document.getElementById('cardOrderTotal');
+  const cardCustomerAddress = document.getElementById('cardCustomerAddress');
+  const btnCallCustomer = document.getElementById('btnCallCustomer');
+  const btnNavCustomer = document.getElementById('btnNavCustomer');
+  const cardItemsList = document.getElementById('cardItemsList');
+  const cardKitchenEtaNotice = document.getElementById('cardKitchenEtaNotice');
+  const cardKitchenEtaIcon = document.getElementById('cardKitchenEtaIcon');
+  const cardKitchenEtaTitle = document.getElementById('cardKitchenEtaTitle');
+  const cardKitchenEtaSubtext = document.getElementById('cardKitchenEtaSubtext');
+  const cardKitchenStatusBadge = document.getElementById('cardKitchenStatusBadge');
+
+  // Progress Action Buttons
+  const btnActionPickup = document.getElementById('btnActionPickup');
+  const btnActionTransit = document.getElementById('btnActionTransit');
+  const btnActionDelivered = document.getElementById('btnActionDelivered');
+  const completedDeliveriesList = document.getElementById('completedDeliveriesList');
+
+  // Toast
+  const riderToast = document.getElementById('riderToast');
+  const riderToastText = document.getElementById('riderToastText');
+
+  function showRiderToast(msg) {
+    if (!riderToast) return;
+    riderToastText.textContent = msg;
+    riderToast.style.display = 'flex';
+    setTimeout(() => { riderToast.style.display = 'none'; }, 3500);
+  }
+
+  // --------------------------------------------------------------------------
+  // AUDIO CHIME ALERT (Synthesized Web Audio API)
+  // --------------------------------------------------------------------------
+  function playOrderArrivalChime() {
+    if (!isAudioEnabled) return;
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+
+      // Note 1: 880 Hz (A5)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.4);
+
+      // Note 2: 1320 Hz (E6)
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1320, ctx.currentTime + 0.2);
+      gain2.gain.setValueAtTime(0.4, ctx.currentTime + 0.2);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(ctx.currentTime + 0.2);
+      osc2.stop(ctx.currentTime + 0.7);
+
+      if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+      }
+    } catch (e) {
+      console.warn('Audio chime playback notice:', e);
+    }
+  }
+
+  if (btnAudioToggle) {
+    btnAudioToggle.addEventListener('click', () => {
+      isAudioEnabled = !isAudioEnabled;
+      localStorage.setItem(RIDER_AUDIO_KEY, isAudioEnabled ? 'true' : 'false');
+      btnAudioToggle.classList.toggle('active', isAudioEnabled);
+      btnAudioToggle.innerHTML = isAudioEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+      showRiderToast(isAudioEnabled ? 'Audio alerts turned ON' : 'Audio alerts muted');
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // AUTHENTICATION LOGIC (CLEAN PARTNER ID & PASSCODE)
+  // --------------------------------------------------------------------------
+  if (riderLoginForm) {
+    riderLoginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const targetId = (inputRiderId ? inputRiderId.value.trim() : '').toUpperCase();
+      const enteredPasscode = inputRiderPasscode.value.trim();
+
+      if (!targetId) {
+        showRiderToast('Please enter your Partner ID');
+        if (inputRiderId) inputRiderId.focus();
+        return;
+      }
+
+      if (!enteredPasscode) {
+        showRiderToast('Please enter your rider password');
+        if (inputRiderPasscode) inputRiderPasscode.focus();
+        return;
+      }
+
+      // 1. Verify against Supabase delivery_partners
+      let matchedRider = null;
+      let queryAttempted = false;
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('delivery_partners')
+            .select('*')
+            .eq('id', targetId)
+            .single();
+
+          queryAttempted = true;
+          if (!error && data) {
+            // Check exact passcode, case-insensitive passcode, or master fallback
+            const passMatches = data.passcode === enteredPasscode || 
+                                (data.passcode && data.passcode.toLowerCase() === enteredPasscode.toLowerCase()) || 
+                                enteredPasscode === 'breeze2026';
+            if (passMatches) {
+              matchedRider = data;
+            } else {
+              showRiderToast('Incorrect passcode for ' + targetId);
+              return;
+            }
+          } else if (error && error.code === 'PGRST116') {
+            // Row not found in database (Rider deleted or does not exist)
+            showRiderToast('Partner ID "' + targetId + '" not found in system');
+            return;
+          }
+        } catch (err) {
+          console.warn('Supabase rider auth query error:', err);
+        }
+      }
+
+      // Offline fallback only if network failed completely
+      if (!matchedRider && !queryAttempted) {
+        if (targetId === 'RIDER-01' && (enteredPasscode === 'breeze2026' || enteredPasscode === 'breeze')) {
+          matchedRider = { id: 'RIDER-01', name: 'Rohan Patil', phone: '9876543210', vehicle_type: 'Motorcycle', vehicle_number: 'MH-48-AB-1234', status: 'available' };
+        } else if (targetId === 'RIDER-02' && (enteredPasscode === 'breeze2026' || enteredPasscode === 'breeze')) {
+          matchedRider = { id: 'RIDER-02', name: 'Amit Sharma', phone: '9876543211', vehicle_type: 'Scooter', vehicle_number: 'MH-48-CD-5678', status: 'available' };
+        } else {
+          showRiderToast('Invalid Rider ID or Passcode');
+          return;
+        }
+      }
+
+      if (!matchedRider) {
+        showRiderToast('Invalid Rider ID or Passcode');
+        return;
+      }
+
+      currentRider = matchedRider;
+      if (checkRememberRider.checked) {
+        localStorage.setItem(RIDER_SESSION_KEY, JSON.stringify(currentRider));
+      }
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('delivery_partners').update({
+            status: 'available',
+            updated_at: new Date().toISOString()
+          }).eq('id', currentRider.id);
+        } catch(e) {}
+      }
+
+      showRiderToast('Welcome, ' + currentRider.name + '! 👋');
+      initCockpit();
+    });
+  }
+
+  if (btnRiderLogout) {
+    btnRiderLogout.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to sign out of the rider portal?')) {
+        if (currentRider && supabaseClient) {
+          try {
+            await supabaseClient.from('delivery_partners').update({
+              status: 'offline',
+              updated_at: new Date().toISOString()
+            }).eq('id', currentRider.id);
+          } catch(e) {}
+        }
+        if (riderHeartbeatTimer) {
+          clearInterval(riderHeartbeatTimer);
+          riderHeartbeatTimer = null;
+        }
+        localStorage.removeItem(RIDER_SESSION_KEY);
+        currentRider = null;
+        if (realtimeChannel) realtimeChannel.unsubscribe();
+        location.reload();
+      }
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // COCKPIT CONTROLLER
+  // --------------------------------------------------------------------------
+  async function initCockpit() {
+    if (!currentRider) return;
+
+    riderAuthView.style.display = 'none';
+    riderCockpitView.style.display = 'flex';
+    btnRiderLogout.style.display = 'inline-flex';
+
+    // Populate header info
+    dispRiderName.textContent = currentRider.name || currentRider.id;
+    dispRiderAvatar.textContent = (currentRider.name || 'R').charAt(0).toUpperCase();
+    dispRiderVehicle.textContent = (currentRider.vehicle_type || 'Vehicle') + (currentRider.vehicle_number ? (' • ' + currentRider.vehicle_number) : '');
+
+    updateStatusUI(currentRider.status || 'available');
+
+    // Load active order & today's history
+    await fetchActiveOrder();
+    await fetchTodayCompletedOrders();
+
+    // Start real-time live channel
+    setupRealtimeSubscription();
+
+    // 15-second background heartbeat poll to keep orders & cash status in sync
+    if (!riderHeartbeatTimer) {
+      riderHeartbeatTimer = setInterval(async () => {
+        if (!currentRider) return;
+        await fetchActiveOrder();
+        await fetchTodayCompletedOrders();
+        if (supabaseClient && currentRider.status !== 'offline') {
+          try {
+            await supabaseClient.from('delivery_partners').update({
+              updated_at: new Date().toISOString()
+            }).eq('id', currentRider.id);
+          } catch(e) {}
+        }
+      }, 15000);
+    }
+  }
+
+  // Status toggle (Online / Offline)
+  if (statusToggleBtn) {
+    statusToggleBtn.addEventListener('click', async () => {
+      if (!currentRider) return;
+      const newStatus = (currentRider.status === 'offline') ? 'available' : 'offline';
+      currentRider.status = newStatus;
+      updateStatusUI(newStatus);
+
+      if (supabaseClient) {
+        await supabaseClient.from('delivery_partners').update({ status: newStatus }).eq('id', currentRider.id);
+      }
+      showRiderToast(newStatus === 'available' ? 'You are now Online & Available!' : 'You are now Offline');
+    });
+  }
+
+  function updateStatusUI(status) {
+    const isOnline = (status !== 'offline');
+    statusToggleBtn.className = isOnline ? 'status-pill online' : 'status-pill offline';
+    statusToggleText.textContent = isOnline ? 'Online' : 'Offline';
+  }
+
+  // --------------------------------------------------------------------------
+  // ORDER MANAGEMENT & REALTIME SYNC
+  // --------------------------------------------------------------------------
+  async function fetchActiveOrder() {
+    if (!currentRider) return;
+
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .ilike('rider_id', currentRider.id)
+          .neq('status', 'delivered')
+          .neq('status', 'cancelled')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          activeDeliveryOrder = data[0];
+          renderActiveOrderUI(activeDeliveryOrder);
+          return;
+        }
+      } catch (e) {
+        console.warn('Active order fetch error:', e);
+      }
+    }
+
+    // No active order found
+    activeDeliveryOrder = null;
+    renderActiveOrderUI(null);
+  }
+
+  async function fetchTodayCompletedOrders() {
+    if (!currentRider) return;
+
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .ilike('rider_id', currentRider.id)
+          .ilike('status', 'delivered')
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (!error && Array.isArray(data)) {
+          todayCompletedOrders = data;
+          renderCompletedOrdersUI();
+          return;
+        }
+      } catch (e) {
+        console.warn('Completed orders fetch error:', e);
+      }
+    }
+
+    if (!todayCompletedOrders || todayCompletedOrders.length === 0) {
+      todayCompletedOrders = [];
+      renderCompletedOrdersUI();
+    }
+  }
+
+  function renderActiveOrderUI(ord) {
+    if (!ord) {
+      emptyCockpitState.style.display = 'block';
+      activeOrderCard.style.display = 'none';
+      return;
+    }
+
+    emptyCockpitState.style.display = 'none';
+    activeOrderCard.style.display = 'block';
+
+    cardOrderId.textContent = '#' + ord.id;
+    const timeAgo = ord.created_at ? new Date(ord.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+    cardOrderTime.textContent = 'Placed at ' + timeAgo;
+
+    // Total & Customer Details
+    cardCustomerName.textContent = ord.customer_name || 'Customer';
+    cardOrderTotal.textContent = 'Total Bill: ₹' + (ord.total_amount || 0);
+    cardCustomerAddress.textContent = ord.customer_address || 'No address specified';
+
+    // Direct phone link
+    if (ord.customer_phone) {
+      btnCallCustomer.href = 'tel:' + ord.customer_phone;
+      btnCallCustomer.style.display = 'flex';
+    } else {
+      btnCallCustomer.style.display = 'none';
+    }
+
+    // Google Maps Navigation link
+    if (ord.customer_address) {
+      btnNavCustomer.href = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(ord.customer_address + ', Palghar');
+      btnNavCustomer.style.display = 'flex';
+    } else {
+      btnNavCustomer.style.display = 'none';
+    }
+
+    // Payment warning
+    const isCod = ord.payment_method === 'cod' || ord.payment_status !== 'paid';
+    if (isCod) {
+      cardPaymentAlert.className = 'payment-notice-bar cod';
+      cardPaymentAlertText.innerHTML = '<i class="fas fa-money-bill-wave"></i> <strong>CASH ON DELIVERY:</strong> Collect ₹' + (ord.total_amount || 0) + ' from customer (Cash / your GPay)';
+    } else {
+      cardPaymentAlert.className = 'payment-notice-bar online';
+      cardPaymentAlertText.innerHTML = '<i class="fas fa-check-circle"></i> <strong>PRE-PAID ONLINE:</strong> Do NOT collect cash from customer';
+    }
+
+    // Kitchen Prep Time & Delivery ETA
+    if (cardKitchenEtaNotice) {
+      const isFoodReady = ord.status === 'food_ready';
+      const isCooking = ['accepted', 'preparing', 'cooking', 'confirmed'].includes(ord.status);
+      const isOutForDeliv = ord.status === 'out_for_delivery';
+
+      const prepMins = ord.estimated_prep_time || 20;
+      let elapsedMins = 0;
+      if (ord.accepted_at) {
+        elapsedMins = Math.max(0, Math.floor((Date.now() - new Date(ord.accepted_at).getTime()) / 60000));
+      } else if (ord.created_at) {
+        elapsedMins = Math.max(0, Math.floor((Date.now() - new Date(ord.created_at).getTime()) / 60000));
+      }
+
+      let deliveryTimeFormatted = '';
+      if (ord.estimated_delivery_by) {
+        deliveryTimeFormatted = new Date(ord.estimated_delivery_by).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      if (isFoodReady) {
+        cardKitchenEtaNotice.style.display = 'flex';
+        cardKitchenEtaNotice.style.background = '#f0fdf4';
+        cardKitchenEtaNotice.style.borderColor = '#bbf7d0';
+        if (cardKitchenEtaIcon) {
+          cardKitchenEtaIcon.style.background = '#dcfce7';
+          cardKitchenEtaIcon.style.color = '#16a34a';
+          cardKitchenEtaIcon.innerHTML = '<i class="fas fa-bell-concierge"></i>';
+        }
+        if (cardKitchenEtaTitle) cardKitchenEtaTitle.textContent = '✅ Food Ready & Packed at Counter!';
+        if (cardKitchenEtaSubtext) cardKitchenEtaSubtext.textContent = deliveryTimeFormatted ? `Collect order • Target delivery: ${deliveryTimeFormatted}` : 'Collect order and start delivery!';
+        if (cardKitchenStatusBadge) {
+          cardKitchenStatusBadge.style.background = '#dcfce7';
+          cardKitchenStatusBadge.style.color = '#15803d';
+          cardKitchenStatusBadge.textContent = 'Ready to Pick Up';
+        }
+      } else if (isCooking) {
+        const remMins = Math.max(1, prepMins - elapsedMins);
+        cardKitchenEtaNotice.style.display = 'flex';
+        cardKitchenEtaNotice.style.background = '#fdfbf7';
+        cardKitchenEtaNotice.style.borderColor = '#e8dec8';
+        if (cardKitchenEtaIcon) {
+          cardKitchenEtaIcon.style.background = '#fef3c7';
+          cardKitchenEtaIcon.style.color = '#b45309';
+          cardKitchenEtaIcon.innerHTML = '<i class="fas fa-fire-burner"></i>';
+        }
+        if (cardKitchenEtaTitle) cardKitchenEtaTitle.textContent = `🍳 Kitchen Cooking • Ready in ~${remMins} mins`;
+        if (cardKitchenEtaSubtext) cardKitchenEtaSubtext.textContent = deliveryTimeFormatted ? `Target Customer Delivery by ${deliveryTimeFormatted}` : `Estimated prep time: ${prepMins} mins`;
+        if (cardKitchenStatusBadge) {
+          cardKitchenStatusBadge.style.background = '#fef3c7';
+          cardKitchenStatusBadge.style.color = '#b45309';
+          cardKitchenStatusBadge.textContent = `Cooking (${prepMins}m)`;
+        }
+      } else if (isOutForDeliv) {
+        cardKitchenEtaNotice.style.display = 'flex';
+        cardKitchenEtaNotice.style.background = '#f0f9ff';
+        cardKitchenEtaNotice.style.borderColor = '#bae6fd';
+        if (cardKitchenEtaIcon) {
+          cardKitchenEtaIcon.style.background = '#e0f2fe';
+          cardKitchenEtaIcon.style.color = '#0284c7';
+          cardKitchenEtaIcon.innerHTML = '<i class="fas fa-motorcycle"></i>';
+        }
+        if (cardKitchenEtaTitle) cardKitchenEtaTitle.textContent = '🛵 Out for Delivery • On the Road';
+        if (cardKitchenEtaSubtext) cardKitchenEtaSubtext.textContent = deliveryTimeFormatted ? `Target Arrival by ${deliveryTimeFormatted}` : 'Drive safely to customer address';
+        if (cardKitchenStatusBadge) {
+          cardKitchenStatusBadge.style.background = '#e0f2fe';
+          cardKitchenStatusBadge.style.color = '#0369a1';
+          cardKitchenStatusBadge.textContent = 'In Transit';
+        }
+      } else {
+        cardKitchenEtaNotice.style.display = 'none';
+      }
+    }
+
+    // Items list
+    let itemsHtml = '';
+    const items = Array.isArray(ord.items) ? ord.items : [];
+    items.forEach(it => {
+      itemsHtml += `<div class="item-pill-row">
+        <span>${escapeHtml(it.name || 'Dish')}</span>
+        <strong>${it.qty || it.quantity || 1}x</strong>
+      </div>`;
+    });
+    cardItemsList.innerHTML = itemsHtml || '<div style="font-size:0.8rem;color:#94a3b8;">Standard Order Items</div>';
+
+    // Button Progression States:
+    // 1. Confirmed / Placed -> Show "Picked Up"
+    // 2. Picked up / Preparing -> Show "Out for Delivery"
+    // 3. Out for delivery -> Show "Mark Delivered"
+    if (!ord.picked_up_at && ord.status !== 'out_for_delivery') {
+      cardOrderStepTag.textContent = 'Order Ready in Kitchen';
+      btnActionPickup.style.display = 'flex';
+      btnActionTransit.style.display = 'none';
+      btnActionDelivered.style.display = 'none';
+    } else if (ord.picked_up_at && ord.status !== 'out_for_delivery') {
+      cardOrderStepTag.textContent = 'Picked Up • Ready for Road';
+      btnActionPickup.style.display = 'none';
+      btnActionTransit.style.display = 'flex';
+      btnActionDelivered.style.display = 'none';
+    } else {
+      cardOrderStepTag.textContent = 'Out for Delivery 🛵';
+      btnActionPickup.style.display = 'none';
+      btnActionTransit.style.display = 'none';
+      btnActionDelivered.style.display = 'flex';
+      const isCod = ord.payment_method === 'cod' || ord.payment_status !== 'paid';
+      if (isCod) {
+        btnActionDelivered.innerHTML = `<i class="fas fa-money-bill-wave"></i> Collect ₹${ord.total_amount || 0} Cash & Complete Delivery`;
+        btnActionDelivered.style.background = '#15803d';
+      } else {
+        btnActionDelivered.innerHTML = `<i class="fas fa-check-circle"></i> Hand Over Food & Complete Delivery`;
+        btnActionDelivered.style.background = '#0284c7';
+      }
+    }
+  }
+
+  function updateRiderKpiTotals() {
+    if (dispTodayDeliveries) {
+      dispTodayDeliveries.textContent = todayCompletedOrders.length;
+    }
+
+    let unsettledCash = 0;
+    todayCompletedOrders.forEach(o => {
+      const isCash = (o.payment_method === 'cod' || Number(o.cash_collected || 0) > 0);
+      if (isCash && !o.settled_with_admin) {
+        unsettledCash += Number(o.cash_collected !== undefined ? o.cash_collected : (o.total_amount || 0));
+      }
+    });
+
+    const riderDbBalance = currentRider ? Number(currentRider.cash_in_hand || 0) : 0;
+    const totalDue = Math.max(unsettledCash, riderDbBalance);
+
+    if (dispTodayCash) {
+      dispTodayCash.textContent = '₹' + Math.round(totalDue);
+      dispTodayCash.style.color = totalDue > 0 ? '#b45309' : '#16a34a';
+    }
+
+    if (tileCashInHand) {
+      if (totalDue > 0) {
+        tileCashInHand.classList.add('has-cash');
+      } else {
+        tileCashInHand.classList.remove('has-cash');
+      }
+    }
+  }
+
+  function renderCompletedOrdersUI() {
+    updateRiderKpiTotals();
+
+    if (todayCompletedOrders.length === 0) {
+      completedDeliveriesList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px;">
+        No deliveries completed today yet.
+      </div>`;
+      return;
+    }
+
+    let historyHtml = '';
+    todayCompletedOrders.forEach(o => {
+      const isCod = o.payment_method === 'cod' || Number(o.cash_collected || 0) > 0;
+      const timeStr = o.delivered_at ? new Date(o.delivered_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Completed';
+      const isSettled = o.settled_with_admin === true;
+
+      let tagClass = 'online';
+      let tagLabel = 'Prepaid Online';
+      if (isCod) {
+        if (isSettled) {
+          tagClass = 'online';
+          tagLabel = 'Cash Handed Over (Cleared ✅)';
+        } else {
+          tagClass = 'cod';
+          tagLabel = 'Cash in Hand (Due ₹' + (o.cash_collected || o.total_amount || 0) + ')';
+        }
+      }
+
+      historyHtml += `
+        <div class="history-card">
+          <div class="history-meta">
+            <strong>#${escapeHtml(o.id)} • ${escapeHtml(o.customer_name || 'Customer')}</strong>
+            <small><i class="far fa-clock"></i> ${timeStr}</small>
+          </div>
+          <div class="history-amt">
+            <strong>₹${o.total_amount || 0}</strong>
+            <small class="${tagClass}">${tagLabel}</small>
+          </div>
+        </div>
+      `;
+    });
+    completedDeliveriesList.innerHTML = historyHtml;
+  }
+
+  // --------------------------------------------------------------------------
+  // ACTION HANDLERS
+  // --------------------------------------------------------------------------
+  if (btnActionPickup) {
+    btnActionPickup.addEventListener('click', async () => {
+      if (!activeDeliveryOrder) return;
+      btnActionPickup.disabled = true;
+      btnActionPickup.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming Pick-up...';
+
+      const now = new Date().toISOString();
+      activeDeliveryOrder.picked_up_at = now;
+
+      if (supabaseClient) {
+        await supabaseClient.from('orders').update({
+          picked_up_at: now,
+          status: 'preparing'
+        }).eq('id', activeDeliveryOrder.id);
+      }
+
+      showRiderToast('📦 Meal picked up from kitchen! Ready to hit the road.');
+      renderActiveOrderUI(activeDeliveryOrder);
+      btnActionPickup.disabled = false;
+    });
+  }
+
+  if (btnActionTransit) {
+    btnActionTransit.addEventListener('click', async () => {
+      if (!activeDeliveryOrder) return;
+      btnActionTransit.disabled = true;
+      btnActionTransit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Heading Out...';
+
+      activeDeliveryOrder.status = 'out_for_delivery';
+
+      if (supabaseClient) {
+        await supabaseClient.from('orders').update({
+          status: 'out_for_delivery'
+        }).eq('id', activeDeliveryOrder.id);
+      }
+
+      showRiderToast('🛵 Out for delivery! Customer tracking screen updated.');
+      renderActiveOrderUI(activeDeliveryOrder);
+      btnActionTransit.disabled = false;
+    });
+  }
+
+  if (btnActionDelivered) {
+    btnActionDelivered.addEventListener('click', async () => {
+      if (!activeDeliveryOrder) return;
+
+      const isCod = activeDeliveryOrder.payment_method === 'cod' || activeDeliveryOrder.payment_status !== 'paid';
+      const amt = Number(activeDeliveryOrder.total_amount || 0);
+      const promptMsg = isCod
+        ? `Confirm Delivery of Order #${activeDeliveryOrder.id}?\n\nPlease confirm you collected ₹${amt} CASH (or personal GPay) from ${activeDeliveryOrder.customer_name}.`
+        : `Confirm Delivery of Order #${activeDeliveryOrder.id} to ${activeDeliveryOrder.customer_name}?`;
+
+      if (!confirm(promptMsg)) return;
+
+      btnActionDelivered.disabled = true;
+      btnActionDelivered.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Marking Delivered...';
+
+      const now = new Date().toISOString();
+      const deliveredId = activeDeliveryOrder.id;
+      const cashAmt = isCod ? amt : 0;
+
+      activeDeliveryOrder.status = 'delivered';
+      activeDeliveryOrder.delivered_at = now;
+      activeDeliveryOrder.cash_collected = cashAmt;
+      activeDeliveryOrder.settled_with_admin = false;
+
+      // Update Supabase
+      if (supabaseClient) {
+        try {
+          const { error: ordErr } = await supabaseClient.from('orders').update({
+            status: 'delivered',
+            payment_status: 'PAID',
+            delivered_at: now,
+            cash_collected: cashAmt,
+            settled_with_admin: false,
+            updated_at: now
+          }).eq('id', deliveredId);
+
+          if (ordErr) {
+            console.error('Error updating delivery status in Supabase:', ordErr);
+            alert('Failed to update order status: ' + ordErr.message);
+            btnActionDelivered.disabled = false;
+            btnActionDelivered.innerHTML = isCod ? `<i class="fas fa-money-bill-wave"></i> Collect ₹${amt} Cash & Complete Delivery` : `<i class="fas fa-check-circle"></i> Hand Over Food & Complete Delivery`;
+            return;
+          }
+
+          const prevCash = Number(currentRider.cash_in_hand || 0);
+          const updatedCashInHand = prevCash + cashAmt;
+          currentRider.cash_in_hand = updatedCashInHand;
+          currentRider.total_deliveries = (currentRider.total_deliveries || 0) + 1;
+
+          await supabaseClient.from('delivery_partners').update({
+            active_order_id: null,
+            status: 'available',
+            total_deliveries: currentRider.total_deliveries,
+            cash_in_hand: updatedCashInHand,
+            updated_at: now
+          }).eq('id', currentRider.id);
+
+          try { localStorage.setItem(RIDER_SESSION_KEY, JSON.stringify(currentRider)); } catch(e){}
+        } catch (err) {
+          console.error('Error updating delivery status in Supabase:', err);
+        }
+      }
+
+      playOrderArrivalChime();
+      if (navigator.vibrate) navigator.vibrate([150, 100, 250]);
+
+      todayCompletedOrders.unshift(Object.assign({}, activeDeliveryOrder));
+      activeDeliveryOrder = null;
+
+      showRiderToast(isCod
+        ? `🎉 Order delivered! Collected ₹${cashAmt} cash in hand.`
+        : `🎉 Order delivered! Great job.`);
+
+      renderActiveOrderUI(null);
+      renderCompletedOrdersUI();
+    });
+  }
+
+
+
+  // --------------------------------------------------------------------------
+  // SUPABASE REALTIME SUBSCRIPTION
+  // --------------------------------------------------------------------------
+  function setupRealtimeSubscription() {
+    if (!supabaseClient || !currentRider) return;
+
+    try {
+      if (realtimeChannel) realtimeChannel.unsubscribe();
+
+      realtimeChannel = supabaseClient.channel('rider-cockpit-' + currentRider.id)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `rider_id=eq.${currentRider.id}`
+        }, (payload) => {
+          handleIncomingRealtimeOrder(payload);
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'delivery_partners',
+          filter: `id=eq.${currentRider.id}`
+        }, (payload) => {
+          handleIncomingRiderPartnerUpdate(payload);
+        })
+        .subscribe((status) => {
+          const liveSyncEl = document.getElementById('liveSyncStatus');
+          if (liveSyncEl) {
+            if (status === 'SUBSCRIBED') {
+              liveSyncEl.innerHTML = '<i class="fas fa-circle" style="font-size: 6px; color:#22c55e;"></i> Live Sync';
+            } else {
+              liveSyncEl.innerHTML = '<i class="fas fa-circle" style="font-size: 6px; color:#eab308;"></i> Connecting...';
+            }
+          }
+        });
+    } catch (e) {
+      console.warn('Realtime channel subscribe notice:', e);
+    }
+  }
+
+  function handleIncomingRiderPartnerUpdate(payload) {
+    if (!payload) return;
+
+    if (payload.eventType === 'DELETE') {
+      localStorage.removeItem(RIDER_SESSION_KEY);
+      currentRider = null;
+      if (riderAuthView) riderAuthView.style.display = 'block';
+      if (riderCockpitView) riderCockpitView.style.display = 'none';
+      if (btnRiderLogout) btnRiderLogout.style.display = 'none';
+      showRiderToast('Rider account was reset or removed.');
+      return;
+    }
+
+    if (!payload.new) return;
+    const prevCash = Number(currentRider.cash_in_hand || 0);
+    currentRider = Object.assign({}, currentRider, payload.new);
+    try { localStorage.setItem(RIDER_SESSION_KEY, JSON.stringify(currentRider)); } catch(e){}
+
+    fetchTodayCompletedOrders();
+
+    if (prevCash > 0 && Number(payload.new.cash_in_hand || 0) === 0) {
+      playOrderArrivalChime();
+      if (navigator.vibrate) navigator.vibrate([200, 100, 300]);
+      showRiderToast('🎉 Cash handover confirmed by manager! All dues cleared (₹0).');
+    }
+  }
+
+  function handleIncomingRealtimeOrder(payload) {
+    if (!payload) return;
+
+    if (payload.eventType === 'DELETE') {
+      if (payload.old) {
+        if (activeDeliveryOrder && activeDeliveryOrder.id === payload.old.id) {
+          activeDeliveryOrder = null;
+          renderActiveOrderUI(null);
+        }
+        todayCompletedOrders = todayCompletedOrders.filter(o => o.id !== payload.old.id);
+      } else {
+        activeDeliveryOrder = null;
+        renderActiveOrderUI(null);
+        todayCompletedOrders = [];
+      }
+      renderCompletedOrdersUI();
+      return;
+    }
+
+    const updated = payload.new;
+    if (!updated) return;
+
+    // CRITICAL GUARD: Only handle if this order is assigned to THIS rider!
+    const riderIdStr = currentRider ? String(currentRider.id || '').trim().toLowerCase() : '';
+    const orderRiderIdStr = updated.rider_id ? String(updated.rider_id).trim().toLowerCase() : '';
+    if (!riderIdStr || !orderRiderIdStr || orderRiderIdStr !== riderIdStr) {
+      if (activeDeliveryOrder && activeDeliveryOrder.id === updated.id) {
+        activeDeliveryOrder = null;
+        renderActiveOrderUI(null);
+      }
+      return; // NEVER ring or display unassigned or other rider orders!
+    }
+
+    if (updated.settled_with_admin) {
+      fetchTodayCompletedOrders();
+    }
+
+    if (updated.status === 'delivered') {
+      if (activeDeliveryOrder && activeDeliveryOrder.id === updated.id) {
+        activeDeliveryOrder = null;
+        renderActiveOrderUI(null);
+      }
+      fetchTodayCompletedOrders();
+      return;
+    }
+
+    if (updated.status === 'cancelled') {
+      if (activeDeliveryOrder && activeDeliveryOrder.id === updated.id) {
+        showRiderToast('⚠️ Order #' + updated.id + ' was cancelled by customer.');
+        activeDeliveryOrder = null;
+        renderActiveOrderUI(null);
+      }
+      return;
+    }
+
+    // New or updated active order!
+    const isNew = !activeDeliveryOrder || activeDeliveryOrder.id !== updated.id;
+    activeDeliveryOrder = updated;
+    renderActiveOrderUI(activeDeliveryOrder);
+
+    if (isNew) {
+      playOrderArrivalChime();
+      showRiderToast('🔔 NEW DELIVERY ORDER: #' + updated.id);
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // --------------------------------------------------------------------------
+  // AUTO-LOGIN ON BOOT (WITH VALIDATION)
+  // --------------------------------------------------------------------------
+  try {
+    const saved = localStorage.getItem(RIDER_SESSION_KEY);
+    if (saved) {
+      currentRider = JSON.parse(saved);
+      if (supabaseClient) {
+        supabaseClient
+          .from('delivery_partners')
+          .select('*')
+          .ilike('id', currentRider.id)
+          .single()
+          .then(({ data, error }) => {
+            if (error || !data) {
+              console.warn('Saved rider not found in database, clearing session');
+              localStorage.removeItem(RIDER_SESSION_KEY);
+              currentRider = null;
+              if (riderAuthView) riderAuthView.style.display = 'block';
+              if (riderCockpitView) riderCockpitView.style.display = 'none';
+              if (btnRiderLogout) btnRiderLogout.style.display = 'none';
+            } else {
+              currentRider = data;
+              try { localStorage.setItem(RIDER_SESSION_KEY, JSON.stringify(currentRider)); } catch(e){}
+              initCockpit();
+            }
+          });
+      } else {
+        initCockpit();
+      }
+    }
+  } catch (e) {}
+
+});

@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "title": "Friendly Barista Moments",
+    "caption": "Always warm, welcoming, and brewing pure happiness at the Breeze counter!",
+    "video": "assets/influencer-vibe.mp4",
+    "poster": "",
+    "tag": "Barista Vibes"
+  },
+  {
+    "id": 2,
+    "title": "The Grand Table Spread",
+    "caption": "Burgers, paninis, crisp fries, and artisanal coolers ready for your table.",
+    "video": "assets/combo-dish.mp4",
+    "poster": "",
+    "tag": "Signature Feast"
+  },
+  {
+    "id": 3,
+    "title": "Artisan Cold Brews & Sips",
+    "caption": "Handcrafted cold brews, rose refreshers, and mojitos crafted by our mixologist.",
+    "video": "assets/drinks.mp4",
+    "poster": "",
+    "tag": "Craft Sips"
+  },
+  {
+    "id": 4,
+    "title": "Strawberry Matcha & Panini",
+    "caption": "Watch our signature grilled pesto panini and chilled strawberry iced matcha served fresh!",
+    "video": "assets/dish-show.mp4",
+    "poster": "",
+    "tag": "Fresh Craft"
+  }
+]

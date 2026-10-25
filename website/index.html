@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breeze The Roof-Top Café | Palghar's Premier Rooftop Lounge & Dining</title>
+  <meta name="description" content="Welcome to Breeze The Rooftop Café on the 5th Floor of Kanchan Aura, Palghar. Enjoy breathtaking open-sky rooftop views, gourmet messy burgers, artisanal mocktails, matcha, and chill evening fairy-light vibes. ">
+  <meta name="keywords" content="Breeze Rooftop Cafe Palghar, Breeze The Rooftop Cafe, Kanchan Aura Palghar, Cafe in Palghar, Rooftop restaurant Palghar, Best cafe Palghar">
+  
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:title" content="Breeze The Roof-Top Café | Palghar">
+  <meta property="og:description" content="Incredible atmosphere, unmatched rooftop ambiance, artisanal matcha, burgers, and panoramic sunset views in Palghar.">
+  <meta property="og:image" content="assets/signature-combo.jpg">
+  <meta property="og:type" content="website">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/assets/logo-emblem.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  <!-- Progressive Web App Configuration -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Breeze Cafe">
+  <link rel="apple-touch-icon" href="assets/pwa/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Stylesheet with Cache Busting -->
+  <link rel="stylesheet" href="css/style.css?v=9.0-mobile-first">
+  <!-- Google Identity Services for Real 1-Tap Google Sign-In -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Supabase JS Client for Cloud Customer & Order Database -->
+  <!-- Cloudflare D1 Client (Replaced Supabase) -->
+  <script src="js/cf-client.js"></script>
+  <!-- Official Razorpay Checkout Gateway -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <!-- Instant Zero-Flicker Menu Hydration: synchronizes cloud prices from cache before initial paint -->
+  <script>
+    (function() {
+      try {
+        var rawSettings = localStorage.getItem('breeze_store_settings');
+        if (rawSettings) {
+          window.breezeStoreSettings = Object.assign({}, window.breezeStoreSettings || {}, JSON.parse(rawSettings));
+        }
+      } catch(e) {}
+      try {
+        var raw = localStorage.getItem('breeze_menu_items_cache');
+        if (!raw) return;
+        var list = JSON.parse(raw);
+        if (!Array.isArray(list) || !list.length) return;
+        var map = {};
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && list[i].name) map[list[i].name.toLowerCase().trim()] = list[i];
+        }
+        function hydrateCards() {
+          var cards = document.querySelectorAll('.menu-card');
+          for (var j = 0; j < cards.length; j++) {
+            var c = cards[j];
+            var n = c.querySelector('.menu-item-name');
+            if (!n) continue;
+            var item = map[n.textContent.toLowerCase().trim()];
+            if (item) {
+              if (item.price !== undefined && item.price !== null) {
+                var p = c.querySelector('.menu-item-price');
+                if (p) p.textContent = '₹' + item.price;
+                c.dataset.price = item.price;
+              }
+              if (item.is_available === false) {
+                c.classList.add('out-of-stock');
+                var oBtn = c.querySelector('.btn-card-order');
+                if (oBtn) { oBtn.disabled = true; oBtn.innerHTML = '<i class="fas fa-ban"></i> Sold Out'; }
+                var cBtn = c.querySelector('.btn-card-cart');
+                if (cBtn) { cBtn.disabled = true; cBtn.innerHTML = '<i class="fas fa-ban"></i> Sold Out'; }
+              }
+            }
+          }
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', hydrateCards);
+        } else {
+          hydrateCards();
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+<!-- ==========================================================================
+       HEADER & NAVIGATION
+       ========================================================================== -->
+  <header class="header">
+    <div class="container nav-container">
+      <a href="#" class="brand-logo-link" aria-label="Breeze The Rooftop Cafe Home">
+        <img src="assets/logo-full.png" alt="Breeze The Rooftop Cafe" class="brand-logo-img">
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link active">Home</a></li>
+          <li><a href="/menu" class="nav-link">Menu</a></li>
+          <li><a href="/about" class="nav-link">About & Vibe</a></li>
+          <li><a href="/contact" class="nav-link">Contact & Desk</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav CTA -->
+      <div class="nav-actions">
+
+        <!-- Customer Account Pill / Sign In -->
+        <div class="nav-user-area" id="navUserArea">
+          <button type="button" class="btn btn-outline-gold btn-sm nav-auth-btn" id="navAuthBtn">
+            <i class="fas fa-user-circle"></i> <span>Sign In</span>
+          </button>
+          <div class="nav-user-dropdown" id="navUserDropdown" style="display: none;">
+            <button type="button" class="nav-user-profile-btn" id="navUserProfileToggle" aria-label="Customer profile menu">
+              <span class="user-avatar-initial" id="navUserAvatar">R</span>
+              <span class="user-name-label" id="navUserName">Account</span>
+              <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
+            </button>
+            <div class="nav-user-menu" id="navUserMenu">
+              <a href="/profile" class="user-menu-profile-card" id="userMenuProfileHeaderCard" style="cursor: pointer; text-decoration: none;" title="Open Customer Profile">
+                <div class="menu-avatar" id="dropdownAvatar">R</div>
+                <div style="flex: 1; min-width: 0;">
+                  <strong id="dropdownUserName">Customer Profile</strong>
+                  <span id="dropdownUserPhone">Verified Customer</span>
+                </div>
+                <i class="fas fa-chevron-right" style="color: var(--primary-gold); font-size: 0.8rem; margin-left: 6px;"></i>
+              </a>
+              <div class="user-menu-divider"></div>
+              <a href="/profile?tab=addresses" class="user-menu-item" id="menuProfileBtn" style="text-decoration: none;">
+                <i class="fas fa-map-marker-alt"></i> Saved Addresses
+              </a>
+              <a href="/profile?tab=orders" class="user-menu-item" id="menuOrderHistoryBtn" style="text-decoration: none;">
+                <i class="fas fa-receipt"></i> Order History & Receipts
+              </a>
+              <button type="button" class="user-menu-item" id="menuActiveOrderBtn" style="display:none;">
+                <i class="fas fa-motorcycle" style="color: #b5883d;"></i> Live Order Tracking <span class="badge-live-pulse">LIVE</span>
+              </button>
+              <button type="button" class="user-menu-item btn-pwa-install" data-portal="Cafe" style="display:none; color: #b5883d; font-weight: 700;">
+                <i class="fas fa-mobile-alt"></i> Install Breeze App
+              </button>
+              <div class="user-menu-divider"></div>
+              <button type="button" class="user-menu-item text-danger" id="menuSignOutBtn">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="nav-cart-btn" id="navCartBtn" aria-label="View Cart">
+          <i class="fas fa-shopping-bag"></i> <span>Cart</span>
+          <span class="nav-cart-badge" id="navCartBadge">0</span>
+        </button>
+
+        <button type="button" class="btn btn-secondary btn-sm nav-reserve-btn" id="navBookTableBtn">
+          <i class="fas fa-calendar-check"></i> Book Table
+        </button>
+
+        <button class="mobile-nav-toggle" aria-label="Open navigation menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Backdrop & Menu -->
+  <div class="drawer-backdrop"></div>
+  <div class="mobile-nav-drawer">
+    <div class="drawer-header">
+      <a href="#" class="brand-logo-link" aria-label="Breeze Home">
+        <img src="assets/logo-full.png" alt="Breeze Logo" style="height: 52px; width: auto; object-fit: contain;">
+      </a>
+      <button class="drawer-close" aria-label="Close navigation menu">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <ul class="mobile-nav-links">
+      <li><a href="/" class="mobile-nav-link active"><i class="fas fa-home"></i> Home</a></li>
+      <li><a href="/menu" class="mobile-nav-link"><i class="fas fa-utensils"></i> Full Food & Beverage Menu</a></li>
+      <li><a href="/about" class="mobile-nav-link"><i class="fas fa-info-circle"></i> About & Rooftop Vibe</a></li>
+      <li><a href="/contact" class="mobile-nav-link"><i class="fas fa-map-marked-alt"></i> Location, Map & Timings</a></li>
+      <li><a href="/profile" class="mobile-nav-link"><i class="fas fa-user"></i> My Account & Orders</a></li>
+    </ul>
+    <div class="drawer-actions">
+
+      <div class="drawer-user-section" id="drawerUserSection" style="margin-bottom: 12px;">
+        <button type="button" class="btn btn-outline-gold btn-block drawer-auth-btn" id="drawerAuthBtn">
+          <i class="fas fa-user-circle"></i> <span>Sign In / My Account</span>
+        </button>
+        <button type="button" class="btn btn-primary btn-block drawer-active-order-btn" id="drawerActiveOrderBtn" style="display: none; margin-top: 8px;">
+          <i class="fas fa-motorcycle"></i> <span>Live Track Order</span> <span class="badge-live-pulse">LIVE</span>
+        </button>
+        <button type="button" class="btn btn-block drawer-signout-btn" id="drawerSignOutBtn" style="display: none; margin-top: 8px; border: 1px solid rgba(220, 53, 69, 0.4); color: #dc3545; background: transparent;">
+          <i class="fas fa-sign-out-alt"></i> <span>Sign Out</span>
+        </button>
+      </div>
+
+
+      <button type="button" class="btn btn-outline-gold btn-block btn-pwa-install" data-portal="Cafe" style="display: none; margin-bottom: 8px; font-weight: 700;">
+        <i class="fas fa-mobile-alt"></i> <span>Install Breeze App</span>
+      </button>
+
+      <button type="button" class="btn btn-primary btn-block drawer-reserve-btn" id="drawerBookTableBtn"><i class="fas fa-calendar-check"></i> Reserve a Table</button>
+      <a href="tel:9623999095" class="btn btn-secondary">
+        <i class="fas fa-phone"></i> Call +91 9623999095
+      </a>
+      <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold">
+        <i class="fas fa-directions"></i> Get Directions
+      </a>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       HERO SECTION
+       ========================================================================== -->
+  <section class="hero" id="home">
+    <!-- Scenic Rooftop Evening Background Image -->
+    <img src="assets/dishes/dish_3.jpeg" alt="Breeze The Rooftop Cafe Evening Ambiance" class="hero-bg-image" fetchpriority="high">
+    <div class="hero-overlay"></div>
+
+        <div class="container hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-sparkles"></i>
+        <span>5th Floor Skyline Lounge • Palghar</span>
+      </div>
+      <h1 class="hero-title">
+        Elevate Your Evenings at<br>
+        <span class="text-gradient-gold">Breeze The Roof-Top Café</span>
+      </h1>
+      <p class="hero-subtitle">
+        Palghar’s premier open-air rooftop sanctuary. Indulge in artisanal burgers, stone-baked pizzas, and signature ceremonial matcha under panoramic sunsets and starlit fairy lights.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="/menu" class="btn btn-primary hero-btn-main">
+          <i class="fas fa-utensils"></i> Explore Cafe Menu
+        </a>
+        <a href="/about" class="btn btn-secondary">
+          <i class="fas fa-wind"></i> Rooftop Vibe & Reels
+        </a>
+        <button type="button" class="btn btn-outline-gold hero-btn-reserve" id="heroBookTableBtn">
+          <i class="fas fa-calendar-check"></i> Reserve a Table <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Understated Luxury Trust Strip (Replaces Crowded Cards) -->
+      <div class="hero-trust-bar">
+        <div class="trust-item">
+          <span class="trust-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></span>
+          <span class="trust-rating-num">4.4</span>
+          <span class="trust-rating-src">Google Reviews</span>
+        </div>
+        <span class="trust-sep"></span>
+        <div class="trust-item">
+          <i class="fas fa-layer-group trust-icon"></i>
+          <span>5th Floor Open Terrace</span>
+        </div>
+        <span class="trust-sep"></span>
+        <div class="trust-item">
+          <i class="fas fa-clock trust-icon"></i>
+          <span id="heroStoreHoursText" class="store-hours-display" data-format="open-daily">Open Daily 11 AM – 11 PM</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       ABOUT & THE ROOFTOP EXPERIENCE
+       ========================================================================== -->
+  <section class="section-padding" id="about">
+    <div class="container about-grid">
+      <div class="about-text">
+        <span class="badge-tag"><i class="fas fa-wind"></i> The Breeze Experience</span>
+        <h2 class="section-title">Where Open Sky Meets Unmatched Ambiance</h2>
+        <div class="about-quote">
+          “Cafe that has the incredible atmosphere and the ambiance is absolutely incredible and totally unmatched.”
+        </div>
+        <p class="about-p">
+          Welcome to Breeze The Rooftop Café — Palghar's ultimate destination for elevated culinary moments. Situated on the breezy 5th floor terrace of Kanchan Aura on Mahim Road, Breeze offers an escape from the city bustle into a scenic open-air oasis.
+        </p>
+        <p class="about-p">
+          Whether you are catching the golden sunset over Palghar, celebrating special occasions with friends, or having a cozy romantic dinner under glowing fairy lights, our cafe sets the perfect mood with soul-satisfying flavors and soothing tunes.
+        </p>
+
+        <ul class="about-features-list">
+          <li class="about-feature-item"><i class="fas fa-check-circle"></i> Open Rooftop Terrace with Terrace Seating</li>
+          <li class="about-feature-item"><i class="fas fa-check-circle"></i> Pure Veg & Cheesy Gourmet Delights</li>
+          <li class="about-feature-item"><i class="fas fa-check-circle"></i> Signature Ceremonial Matcha & Cold Brews</li>
+          <li class="about-feature-item"><i class="fas fa-check-circle"></i> Warm Aesthetic Lighting & Music</li>
+        </ul>
+
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+          <a href="/menu" class="btn btn-primary">Discover the Menu</a>
+          <a href="https://www.instagram.com/breezetherooftopcafe/?hl=en" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+            <i class="fab fa-instagram"></i> Follow on Instagram
+          </a>
+        </div>
+      </div>
+
+      <div class="about-visual-stack">
+        <div class="about-card-primary">
+          <img src="assets/rooftop-night.jpg" alt="Breeze Rooftop Cafe Night Fairy Lights">
+          <div class="about-card-overlay">
+            <h4 style="font-family: var(--font-serif); font-size: 1.4rem; color: #fff;">Evening Fairy Lights & Skyline</h4>
+            <p style="color: var(--primary-gold-light); font-size: 0.88rem;">5th Floor Rooftop Ambiance</p>
+          </div>
+        </div>
+        <div class="about-card-floating">
+          <img src="assets/rooftop-daylight.jpg" alt="Breeze Cafe Daylight Terrace">
+          <div class="about-card-floating-badge">
+            <i class="fas fa-sun"></i> Golden Hour Terrace
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SIGNATURE COMBOS & CHEF'S PICKS
+       ========================================================================== -->
+  <section class="section-padding signature-section" id="signature">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge-tag"><i class="fas fa-crown"></i> Chef's Signature Spotlight</span>
+        <h2 class="section-title">The Perfect Pairings</h2>
+        <p class="section-subtitle">
+          Crafted specially by our culinary team to give you the ultimate rooftop indulgence.
+        </p>
+      </div>
+
+      <!-- Feature Card 1: Cheesy Burger & Strawberry Iced Matcha Combo -->
+      <div class="combo-banner-card">
+        <div class="combo-media">
+          <img src="assets/signature-combo.jpg" alt="Signature Cheesy Burger and Strawberry Iced Matcha Combo">
+          <div class="combo-tag">🔥 Most Loved Combo</div>
+        </div>
+        <div class="combo-details">
+          <span style="color: var(--primary-gold); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; display: block;">
+            Signature Bestseller
+          </span>
+          <h3 class="combo-title">Cheesy Burger & Strawberry Iced Matcha</h3>
+          <p class="combo-desc">
+            A delectable combination of our decadent, molten-cheese burst burger stacked with crispy golden patty, seasoned relish, and grilled bun, accompanied by our viral layered Japanese ceremonial Strawberry Iced Matcha.
+          </p>
+          <ul class="combo-features">
+            <li><i class="fas fa-star"></i> Double-layered molten cheese burger with secret herb sauce</li>
+            <li><i class="fas fa-star"></i> Real macerated strawberry puree with chilled milk & matcha</li>
+            <li><i class="fas fa-star"></i> Handcrafted fresh to order on our 5th floor terrace</li>
+          </ul>
+          <div class="combo-price-action">
+            <div class="combo-price">₹349 <span style="font-size: 1rem; color: var(--text-muted); font-weight: 400;">/ Combo</span></div>
+            <button type="button" class="btn btn-primary combo-order-btn" id="comboOrderNowBtn">
+              <i class="fas fa-bolt"></i> Order Combo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       CURATED CULINARY HIGHLIGHTS TEASER
+       ========================================================================== -->
+  <section class="section-padding" id="menu-highlights">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge-tag"><i class="fas fa-utensils"></i> Handcrafted Rooftop Delicacies</span>
+        <h2 class="section-title">Explore Our Signature Creations</h2>
+        <p class="section-subtitle">
+          From Japanese ceremonial matcha to stone-baked sourdough pizzas and double-melt burgers — crafted fresh on our 5th-floor terrace.
+        </p>
+      </div>
+
+      <div class="menu-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 36px;">
+
+        <!-- Highlight 1: Sourdough Pizzas -->
+        <div class="menu-card" style="display: flex; flex-direction: column;">
+          <div class="menu-card-media" style="height: 220px; overflow: hidden; border-radius: 12px 12px 0 0;">
+            <img src="assets/dishes/classic-margerita-pizza.jpeg" alt="Stone-Baked Gourmet Pizzas" loading="lazy" class="menu-card-img" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div class="menu-card-body" style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+            <div class="menu-card-header" style="margin-bottom: 8px;">
+              <h4 class="menu-item-name" style="font-size: 1.15rem; font-weight: 700; color: #1c1917;">Stone-Baked Sourdough Pizzas</h4>
+            </div>
+            <p class="menu-item-desc" style="color: #78716c; font-size: 0.88rem; line-height: 1.5; flex: 1;">
+              Crispy fermented crust baked golden with herb-infused tomato reduction, mozzarella blend, and fresh basil.
+            </p>
+            <div class="menu-card-footer" style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+              <span class="menu-category-tag"><i class="fas fa-pizza-slice"></i> Artisan Crust</span>
+              <a href="/menu" class="btn btn-sm btn-outline-gold" style="font-size: 0.8rem; padding: 6px 14px;">View Pizzas &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Highlight 2: Matcha & Artisanal Sips -->
+        <div class="menu-card" style="display: flex; flex-direction: column;">
+          <div class="menu-card-media" style="height: 220px; overflow: hidden; border-radius: 12px 12px 0 0;">
+            <img src="assets/dishes/strawberry-mojito.jpeg" alt="Handcrafted Coolers & Mocktails" loading="lazy" class="menu-card-img" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div class="menu-card-body" style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+            <div class="menu-card-header" style="margin-bottom: 8px;">
+              <h4 class="menu-item-name" style="font-size: 1.15rem; font-weight: 700; color: #1c1917;">Artisanal Coolers & Mocktails</h4>
+            </div>
+            <p class="menu-item-desc" style="color: #78716c; font-size: 0.88rem; line-height: 1.5; flex: 1;">
+              Chilled fresh fruit infusions, signature strawberry mojitos, blue curacao sparklers, and handcrafted frappes.
+            </p>
+            <div class="menu-card-footer" style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+              <span class="menu-category-tag"><i class="fas fa-glass-martini-alt"></i> Viral Drinks</span>
+              <a href="/menu" class="btn btn-sm btn-outline-gold" style="font-size: 0.8rem; padding: 6px 14px;">View Beverages &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Highlight 3: Cheesy Burgers & Loaded Paninis -->
+        <div class="menu-card" style="display: flex; flex-direction: column;">
+          <div class="menu-card-media" style="height: 220px; overflow: hidden; border-radius: 12px 12px 0 0;">
+            <img src="assets/dishes/cheesy-burger.jpeg" alt="Cheesy Burger and Loaded Fries" loading="lazy" class="menu-card-img" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div class="menu-card-body" style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+            <div class="menu-card-header" style="margin-bottom: 8px;">
+              <h4 class="menu-item-name" style="font-size: 1.15rem; font-weight: 700; color: #1c1917;">Gourmet Burgers & Paninis</h4>
+            </div>
+            <p class="menu-item-desc" style="color: #78716c; font-size: 0.88rem; line-height: 1.5; flex: 1;">
+              Crispy patties, overflowing cheese-burst center, grilled herb buns, and crunchy golden peri-peri fries.
+            </p>
+            <div class="menu-card-footer" style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+              <span class="menu-category-tag"><i class="fas fa-hamburger"></i> Pure Veg</span>
+              <a href="/menu" class="btn btn-sm btn-outline-gold" style="font-size: 0.8rem; padding: 6px 14px;">View Burgers &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Menu CTA Strip -->
+      <div style="text-align: center; margin-bottom: 45px;">
+        <a href="/menu" class="btn btn-primary btn-lg" style="padding: 14px 32px; font-size: 1rem; box-shadow: 0 10px 25px rgba(181, 136, 61, 0.35);">
+          <i class="fas fa-utensils"></i> Explore Full 67+ Item Menu & Live Prices <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <!-- Table Reservation Quick Banner -->
+      <div style="background: linear-gradient(135deg, #1c1813 0%, #12151b 100%); border: 1px solid rgba(200, 155, 60, 0.25); border-radius: var(--radius-lg, 16px); padding: 32px 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+        <div>
+          <span class="badge-tag" style="background: rgba(200, 155, 60, 0.15); color: var(--primary-gold); margin-bottom: 6px;">
+            <i class="fas fa-calendar-check"></i> Sunset & Dinner Tables
+          </span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.6rem; color: #ffffff; margin: 4px 0 6px;">
+            Plan Your Rooftop Dining Evening
+          </h3>
+          <p style="color: #a8a29e; font-size: 0.9rem; margin: 0; max-width: 520px;">
+            Book your 5th-floor table in advance to secure the best skyline view seats during sunset and twilight hours.
+          </p>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button type="button" class="btn btn-primary open-reserve-modal-btn">
+            <i class="fas fa-calendar-alt"></i> Reserve Table Online
+          </button>
+          <a href="/about" class="btn btn-secondary">
+            <i class="fas fa-camera"></i> See Photos & Reels
+          </a>
+          <a href="tel:9623999095" class="btn btn-outline-gold">
+            <i class="fas fa-phone"></i> Call Desk
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       CUSTOMER REVIEWS & TESTIMONIALS
+       ========================================================================== -->
+  <section class="section-padding reviews-section" id="reviews">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge-tag"><i class="fas fa-heart"></i> Guest Love & Ratings</span>
+        <h2 class="section-title">What Our Guests Say</h2>
+        <p class="section-subtitle">
+          Stories and memories shared by foodies, couples, and friends who made Breeze their favorite spot in Palghar.
+        </p>
+      </div>
+
+      <!-- Rating summary card -->
+      <div class="reviews-summary">
+        <div class="rating-badge">
+          <span class="rating-score">4.6</span>
+          <div>
+            <div class="rating-stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <div class="rating-count">Based on 250+ Google & Guest Reviews</div>
+          </div>
+        </div>
+        <div>
+          <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold btn-sm">
+            <i class="fab fa-google"></i> Read Google Reviews
+          </a>
+        </div>
+      </div>
+
+      <div class="reviews-grid">
+        <div class="review-card">
+          <div class="review-card-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p class="review-text">
+            “The rooftop atmosphere is absolutely top-notch in Palghar! Sitting under the warm fairy lights on the 5th floor while sipping their Strawberry Iced Matcha and Cheesy Burger was pure bliss. Must visit!”
+          </p>
+          <div class="review-author">
+            <div class="author-avatar">P</div>
+            <div class="author-info">
+              <h5>Pooja Sharma</h5>
+              <span>Verified Guest • Google Review</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-card-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p class="review-text">
+            “Hands down the best cafe ambiance in town! The staff is super friendly, the mocktails are refreshing, and the peri peri loaded fries are irresistible. Perfect sunset spot with friends.”
+          </p>
+          <div class="review-author">
+            <div class="author-avatar">R</div>
+            <div class="author-info">
+              <h5>Rohan Varma</h5>
+              <span>Food Explorer • Local Guide</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-card-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p class="review-text">
+            “We ordered takeaway first and loved the cheesy burger so much that we visited the rooftop the next day. The live breeze, open sky, and music made our evening so special!”
+          </p>
+          <div class="review-author">
+            <div class="author-avatar">A</div>
+            <div class="author-info">
+              <h5>Ananya Patil</h5>
+              <span>Palghar Resident</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       LOCATION & CONTACT TEASER
+       ========================================================================== -->
+  <section class="section-padding location-section" id="contact" style="padding-top: 40px; padding-bottom: 50px;">
+    <div class="container">
+      <div style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 20px; padding: 36px 32px; box-shadow: 0 12px 35px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; gap: 28px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px;">
+          <span class="badge-tag" style="background: rgba(181, 136, 61, 0.12); color: var(--primary-gold-dark, #8a6520); margin-bottom: 8px;">
+            <i class="fas fa-map-marked-alt"></i> Visit Us in Palghar
+          </span>
+          <h2 style="font-family: var(--font-serif); font-size: 1.85rem; color: #1c1917; margin: 4px 0 10px;">
+            5th Floor Rooftop, Kanchan Aura
+          </h2>
+          <p style="color: #57534e; font-size: 0.95rem; line-height: 1.6; margin-bottom: 16px;">
+            Conveniently located on Mahim Road, Palghar. Step into our elevator and rise above the city rush into Palghar's premier open-air rooftop café.
+          </p>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.88rem; color: #78716c;">
+            <span><i class="fas fa-clock" style="color: var(--primary-gold-dark, #8a6520);"></i> Open Daily: <strong class="store-hours-display">11:00 AM – 11:00 PM</strong></span>
+            <span><i class="fas fa-phone" style="color: var(--primary-gold-dark, #8a6520);"></i> Desk: <a href="tel:9623999095" style="color: #1c1917; font-weight: 700;">+91 9623999095</a></span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="/contact" class="btn btn-primary" style="padding: 12px 24px;">
+            <i class="fas fa-map-marked-alt"></i> Location & Timings
+          </a>
+          <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold" style="padding: 12px 20px;">
+            <i class="fas fa-location-arrow"></i> Google Maps (Directions)
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="assets/logo-full.png" alt="Breeze Logo" class="brand-logo-img" style="height: 64px; width: auto; margin-bottom: 14px;">
+          <p>
+            Palghar's premier open-sky dining lounge. High above the city on the 5th floor of Kanchan Aura, offering artisan matchas, messy burgers, and fairy-lit evenings.
+          </p>
+          <div class="social-links">
+            <a href="https://www.instagram.com/breezetherooftopcafe/?hl=en" target="_blank" rel="noopener noreferrer" class="social-link" title="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="social-link" title="Google Maps">
+              <i class="fas fa-map-marker-alt"></i>
+            </a>
+            <a href="tel:9623999095" class="social-link" title="Call Cafe Desk"><i class="fas fa-phone"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Quick Navigation</h4>
+          <ul class="footer-links-list">
+            <li><a href="/" class="footer-link">Home</a></li>
+            <li><a href="/menu" class="footer-link">Food & Drink Menu</a></li>
+            <li><a href="/about" class="footer-link">About & Rooftop Vibe</a></li>
+            <li><a href="/contact" class="footer-link">Location & Timings</a></li>
+            <li><a href="/profile" class="footer-link">Customer Account & Orders</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Menu Highlights</h4>
+          <ul class="footer-links-list">
+            <li><a href="#menu" class="footer-link">Strawberry Iced Matcha</a></li>
+            <li><a href="#menu" class="footer-link">Cheesy Burst Burger</a></li>
+            <li><a href="#menu" class="footer-link">Paneer Zinger Burger</a></li>
+            <li><a href="#menu" class="footer-link">Cheesy Peri Peri Fries</a></li>
+            <li><a href="#menu" class="footer-link">Exotic Veggie Pizza</a></li>
+            <li><a href="#menu" class="footer-link">Alfredo Pasta</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col footer-contact-col">
+          <h4>Visit & Contact</h4>
+          <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="footer-contact-link" title="Open Google Maps Location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>5th Floor Kanchan Aura, Mahim Rd, Palghar 401404</span>
+          </a>
+          <div class="footer-contact-item">
+            <i class="fas fa-clock"></i>
+            <span class="store-hours-display">11:00 AM – 11:00 PM Daily</span>
+          </div>
+          <a href="tel:+919623999095" class="footer-contact-link" title="Call Breeze Cafe">
+            <i class="fas fa-phone"></i>
+            <span>+91 9623999095</span>
+          </a>
+          <div class="footer-contact-actions">
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold btn-sm" title="Directions on Google Maps">
+              <i class="fas fa-location-arrow"></i> Directions
+            </a>
+            <a href="tel:+919623999095" class="btn btn-primary btn-sm" title="Call directly">
+              <i class="fas fa-phone"></i> Call Us
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          © 2026 Breeze The Roof-Top Café. All Rights Reserved.
+        </div>
+        <div>
+          Crafted by <a href="https://webyodas.pages.dev" target="_blank" rel="noopener noreferrer" class="webyodas-link">Webyodas</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       HIGH-CONVERSION FLOATING ORDER PILL
+       ========================================================================== -->
+  
+
+  <nav class="mobile-bottom-bar" aria-label="Mobile quick actions">
+    <div class="mobile-bottom-bar-inner">
+      <a href="/" class="mobile-bar-btn active" aria-label="Home">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="/menu" class="mobile-bar-btn" aria-label="Menu">
+        <i class="fas fa-utensils"></i>
+        <span>Menu</span>
+      </a>
+      <a href="/profile" class="mobile-bar-btn" aria-label="Profile">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Back to Top Button -->
+  <button id="backToTopBtn" class="back-to-top" aria-label="Scroll back to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="toast-notification" role="status" aria-live="polite"></div>
+
+  <!-- ==========================================================================
+       MODAL: FULL MENU CARD VIEWER
+       ========================================================================== -->
+  <div class="modal-overlay" id="menuCardModal">
+    <div class="modal-container">
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-book-open"></i> Printed Menu Card</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-primary); margin: 0;">Breeze The Roof-Top Café</h3>
+        </div>
+        <button class="modal-close-btn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <img src="assets/menu.avif" alt="Official Menu Card of Breeze Cafe" class="menu-modal-img" loading="lazy">
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 20px; flex-wrap: wrap;">
+        <a href="/menu" class="btn btn-primary">
+          <i class="fas fa-utensils"></i> Explore Full Menu
+        </a>
+        <a href="assets/menu.avif" target="_blank" class="btn btn-secondary">
+          <i class="fas fa-expand"></i> View High-Res Image
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: VISUAL GALLERY PHOTO LIGHTBOX
+       ========================================================================== -->
+  <div class="modal-overlay" id="galleryPhotoLightboxModal">
+    <div class="modal-container gallery-lightbox-container" style="max-width: 900px; padding: 20px; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; color: #ffffff;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="badge-tag" style="background: rgba(181, 136, 61, 0.2); color: #d4af37; border-color: rgba(181, 136, 61, 0.4);"><i class="fas fa-camera"></i> Moments at Breeze</span>
+          <span id="galleryLightboxCounter" style="font-size: 0.82rem; color: #94a3b8; font-weight: 700;">1 of 4</span>
+        </div>
+        <button type="button" class="modal-close-btn" id="galleryLightboxCloseBtn" aria-label="Close photo preview" style="background: rgba(255,255,255,0.12); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 1rem;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div style="position: relative; display: flex; align-items: center; justify-content: center; min-height: 280px; max-height: 68vh; overflow: hidden; border-radius: 14px; background: #000000;">
+        <img id="galleryLightboxImage" src="assets/rooftop-night.jpg" alt="Breeze Gallery Photo" style="max-width: 100%; max-height: 68vh; object-fit: contain; border-radius: 12px; transition: opacity 0.2s ease;">
+        <button type="button" id="galleryLightboxPrev" aria-label="Previous photo" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.65); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.15rem; transition: all 0.2s;">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button type="button" id="galleryLightboxNext" aria-label="Next photo" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.65); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.15rem; transition: all 0.2s;">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h4 id="galleryLightboxTitle" style="font-family: var(--font-serif); font-size: 1.25rem; color: #ffffff; margin: 0 0 4px;">Photo Title</h4>
+          <p id="galleryLightboxSub" style="font-size: 0.85rem; color: #94a3b8; margin: 0;">Photo description</p>
+        </div>
+        <a id="galleryLightboxFullLink" href="assets/rooftop-night.jpg" target="_blank" class="btn btn-secondary" style="padding: 7px 16px; font-size: 0.82rem; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); color: #ffffff; border-radius: 10px;">
+          <i class="fas fa-expand"></i> Full Screen
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript File with Cache Busting -->
+  
+  <!-- ==========================================================================
+       FLOATING CART ACTION BUTTON (Visible when items > 0)
+       ========================================================================== -->
+  <div class="floating-cart-pill" id="floatingCartBtn" role="button" aria-label="View current order" style="display: none;">
+    <div class="cart-pill-icon">
+      <i class="fas fa-shopping-bag"></i>
+      <span class="cart-pill-count" id="cartCountBadge">0</span>
+    </div>
+    <div class="cart-pill-text">
+      <span class="cart-pill-title">Your Order</span>
+      <span class="cart-pill-total" id="cartTotalBadge">₹0</span>
+    </div>
+    <div class="cart-pill-arrow">
+      <span>View Cart</span> <i class="fas fa-chevron-right"></i>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       CART DRAWER & BACKDROP
+       ========================================================================== -->
+  <div class="cart-drawer-backdrop" id="cartDrawerBackdrop"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping Cart">
+    <div class="cart-drawer-header">
+      <div class="cart-header-title">
+        <div class="cart-header-icon"><i class="fas fa-shopping-bag"></i></div>
+        <div>
+          <h3>Your Rooftop Order</h3>
+          <span class="cart-items-count-badge" id="cartDrawerItemCount">0 items selected</span>
+        </div>
+      </div>
+      <button type="button" class="cart-drawer-close" id="cartDrawerCloseBtn" aria-label="Close cart">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="cart-drawer-body" id="cartDrawerBody">
+      <!-- Items dynamically populated via JavaScript -->
+    </div>
+
+    <div class="cart-drawer-footer" id="cartDrawerFooter">
+
+      <div class="cart-direct-savings-badge">
+        <i class="fas fa-tag"></i> <span>Direct Rooftop Prices • <strong>Zero Zomato 25% Markups</strong></span>
+      </div>
+
+      
+
+      <div class="cart-summary-total">
+        <span>Total Bill:</span>
+        <strong id="cartDrawerTotalAmount">₹0</strong>
+      </div>
+
+      <button type="button" class="btn btn-primary cart-checkout-btn" id="cartCheckoutBtn">
+        <i class="fas fa-shopping-bag"></i> Place Order
+      </button>
+      <button type="button" class="cart-clear-btn" id="cartClearBtn">
+        <i class="fas fa-trash-alt"></i> Clear All Items
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main JavaScript File with Cache Busting -->
+  <script src="js/main.js?v=9.6"></script>
+
+  <!-- ==========================================================================
+       MODAL: ORDER DETAILS & ADDRESS PROMPT (Cart & Direct Order)
+       ========================================================================== -->
+    <div class="modal-overlay" id="orderDetailsModal" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+    <div class="modal-container order-modal-container">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-motorcycle"></i> Fast Rooftop Checkout</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="orderModalTitle">Enter Order Details</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="orderModalCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Direct pricing badge -->
+      <div class="direct-pricing-callout">
+        <i class="fas fa-shield-alt"></i>
+        <span>Direct Cafe Price: <strong>Zero Zomato Markups & Fees</strong> • Fresh Kitchen Prep</span>
+      </div>
+
+      <!-- Checkout User Banner (if logged in) -->
+      <div class="checkout-user-banner" id="checkoutUserBanner" style="display: none;">
+        <div class="checkout-user-info">
+          <i class="fas fa-check-circle" style="color: #2e7d32;"></i>
+          <span>Ordering as <strong id="checkoutUserWelcome">Customer</strong></span>
+        </div>
+        <button type="button" class="btn-link-edit" id="checkoutChangeUserBtn">Change Profile</button>
+      </div>
+
+      <div class="order-modal-summary" id="orderModalSummary">
+        <!-- Dynamically injected items & total -->
+      </div>
+
+      <form id="orderDetailsForm" class="order-details-form" onsubmit="return false;">
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="orderCustName"><i class="fas fa-user"></i> Your Full Name <span class="required-star">*</span></label>
+            <input type="text" id="orderCustName" class="form-control" placeholder="Enter your full name" required autocomplete="name">
+          </div>
+          <div class="form-group flex-1">
+            <label for="orderCustPhone"><i class="fas fa-phone"></i> Phone Number <span class="required-star">*</span></label>
+            <input type="tel" id="orderCustPhone" class="form-control" placeholder="e.g. 9876543210" required autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-concierge-bell"></i> Dining / Order Type <span class="required-star">*</span></label>
+          <div class="order-type-pills" id="orderTypePills">
+            <button type="button" class="order-type-pill active" data-type="Home Delivery">
+              <i class="fas fa-motorcycle"></i> <span>Delivery</span>
+            </button>
+            <button type="button" class="order-type-pill" data-type="Takeaway / Pick-Up">
+              <i class="fas fa-shopping-bag"></i> <span>Takeaway</span>
+            </button>
+            <button type="button" class="order-type-pill" data-type="Dine-In (Rooftop Table)">
+              <i class="fas fa-utensils"></i> <span>Dine-In</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" id="orderAddressGroup">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label for="checkoutAddressSelect" style="margin-bottom: 0;"><i class="fas fa-map-marker-alt"></i> Delivery Address <span class="required-star">*</span></label>
+            <span class="saved-address-tag" id="savedAddressTag" style="display:none;"><i class="fas fa-check-circle"></i> Using saved address</span>
+          </div>
+          <!-- Saved Address Dropdown Selector -->
+          <div class="checkout-addr-select-wrap" style="margin-bottom: 8px;">
+            <select id="checkoutAddressSelect" class="form-control checkout-addr-select">
+              <option value="custom">✏️ Enter custom address (for this order only)</option>
+            </select>
+          </div>
+          <!-- Complete Address Textarea -->
+          <textarea id="orderCustAddress" class="form-control form-textarea" rows="2" placeholder="Flat/House No., Building Name, Street / Area, Landmark, Palghar"></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; flex-wrap: wrap; gap: 4px;">
+            <small class="form-hint" id="checkoutAddressHint" style="margin-top: 0; font-size: 0.75rem; color: #78716c;">
+              <i class="fas fa-info-circle"></i> Fast delivery across Palghar from Kanchan Aura 5th Floor.
+            </small>
+            <button type="button" id="btnManageAddressesFromCheckout" style="background: none; border: none; color: var(--primary-gold); font-size: 0.74rem; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
+              + Manage Saved Addresses
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" id="orderTableGroup" style="display: none;">
+          <label for="orderCustTable"><i class="fas fa-chair"></i> Table Number (Optional)</label>
+          <input type="text" id="orderCustTable" class="form-control" placeholder="e.g. Table 4 / Open-Sky Terrace">
+        </div>
+
+        <div class="form-group">
+          <label for="orderCustNotes"><i class="fas fa-comment-dots"></i> Special Cooking / Delivery Request (Optional)</label>
+          <input type="text" id="orderCustNotes" class="form-control" placeholder="e.g. Jain preparation, less spicy, extra ketchup">
+        </div>
+
+        <!-- PAYMENT METHOD SELECTION -->
+        <div class="form-group checkout-payment-group">
+          <label><i class="fas fa-credit-card"></i> Payment Method <span class="required-star">*</span></label>
+          <div class="payment-method-selector" id="paymentMethodSelector">
+            <label class="payment-option-card active" for="payMethodRazorpay" id="payCardRazorpay">
+              <input type="radio" name="payment_method" value="razorpay" id="payMethodRazorpay" checked>
+              <div class="payment-option-content">
+                <div class="payment-option-head">
+                  <span class="payment-option-title"><i class="fas fa-bolt" style="color: #b5883d;"></i> Razorpay Online Payment</span>
+                  <span class="badge-recommended">Recommended</span>
+                </div>
+                <p class="payment-option-subtitle">Instant UPI (Google Pay, PhonePe, Paytm), Cards & NetBanking • Auto-Refund Safe</p>
+              </div>
+            </label>
+
+            <label class="payment-option-card" for="payMethodCod" id="payCardCod">
+              <input type="radio" name="payment_method" value="cod" id="payMethodCod">
+              <div class="payment-option-content">
+                <div class="payment-option-head">
+                  <span class="payment-option-title"><i class="fas fa-money-bill-wave"></i> Cash on Delivery (COD)</span>
+                  <span class="badge-cod-limit">Max ₹1,000</span>
+                </div>
+                <p class="payment-option-subtitle">Pay cash or scan QR when rider arrives</p>
+                <div class="payment-limit-alert" id="codLimitAlert" style="display: none;">
+                  <i class="fas fa-exclamation-triangle"></i> COD is limited to ₹1,000 to prevent kitchen loss. Please choose Online Payment.
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="order-modal-actions">
+          <button type="submit" class="btn btn-primary btn-block" id="orderConfirmSubmitBtn">
+            <i class="fas fa-lock"></i> <span id="orderSubmitBtnLabel">Proceed to Pay & Confirm Order</span>
+          </button>
+          <p class="order-secure-note"><i class="fas fa-shield-alt"></i> 100% Safe & Secure Order • Direct from Breeze The Rooftop Cafe</p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       MODAL: CUSTOMER AUTHENTICATION / PROFILE
+       ========================================================================== -->
+  
+  <!-- ==========================================================================
+       MODAL: CUSTOMER PROFILE HUB (Addresses, Orders & Personal Info)
+       ========================================================================== -->
+  <div class="modal-overlay" id="customerProfileModal" role="dialog" aria-modal="true" aria-labelledby="profileHubModalTitle">
+    <div class="modal-container profile-hub-container">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-crown" style="color: var(--primary-gold);"></i> Breeze Member Lounge</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="profileHubModalTitle">Customer Profile</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="profileHubCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Profile Header Summary Card -->
+      <div class="profile-hero-card">
+        <div class="profile-hero-avatar-wrap">
+          <div class="profile-hero-avatar" id="profileHeroAvatar">R</div>
+          <span class="profile-verified-badge" title="Verified Customer"><i class="fas fa-check"></i></span>
+        </div>
+        <div class="profile-hero-details">
+          <div class="profile-hero-name-row">
+            <h4 id="profileHeroName" class="profile-hero-name">Customer Name</h4>
+            <span class="profile-vip-pill" id="profileVipPill"><i class="fas fa-gem"></i> VIP Guest</span>
+          </div>
+          <div class="profile-hero-meta">
+            <span id="profileHeroEmail" class="profile-meta-item"><i class="fab fa-google" style="color: #4285f4;"></i> customer@gmail.com</span>
+            <span id="profileHeroPhone" class="profile-meta-item"><i class="fas fa-phone"></i> +91 ----------</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Stats Chips -->
+      <div class="profile-stats-row">
+        <div class="profile-stat-box">
+          <span class="stat-number" id="profileOrdersCount">0</span>
+          <span class="stat-label">Orders Placed</span>
+        </div>
+        <div class="profile-stat-box">
+          <span class="stat-number" id="profileTotalSpent">₹0</span>
+          <span class="stat-label">Total Spent</span>
+        </div>
+        <div class="profile-stat-box">
+          <span class="stat-number" id="profileSavedAddrCount">0</span>
+          <span class="stat-label">Saved Addresses</span>
+        </div>
+      </div>
+
+      <!-- Segmented Tab Navigation -->
+      <div class="profile-tabs-nav" role="tablist">
+        <button type="button" class="profile-tab-btn active" data-tab="addresses" role="tab" aria-selected="true" id="tabBtnAddresses">
+          <i class="fas fa-map-marker-alt"></i> <span>Saved Addresses</span>
+        </button>
+        <button type="button" class="profile-tab-btn" data-tab="orders" role="tab" aria-selected="false" id="tabBtnOrders">
+          <i class="fas fa-receipt"></i> <span>Order History</span>
+        </button>
+        <button type="button" class="profile-tab-btn" data-tab="personal" role="tab" aria-selected="false" id="tabBtnPersonal">
+          <i class="fas fa-user-edit"></i> <span>Edit Details</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: SAVED ADDRESSES (UP TO 3) -->
+      <div class="profile-tab-pane active" id="paneAddresses" role="tabpanel">
+        <div class="pane-header-row">
+          <div>
+            <h5 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-dark);">Delivery Addresses</h5>
+            <small style="color: var(--text-muted); font-size: 0.76rem;">Save up to 3 addresses for instant 1-tap checkout</small>
+          </div>
+          <button type="button" class="btn btn-outline-gold btn-sm" id="btnAddNewAddress">
+            <i class="fas fa-plus"></i> Add Address
+          </button>
+        </div>
+
+        <!-- Add / Edit Address Form (Collapsible) -->
+        <div id="addressEditorBox" class="address-editor-box" style="display: none;">
+          <div class="editor-header">
+            <span id="addressEditorTitle" style="font-weight: 700; font-size: 0.88rem; color: var(--text-dark);">Add New Address</span>
+            <button type="button" class="btn-text-close" id="btnCancelAddressEditor"><i class="fas fa-times"></i></button>
+          </div>
+
+          <!-- Label Pills -->
+          <div class="addr-label-selector">
+            <button type="button" class="addr-label-pill active" data-label="Home">
+              <i class="fas fa-home"></i> Home
+            </button>
+            <button type="button" class="addr-label-pill" data-label="Work">
+              <i class="fas fa-briefcase"></i> Work
+            </button>
+            <button type="button" class="addr-label-pill" data-label="Other">
+              <i class="fas fa-map-pin"></i> Other
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label style="font-size: 0.74rem; font-weight: 700; color: #4a4238; margin-bottom: 4px; display: block;">
+              Complete Address <span class="required-star">*</span>
+            </label>
+            <textarea id="editorAddressText" rows="2" class="form-control" placeholder="Flat / House No., Building Name, Street / Area, Palghar" style="font-size: 0.84rem;"></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label style="font-size: 0.74rem; font-weight: 700; color: #4a4238; margin-bottom: 4px; display: block;">
+              Landmark / Instructions (Optional)
+            </label>
+            <input type="text" id="editorAddressLandmark" class="form-control" placeholder="e.g. Near Station, 4th Floor" style="font-size: 0.84rem;">
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <label style="font-size: 0.8rem; color: #5a4b37; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="editorAddressIsDefault" style="accent-color: var(--primary-gold);">
+              <span>Set as default delivery address</span>
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-primary btn-sm" id="btnSaveAddressFromEditor" style="flex: 1; height: 38px;">
+              <i class="fas fa-check-circle"></i> Save Address
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnDiscardAddressEditor" style="height: 38px;">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Saved Addresses Cards List -->
+        <div id="savedAddressesCardsList" class="saved-addresses-grid">
+          <!-- Dynamically populated cards -->
+        </div>
+      </div>
+
+      <!-- TAB 2: ORDER HISTORY & RECEIPTS -->
+      <div class="profile-tab-pane" id="paneOrders" role="tabpanel" style="display: none;">
+        <div class="pane-header-row">
+          <div>
+            <h5 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-dark);">Your Past Orders</h5>
+            <small style="color: var(--text-muted); font-size: 0.76rem;">All orders placed with your verified account</small>
+          </div>
+          <button type="button" class="btn btn-outline-gold btn-sm" id="btnRefreshProfileOrders">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+
+        <div id="profileOrdersListContainer" class="profile-orders-list">
+          <!-- Dynamically populated past orders -->
+        </div>
+      </div>
+
+      <!-- TAB 3: EDIT PERSONAL INFO -->
+      <div class="profile-tab-pane" id="panePersonal" role="tabpanel" style="display: none;">
+        <form id="profilePersonalInfoForm" onsubmit="return false;">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label for="profileInputName" style="font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; display: block;">
+              Full Name <span class="required-star">*</span>
+            </label>
+            <input type="text" id="profileInputName" class="form-control" placeholder="Your Full Name">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label for="profileInputPhone" style="font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; display: block;">
+              Primary WhatsApp / Mobile Number <span class="required-star">*</span>
+            </label>
+            <div class="phone-input-wrap">
+              <span class="country-prefix"><i class="fas fa-flag" style="margin-right: 4px; font-size: 0.72rem; color: #138808;"></i> +91</span>
+              <input type="tel" id="profileInputPhone" class="auth-mobile-input" maxlength="10" placeholder="10-digit mobile number" inputmode="numeric">
+            </div>
+            <small style="color: var(--text-muted); font-size: 0.74rem; display: block; margin-top: 4px;">
+              Used for bill receipts, delivery driver calls, and order status notifications.
+            </small>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; display: block;">
+              Google Account Email
+            </label>
+            <input type="email" id="profileDisplayEmail" class="form-control" disabled style="background: #f7f3ed; color: #736b5e; cursor: not-allowed;">
+            <small style="color: #2e7d32; font-size: 0.74rem; display: block; margin-top: 4px; font-weight: 600;">
+              <i class="fas fa-shield-alt"></i> Verified via Google Sign-In
+            </small>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-block" id="btnSavePersonalInfo" style="height: 44px; font-weight: 700;">
+            <i class="fas fa-save" style="margin-right: 6px;"></i> Save Personal Details
+          </button>
+        </form>
+      </div>
+
+      <!-- Sign Out Action -->
+      <div class="profile-footer-actions">
+        <button type="button" class="btn-profile-signout" id="btnProfileSignOut">
+          <i class="fas fa-sign-out-alt"></i> Sign Out of Breeze Cafe
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="customerAuthModal" role="dialog" aria-modal="true" aria-labelledby="customerAuthTitle">
+    <div class="modal-container customer-auth-container">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-user-lock"></i> Breeze Customer Account</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="customerAuthTitle">Sign In / Register</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="customerAuthCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin: 8px 0 20px; text-align: left; line-height: 1.5;" id="customerAuthSubtitle">
+        Sign in with Google to live track rooftop orders, save delivery addresses, and sync your cart.
+      </p>
+
+            <!-- Google Sign In Container (Instant 1-Tap) -->
+      <div style="padding: 10px 0 16px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div id="googleBtnContainer" class="google-auth-wrapper" style="display: flex; justify-content: center; width: 100%; margin: 6px 0;"></div>
+      </div>
+
+      <div style="font-size: 0.76rem; color: #8c8275; margin-top: 10px; padding-top: 14px; border-top: 1px solid #f0e6d6; text-align: center;">
+        <i class="fas fa-shield-alt" style="color: #b5883d;"></i> 1-Tap secure sign-in powered by Google Identity
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: GOOGLE LOGIN MOBILE NUMBER LINKING (Marketing & Order Status)
+       ========================================================================== -->
+  <div class="modal-overlay" id="googlePhonePromptModal" role="dialog" aria-modal="true" aria-labelledby="googlePhoneModalTitle">
+    <div class="modal-container google-phone-container" style="max-width: 420px; padding: 24px; border-radius: 16px;">
+      <div class="modal-sticky-header" style="border: none; padding: 0 0 12px 0;">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 6px;"><i class="fas fa-sparkles" style="color: #b5883d;"></i> Account Setup</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="googlePhoneModalTitle">
+            Welcome to Breeze! 🎉
+          </h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="googlePhoneCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin: 4px 0 18px; line-height: 1.5;" id="googlePhoneModalSubtitle">
+        Add your WhatsApp or Mobile number for live kitchen updates, bill receipts, and exclusive rooftop member offers.
+      </p>
+
+      <form id="googlePhoneForm" onsubmit="return false;">
+        <label for="googlePhoneInput" style="display: block; font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Mobile Number
+        </label>
+        <div class="phone-input-wrap" style="margin-bottom: 8px;">
+          <span class="country-prefix"><i class="fas fa-flag" style="margin-right: 4px; font-size: 0.72rem; color: #138808;"></i> +91</span>
+          <input type="tel" id="googlePhoneInput" class="auth-mobile-input" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric">
+        </div>
+        <div id="googlePhoneError" style="display: none; color: #c62828; font-size: 0.78rem; margin-bottom: 10px; font-weight: 600;"></div>
+
+        <button type="button" class="btn btn-primary btn-block" id="btnSaveGooglePhone" style="height: 46px; font-weight: 700; margin-top: 10px;">
+          <span>Save & Continue</span> <i class="fas fa-arrow-right" style="margin-left: 6px;"></i>
+        </button>
+
+        <button type="button" id="btnSkipGooglePhone" style="display: block; width: 100%; text-align: center; background: none; border: none; color: #8c8275; font-size: 0.82rem; margin-top: 12px; cursor: pointer; text-decoration: underline; padding: 6px;">
+          Skip for now (I'll add it later)
+        </button>
+      </form>
+
+      <div style="font-size: 0.74rem; color: #a0988e; margin-top: 16px; padding-top: 12px; border-top: 1px solid #f0e6d6; text-align: center;">
+        <i class="fas fa-shield-alt" style="color: #b5883d;"></i> We respect your privacy. No spam guaranteed.
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: RAZORPAY PAYMENT GATEWAY (Live SDK / Simulation Adapter)
+       ========================================================================== -->
+  <div class="modal-overlay" id="razorpaySimModal" role="dialog" aria-modal="true" aria-labelledby="rzpModalTitle">
+    <div class="modal-container razorpay-sim-container">
+      <div class="rzp-header">
+        <div class="rzp-brand">
+          <img src="assets/logo-transparent.png" alt="Breeze Logo" onerror="this.style.display='none'">
+          <div>
+            <span id="rzpModalTitle">Breeze The Roof-Top Café</span>
+            <div style="font-size: 0.72rem; color: #93c5fd;"><i class="fas fa-shield-alt"></i> Razorpay Secure Gateway</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="rzpSimCloseBtn" aria-label="Close payment" style="color: #fff; background: rgba(255,255,255,0.15);">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="rzp-body">
+        <div class="rzp-amount-box">
+          <div class="rzp-amount-label">Amount Payable</div>
+          <div class="rzp-amount-val" id="rzpSimAmount">₹0</div>
+          <div style="font-size: 0.74rem; color: #64748b; margin-top: 4px;">Zero Convenience Fees • Direct Rooftop Price</div>
+        </div>
+
+        <div style="margin-bottom: 12px; font-weight: 700; font-size: 0.84rem; color: #334155;">
+          Select UPI App / Payment Option:
+        </div>
+
+        <div class="upi-apps-grid">
+          <button type="button" class="upi-app-btn active" data-app="Google Pay">
+            <i class="fab fa-google" style="color: #4285F4;"></i> Google Pay
+          </button>
+          <button type="button" class="upi-app-btn" data-app="PhonePe">
+            <i class="fas fa-mobile-alt" style="color: #5f259f;"></i> PhonePe
+          </button>
+          <button type="button" class="upi-app-btn" data-app="Paytm UPI">
+            <i class="fas fa-wallet" style="color: #00b9f1;"></i> Paytm UPI
+          </button>
+          <button type="button" class="upi-app-btn" data-app="Cards / NetBanking">
+            <i class="fas fa-credit-card" style="color: #059669;"></i> Cards / NetBanking
+          </button>
+        </div>
+
+        <button type="button" class="rzp-action-pay" id="rzpSimPayBtn">
+          <i class="fas fa-lock"></i> Pay <span id="rzpSimBtnAmount">₹0</span> via UPI
+        </button>
+        <p style="text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 12px; margin-bottom: 0;"><i class="fas fa-shield-alt"></i> 100% Safe & Secure Payment • 256-bit Encrypted</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: LIVE KITCHEN & ORDER TRACKING
+       ========================================================================== -->
+  <div class="modal-overlay" id="orderTrackingModal" role="dialog" aria-modal="true" aria-labelledby="trackingOrderTitle">
+    <div class="modal-container tracking-modal-container">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="tracking-header-badge" id="trackingStatusBadge">
+            <i class="fas fa-circle" style="font-size: 0.55rem;"></i> <span id="trackingStatusBadgeText">Kitchen Confirmed</span>
+          </span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 4px 0 0;" id="trackingOrderTitle">Order #BRZ-0000</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="orderTrackingCloseBtn" aria-label="Close tracking">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Hero Visual Status Card -->
+      <div class="tracking-hero-status" id="trackingHeroCard">
+        <div class="tracking-radar-ring">
+          <i class="fas fa-utensils" id="trackingHeroIcon"></i>
+        </div>
+        <h2 id="trackingHeroHeading">Order Placed Successfully!</h2>
+        <p id="trackingHeroSubtext">The restaurant is reviewing your order details.</p>
+        <div class="tracking-prep-estimate" id="trackingPrepEstimate">
+          <i class="fas fa-stopwatch"></i> <span id="trackingPrepTimeText">Est. Prep & Delivery: ~25 Mins</span>
+        </div>
+      </div>
+
+      <!-- 60-Second Grace Cancellation Box / Kitchen Locked Alert -->
+      <div class="tracking-cancellation-box" id="trackingCancelBox">
+        <div class="cancellation-timer-desc">
+          <i class="fas fa-clock"></i>
+          <span>Grace Window: <strong id="cancelTimerCountdown">60s</strong></span>
+        </div>
+        <button type="button" class="btn-tracking-cancel" id="btnCancelOrder">Cancel Order</button>
+      </div>
+
+      <div class="tracking-kitchen-locked" id="trackingKitchenLocked" style="display: none;">
+        <i class="fas fa-utensils"></i>
+        <div>
+          <strong>Food is being prepared:</strong> Your dishes are being cooked fresh. This order can no longer be cancelled.
+        </div>
+      </div>
+
+      <!-- 5-Step Live Progress Stepper -->
+      <div class="tracking-stepper" id="trackingStepper">
+        <div class="tracking-step completed" id="step1">
+          <div class="step-node" id="step1Node"><i class="fas fa-check"></i></div>
+          <div class="step-details">
+            <div class="step-title">Order Placed</div>
+            <div class="step-desc" id="step1Desc">We have received your order.</div>
+          </div>
+        </div>
+
+        <div class="tracking-step active" id="step2">
+          <div class="step-node" id="step2Node"><i class="fas fa-check-double"></i></div>
+          <div class="step-details">
+            <div class="step-title">Order Confirmed</div>
+            <div class="step-desc" id="step2Desc">Restaurant has accepted your order.</div>
+          </div>
+        </div>
+
+        <div class="tracking-step" id="step3">
+          <div class="step-node" id="step3Node"><i class="fas fa-utensils"></i></div>
+          <div class="step-details">
+            <div class="step-title">Food Being Prepared</div>
+            <div class="step-desc" id="step3Desc">Chef is freshly preparing your dishes.</div>
+          </div>
+        </div>
+
+        <div class="tracking-step" id="step4">
+          <div class="step-node" id="step4Node"><i class="fas fa-motorcycle"></i></div>
+          <div class="step-details">
+            <div class="step-title">Out for Delivery</div>
+            <div class="step-desc" id="step4Desc">Delivery partner is on the way.</div>
+          </div>
+        </div>
+
+        <div class="tracking-step" id="step5">
+          <div class="step-node" id="step5Node"><i class="fas fa-smile-beam"></i></div>
+          <div class="step-details">
+            <div class="step-title">Order Delivered</div>
+            <div class="step-desc" id="step5Desc">Delivered. Enjoy your meal!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assigned Delivery Partner Card (Realtime Live Tracking) -->
+      <div class="tracking-rider-card" id="trackingRiderCard" style="display: none; background: #fdfbf7; border: 1.5px solid #d4af37; border-radius: 14px; padding: 14px 16px; margin: 16px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: #d4af37; color: #1c1917; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.15rem;" id="trackingRiderAvatar">
+              <i class="fas fa-motorcycle"></i>
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <strong style="font-size: 0.95rem; color: #1c1917;" id="trackingRiderName">Delivery Partner</strong>
+                <span style="background: #dcfce7; color: #166534; font-size: 0.68rem; font-weight: 800; padding: 2px 7px; border-radius: 999px;"><i class="fas fa-check"></i> Assigned</span>
+              </div>
+              <small style="color: #78716c; font-size: 0.78rem; display: block; margin-top: 2px;" id="trackingRiderVehicle">Breeze Express Partner • Out for Delivery</small>
+            </div>
+          </div>
+          <a href="tel:" id="trackingRiderPhoneBtn" style="background: #16a34a; color: #ffffff; padding: 8px 14px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);">
+            <i class="fas fa-phone"></i> <span>Call Rider</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Delivered Celebration & Feedback Card (Shows ONLY when order is delivered) -->
+      <div class="tracking-delivered-card" id="trackingDeliveredCard" style="display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px; padding: 18px; margin: 16px 0; text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+          <i class="fas fa-check"></i>
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 800; color: #166534; margin: 0 0 4px;">Delivered & Settled!</h4>
+        <p style="font-size: 0.82rem; color: #15803d; margin: 0 0 14px; line-height: 1.4;" id="trackingDeliveredNote">
+          Your food was delivered. Thank you for choosing Breeze Rooftop Cafe!
+        </p>
+
+        <!-- Star Rating Widget -->
+        <div style="background: #ffffff; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: #166534; margin-bottom: 6px;">How was your dining experience?</div>
+          <div class="tracking-rating-stars" id="trackingRatingStars" style="display: flex; justify-content: center; gap: 10px; font-size: 1.4rem; color: #eab308; cursor: pointer;">
+            <i class="fas fa-star rating-star" data-star="1"></i>
+            <i class="fas fa-star rating-star" data-star="2"></i>
+            <i class="fas fa-star rating-star" data-star="3"></i>
+            <i class="fas fa-star rating-star" data-star="4"></i>
+            <i class="fas fa-star rating-star" data-star="5"></i>
+          </div>
+          <div style="font-size: 0.75rem; color: #16a34a; font-weight: 700; margin-top: 6px; display: none;" id="ratingFeedbackMsg">
+            ⭐ Thank you for your 5-star rating!
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block" id="btnReorderFromTracking" style="margin-top: 6px;">
+          <i class="fas fa-redo"></i> Order Again / Explore Menu
+        </button>
+      </div>
+
+      <!-- Cancelled Status Card (Shows ONLY when order is cancelled) -->
+      <div class="tracking-cancelled-card" id="trackingCancelledCard" style="display: none; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 18px; margin: 16px 0; text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #fee2e2; color: #dc2626; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;" id="trackingCancelledIconCircle">
+          <i class="fas fa-times"></i>
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 800; color: #991b1b; margin: 0 0 6px;" id="trackingCancelledTitle">Order Cancelled</h4>
+        <div style="background: #ffffff; border: 1px solid #fca5a5; border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; color: #7f1d1d; margin-bottom: 12px; text-align: left;" id="trackingCancelReasonNotice">
+          <i class="fas fa-info-circle" style="color: #dc2626; margin-right: 4px;" id="trackingCancelNoticeIcon"></i>
+          <span id="trackingCancelReasonText">Reason loading...</span>
+        </div>
+        <div style="font-size: 0.78rem; color: #991b1b; margin-bottom: 16px;" id="trackingRefundStatusText">
+          Any online transaction will be refunded automatically to source account.
+        </div>
+        <button type="button" class="btn btn-primary btn-block" id="btnBrowseMenuFromCancelled">
+          <i class="fas fa-utensils"></i> Browse Menu & Order Something Else
+        </button>
+      </div>
+
+      <!-- Order Details Summary Card -->
+      <div class="tracking-details-card">
+        <h4><span>Order Summary</span> <span id="trackingTotalAmount">₹0</span></h4>
+        <div class="tracking-items-list" id="trackingItemsList">
+          <!-- Dynamically populated items -->
+        </div>
+        <div class="tracking-bill-row">
+          <span>Amount:</span>
+          <span id="trackingFinalBill">₹0</span>
+        </div>
+        <div id="trackingPaymentPillWrap">
+          <span class="tracking-payment-pill" id="trackingPaymentPill">
+            <i class="fas fa-check-circle"></i> Paid Online via Razorpay UPI
+          </span>
+        </div>
+        <div style="font-size: 0.77rem; color: var(--text-muted); margin-top: 10px;" id="trackingDestinationInfo">
+          <!-- Destination address or table info -->
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div style="display: flex; gap: 10px; flex-direction: column;">
+        <a href="tel:9623999095" class="btn btn-secondary btn-block">
+          <i class="fas fa-phone"></i> Call Cafe Desk (+91 9623999095)
+        </a>
+      </div>
+
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: CUSTOMER CANCELLATION CONFIRMATION & REASON
+       ========================================================================== -->
+  <div class="modal-overlay" id="customerCancelOrderModal" role="dialog" aria-modal="true" aria-labelledby="cancelModalTitle" style="display: none;">
+    <div class="modal-container" style="max-width: 440px; width: 92%; padding: 22px; border-radius: 16px;">
+      <div class="modal-sticky-header" style="margin-bottom: 12px;">
+        <div>
+          <span class="badge-tag" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; margin-bottom: 4px;">
+            <i class="fas fa-clock"></i> 60s Grace Window Active
+          </span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-dark); margin: 0;" id="cancelModalTitle">
+            Cancel Order?
+          </h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnDismissCancelModal" aria-label="Keep order">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.45;">
+        You can cancel now with <strong>zero cancellation fee</strong>. Any online transaction will be refunded 100% immediately.
+      </p>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px;">
+          Please select your reason:
+        </label>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff;">
+            <input type="radio" name="customerCancelReason" value="Placed order by mistake / testing" checked style="accent-color: #dc2626;">
+            <span>Placed order by mistake / testing</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff;">
+            <input type="radio" name="customerCancelReason" value="Need to change items or delivery address" style="accent-color: #dc2626;">
+            <span>Need to change items or delivery address</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff;">
+            <input type="radio" name="customerCancelReason" value="Changed mind / Ordering later" style="accent-color: #dc2626;">
+            <span>Changed mind / Ordering later</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff;">
+            <input type="radio" name="customerCancelReason" value="custom" style="accent-color: #dc2626;">
+            <span>Other reason</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" id="customerCancelCustomWrap" style="display: none; margin-bottom: 16px;">
+        <input type="text" id="customerCancelCustomInput" class="form-control" placeholder="Specify your reason (optional)" style="font-size: 0.82rem;">
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 18px;">
+        <button type="button" class="btn btn-secondary btn-block" id="btnKeepOrder" style="flex: 1; font-weight: 600;">
+          Keep Order
+        </button>
+        <button type="button" class="btn btn-block" id="btnConfirmCustomerCancel" style="flex: 1; background: #dc2626; color: #ffffff; border: none; font-weight: 700;">
+          Yes, Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: SOLD-OUT RECONCILIATION & SMART AUTO-REMOVE
+       ========================================================================== -->
+  <div class="modal-overlay" id="soldOutReconcileModal" role="dialog" aria-modal="true" aria-labelledby="soldOutModalTitle" style="display: none;">
+    <div class="modal-container" style="max-width: 440px; width: 92%; padding: 22px; border-radius: 16px;">
+      <div class="modal-sticky-header" style="margin-bottom: 12px;">
+        <div>
+          <span class="badge-tag" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; margin-bottom: 4px;">
+            <i class="fas fa-exclamation-triangle"></i> Kitchen Stock Update
+          </span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-dark); margin: 0;" id="soldOutModalTitle">
+            Dishes Out of Stock
+          </h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnDismissSoldOutModal" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.45;">
+        The kitchen just marked the following dish(es) as sold out while in your cart:
+      </p>
+
+      <!-- Dynamic list of unavailable items -->
+      <div id="soldOutModalItemsList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 200px; overflow-y: auto;">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div id="soldOutModalFooter" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <button type="button" class="btn btn-primary btn-block" id="btnPurgeAndProceed" style="font-weight: 700; background: var(--color-gold, #c89d47); color: #ffffff; border: none; padding: 12px;">
+          <i class="fas fa-check-circle"></i> Remove Sold-Out & Continue (<span id="soldOutRemainingTotal">₹0</span>)
+        </button>
+        <button type="button" class="btn btn-secondary btn-block" id="btnReviewCartFromSoldOut" style="font-weight: 600;">
+          <i class="fas fa-shopping-bag"></i> Review Cart
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: ORDER HISTORY
+       ========================================================================== -->
+  <div class="modal-overlay" id="orderHistoryModal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+    <div class="modal-container" style="max-width: 500px; width: 92%; padding: 22px;">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-receipt"></i> Your Account</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="historyModalTitle">Order History</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="historyModalCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div id="orderHistoryList" style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
+        <!-- Dynamically injected order history cards -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: STORE CLOSED / KITCHEN OFF-HOURS NOTIFICATION
+       ========================================================================== -->
+  <div class="modal-overlay" id="storeClosedModal" role="dialog" aria-modal="true" aria-labelledby="storeClosedTitle">
+    <div class="modal-container store-closed-modal-container">
+      <div class="modal-drag-handle"></div>
+      <button type="button" class="modal-close-btn" id="storeClosedModalCloseBtn" aria-label="Close dialog">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="store-closed-modal-hero">
+        <div class="store-closed-icon-badge">
+          <i class="fas fa-moon"></i>
+        </div>
+        <span class="badge-tag store-closed-status-pill" id="storeClosedModalNextOpen">
+          <i class="fas fa-clock"></i> Reopens at 11:00 AM
+        </span>
+        <h3 class="store-closed-title" id="storeClosedTitle">Kitchen Currently Closed</h3>
+        <p class="store-closed-lead" id="storeClosedModalReason">
+          Breeze The Rooftop Café is currently closed for online ordering.
+        </p>
+      </div>
+
+      <div class="store-closed-timings-card">
+        <div class="timings-icon"><i class="fas fa-utensils"></i></div>
+        <div class="timings-info">
+          <div class="timings-label">Daily Kitchen Timings</div>
+          <div class="timings-val" id="storeClosedModalHours">11:00 AM – 11:00 PM IST (Daily)</div>
+        </div>
+      </div>
+
+      <div class="store-closed-actions">
+        <button type="button" class="btn btn-primary btn-block" id="storeClosedBookTableBtn">
+          <i class="fas fa-calendar-check"></i> Reserve a Rooftop Table Instead
+        </button>
+        <a href="https://wa.me/919623999095?text=Hi%20Breeze%20Cafe%2C%20I%20wanted%20to%20inquire%20about%20kitchen%20hours%20and%20table%20reservations." target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp-reserve btn-block" id="storeClosedWhatsAppBtn">
+          <i class="fab fa-whatsapp"></i> Inquire on WhatsApp (+91 9623999095)
+        </a>
+        <button type="button" class="btn btn-outline-gold btn-block" id="storeClosedBrowseBtn">
+          <i class="fas fa-book-open"></i> Browse Menu & Prices
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: ROOFTOP TABLE RESERVATION (DIRECT PLATFORM SYSTEM)
+       ========================================================================== -->
+  <div class="modal-overlay" id="tableBookingModal" role="dialog" aria-modal="true" aria-labelledby="tableBookingTitle">
+    <div class="modal-container" style="max-width: 480px; width: 92%; padding: 24px;">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-calendar-check"></i> 5th Floor Rooftop Lounge</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="tableBookingTitle">Reserve a Rooftop Table</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="tableBookingCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 16px;">
+        Reserve your table under the stars at Palghar's premier open-air rooftop sanctuary. Instant confirmation.
+      </p>
+
+      <form id="tableBookingForm" onsubmit="return false;">
+        <div class="form-row">
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveDate"><i class="fas fa-calendar-alt"></i> Date <span class="required-star">*</span></label>
+            <input type="date" id="reserveDate" class="form-control" required>
+          </div>
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveTime"><i class="fas fa-clock"></i> Time Slot <span class="required-star">*</span></label>
+            <select id="reserveTime" class="form-control" required>
+              <option value="12:00 PM">12:00 PM (Lunch)</option>
+              <option value="01:00 PM">01:00 PM (Lunch)</option>
+              <option value="05:00 PM">05:00 PM (Sunset View)</option>
+              <option value="06:30 PM">06:30 PM (Golden Hour)</option>
+              <option value="07:30 PM" selected>07:30 PM (Rooftop Evening)</option>
+              <option value="08:30 PM">08:30 PM (Dinner & Vibe)</option>
+              <option value="09:30 PM">09:30 PM (Starlit Lounge)</option>
+              <option value="10:00 PM">10:00 PM (Late Night Bites)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveGuests"><i class="fas fa-users"></i> Guests <span class="required-star">*</span></label>
+            <select id="reserveGuests" class="form-control" required>
+              <option value="2 Guests">2 Guests (Couple / Pair)</option>
+              <option value="4 Guests" selected>4 Guests (Family / Friends)</option>
+              <option value="6 Guests">6 Guests (Group)</option>
+              <option value="8+ Guests">8+ Guests (Celebration Party)</option>
+            </select>
+          </div>
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveArea"><i class="fas fa-chair"></i> Seating Area</label>
+            <select id="reserveArea" class="form-control">
+              <option value="Open-Sky Terrace">Open-Sky Terrace</option>
+              <option value="Sunset View Edge">Sunset View Edge</option>
+              <option value="5th Floor Indoor Lounge">Indoor AC Lounge</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveCustName"><i class="fas fa-user"></i> Full Name <span class="required-star">*</span></label>
+            <input type="text" id="reserveCustName" class="form-control" placeholder="Enter your name" required autocomplete="name">
+          </div>
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveCustPhone"><i class="fas fa-phone"></i> Mobile Number <span class="required-star">*</span></label>
+            <input type="tel" id="reserveCustPhone" class="form-control" placeholder="10-digit number" required autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="reserveNotes"><i class="fas fa-comment-dots"></i> Special Request (Optional)</label>
+          <input type="text" id="reserveNotes" class="form-control" placeholder="e.g. Birthday, anniversary, quiet corner table">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="btnConfirmReservation">
+          <i class="fas fa-calendar-check"></i> Reserve a Table
+        </button>
+
+        <button type="button" class="btn btn-whatsapp-reserve btn-block" id="btnReserveWhatsApp">
+          <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> Reserve Now via WhatsApp
+        </button>
+
+        <a href="tel:9623999095" class="btn btn-secondary btn-sm btn-block" style="margin-top: 10px;">
+          <i class="fas fa-phone"></i> Call Cafe Desk for Instant Table (+91 9623999095)
+        </a>
+      </form>
+    </div>
+  </div>
+
+  <!-- Progressive Web App Controller & Live-Update Engine -->
+  <script src="js/pwa-install.js"></script>
+</body>
+</html>

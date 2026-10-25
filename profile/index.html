@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Profile & Saved Addresses | Breeze The Roof-Top Café, Palghar</title>
+  <meta name="description" content="Manage your delivery addresses, past order receipts, live kitchen tracking, and personal profile details at Breeze The Rooftop Cafe.">
+  <link rel="icon" type="image/png" href="/assets/logo-emblem.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  <!-- Progressive Web App Configuration -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Breeze Cafe">
+  <link rel="apple-touch-icon" href="assets/pwa/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Google Identity Services for 1-Tap Google Sign-In -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Supabase JS Client for Cloud Database Sync -->
+  <!-- Cloudflare D1 Client (Replaced Supabase) -->
+  <script src="/js/cf-client.js"></script>
+  <!-- Razorpay Checkout -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body class="profile-page-body">
+
+  <!-- ==========================================================================
+       HEADER & NAVIGATION (Clean, focused header for Profile - No clutter)
+       ========================================================================== -->
+  <header class="header profile-header-clean">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo-link" aria-label="Breeze The Rooftop Cafe Home">
+        <img src="assets/logo-full.png" alt="Breeze The Rooftop Cafe" class="brand-logo-img">
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/menu" class="nav-link">Menu</a></li>
+          <li><a href="/about" class="nav-link">About & Vibe</a></li>
+          <li><a href="/contact" class="nav-link">Contact & Desk</a></li>
+        </ul>
+      </nav>
+
+      <!-- Right: User Account Profile & Dropdown -->
+      <div class="nav-actions">
+        <div class="nav-user-area" id="navUserArea">
+          <!-- Sign In Button (Shown when logged out) -->
+          <button type="button" class="btn btn-outline-gold btn-sm nav-auth-btn" id="navAuthBtn">
+            <i class="fas fa-user-circle"></i> <span>Sign In</span>
+          </button>
+
+          <!-- User Profile Dropdown Pill (Shown when logged in) -->
+          <div class="nav-user-dropdown" id="navUserDropdown" style="display: none;">
+            <button type="button" class="nav-user-profile-btn" id="navUserProfileToggle" aria-label="Customer profile menu">
+              <span class="user-avatar-initial" id="navUserAvatar">B</span>
+              <span class="user-name-label" id="navUserName">Account</span>
+              <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
+            </button>
+            <div class="nav-user-menu" id="navUserMenu">
+              <div class="user-menu-profile-card" id="userMenuProfileHeaderCard" style="cursor: default; text-decoration: none;">
+                <div class="menu-avatar" id="dropdownAvatar">B</div>
+                <div style="flex: 1; min-width: 0;">
+                  <strong id="dropdownUserName">Customer Profile</strong>
+                  <span id="dropdownUserPhone">Verified Customer</span>
+                </div>
+              </div>
+              <div class="user-menu-divider"></div>
+              <a href="/profile?tab=addresses" class="user-menu-item" id="menuProfileBtn" style="text-decoration: none;">
+                <i class="fas fa-map-marker-alt"></i> Saved Addresses
+              </a>
+              <a href="/profile?tab=orders" class="user-menu-item" id="menuOrderHistoryBtn" style="text-decoration: none;">
+                <i class="fas fa-receipt"></i> Order History & Receipts
+              </a>
+              <div class="user-menu-divider"></div>
+              <button type="button" class="user-menu-item text-danger" id="menuSignOutBtn">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN PROFILE DASHBOARD CONTENT
+       ========================================================================== -->
+  <main class="profile-page-main">
+    <div class="profile-page-container">
+
+      <!-- Breadcrumb Header -->
+      <div class="profile-top-bar" style="margin-bottom: 20px;">
+        <div>
+          <h1 style="font-size: 1.45rem; font-weight: 800; color: #1c1917; margin: 0;">Customer Account</h1>
+          <p style="font-size: 0.82rem; color: #78716c; margin: 4px 0 0;">Manage your delivery addresses, past orders, and contact details</p>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           VIEW 1: GUEST SIGN-IN GATEWAY (Shown if user is not signed in)
+           ====================================================================== -->
+      <div id="profileGuestGateway" class="guest-gateway-v2" style="display: none;">
+        <div class="empty-state-icon-circle">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.45rem; font-weight: 800; color: #1c1917; margin-bottom: 8px;">
+          Customer Sign-In
+        </h2>
+        <p style="color: #78716c; font-size: 0.88rem; line-height: 1.6; margin-bottom: 24px; max-width: 400px; margin-inline: auto;">
+          Sign in with your Google account to view your saved delivery addresses, past rooftop bills, and live kitchen order tracking.
+        </p>
+        <!-- Google 1-Tap Container -->
+        <div id="profileGoogleGuestBtnContainer" style="display: flex; justify-content: center; margin-bottom: 18px; min-height: 44px;"></div>
+
+        <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid #f0ebe1;">
+          <small style="color: #166534; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-shield-alt"></i> Fast, secure sign-in via Google Identity
+          </small>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           VIEW 2: LOGGED-IN CUSTOMER PROFILE DASHBOARD
+           ====================================================================== -->
+      <div id="profileDashboardView" style="display: none;">
+        
+        <!-- Luxury Hero Card (Clean: No VIP/membership labels) -->
+        <div class="profile-luxury-hero">
+          <div class="hero-profile-row">
+            <div class="hero-avatar-wrap">
+              <div class="hero-avatar" id="pageHeroAvatar">B</div>
+              <span class="hero-verified-dot" title="Verified Customer"><i class="fas fa-check"></i></span>
+            </div>
+            <div class="hero-identity">
+              <div class="hero-name-badge-row">
+                <h3 id="pageHeroName" class="hero-customer-name">Customer Name</h3>
+              </div>
+              <div class="hero-meta-pills">
+                <span id="pageHeroEmail" class="hero-pill"><i class="fab fa-google" style="color: #4285f4;"></i> customer@gmail.com</span>
+                <span id="pageHeroPhone" class="hero-pill"><i class="fas fa-phone" style="color: #16a34a;"></i> +91 ----------</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loyalty Metrics Bar -->
+          <div class="hero-metrics-bar">
+            <div class="hero-metric-tile">
+              <span class="metric-val" id="pageStatOrdersCount">0</span>
+              <span class="metric-label">Orders Placed</span>
+            </div>
+            <div class="hero-metric-tile">
+              <span class="metric-val" id="pageStatTotalSpent">₹0</span>
+              <span class="metric-label">Total Spent</span>
+            </div>
+            <div class="hero-metric-tile">
+              <span class="metric-val" id="pageStatSavedAddrCount">0</span>
+              <span class="metric-label">Saved Addresses</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Segmented Tab Bar -->
+        <div class="profile-segment-tabs" role="tablist">
+          <button type="button" class="segment-tab-btn active" id="tabBtnPageAddresses" data-tab="addresses" role="tab" aria-selected="true">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Saved Addresses</span>
+            <span class="tab-counter-badge" id="tabAddrBadge">0</span>
+          </button>
+          <button type="button" class="segment-tab-btn" id="tabBtnPageOrders" data-tab="orders" role="tab" aria-selected="false">
+            <i class="fas fa-receipt"></i>
+            <span>Order History</span>
+            <span class="tab-counter-badge" id="tabOrdersBadge">0</span>
+          </button>
+          <button type="button" class="segment-tab-btn" id="tabBtnPagePersonal" data-tab="personal" role="tab" aria-selected="false">
+            <i class="fas fa-user-edit"></i>
+            <span>Personal Details</span>
+          </button>
+        </div>
+
+        <!-- Main Content Card -->
+        <div class="profile-content-card">
+
+          <!-- PANE 1: SAVED ADDRESSES -->
+          <div class="profile-pane-content active" id="panePageAddresses">
+            <div class="content-pane-header">
+              <div>
+                <h4 class="content-pane-title">Delivery Addresses</h4>
+                <p class="content-pane-subtitle">Save all your delivery addresses (Home, Work, Family, Friends) for 1-tap checkout</p>
+              </div>
+              <button type="button" class="btn-luxury-gold" id="btnPageAddNewAddress" style="padding: 9px 18px; font-size: 0.85rem;">
+                <i class="fas fa-plus"></i> Add Address
+              </button>
+            </div>
+
+            <!-- Inline Address Editor -->
+            <div id="pageAddressEditorBox" class="address-editor-v2" style="display: none;">
+              <div class="editor-v2-header">
+                <span id="pageAddressEditorTitle" class="editor-v2-title">Add New Address</span>
+                <button type="button" class="btn-icon-action" id="btnPageCancelEditor" title="Close"><i class="fas fa-times"></i></button>
+              </div>
+
+              <!-- Label Selector Pills -->
+              <div class="label-pill-selector">
+                <button type="button" class="label-selector-btn active" data-label="Home">
+                  <i class="fas fa-home"></i> Home
+                </button>
+                <button type="button" class="label-selector-btn" data-label="Work">
+                  <i class="fas fa-briefcase"></i> Work
+                </button>
+                <button type="button" class="label-selector-btn" data-label="Family">
+                  <i class="fas fa-users"></i> Family
+                </button>
+                <button type="button" class="label-selector-btn" data-label="Friends">
+                  <i class="fas fa-user-friends"></i> Friends
+                </button>
+                <button type="button" class="label-selector-btn" data-label="Other">
+                  <i class="fas fa-map-pin"></i> Other
+                </button>
+              </div>
+
+              <div class="form-group-v2">
+                <label class="form-label-v2">
+                  Complete Address <span style="color:#dc2626;">*</span>
+                </label>
+                <textarea id="pageEditorAddressText" rows="2" class="input-modern" placeholder="Flat / House No., Building Name, Street / Area, Palghar"></textarea>
+              </div>
+
+              <div class="form-group-v2">
+                <label class="form-label-v2">
+                  Landmark / Instructions (Optional)
+                </label>
+                <input type="text" id="pageEditorAddressLandmark" class="input-modern" placeholder="e.g. Near Station, 4th Floor">
+              </div>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; margin: 16px 0 20px;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: #44403c; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                  <input type="checkbox" id="pageEditorAddressIsDefault" style="accent-color: #b5883d; width: 17px; height: 17px; cursor: pointer;">
+                  <span>Set as default delivery address</span>
+                </label>
+              </div>
+
+              <div style="display: flex; gap: 12px;">
+                <button type="button" class="btn-luxury-gold" id="btnPageSaveAddress" style="flex: 1;">
+                  <i class="fas fa-check-circle"></i> Save Address
+                </button>
+                <button type="button" class="btn-set-default-v2" id="btnPageDiscardEditor" style="padding: 12px 20px; font-weight: 700;">
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Saved Addresses Grid Container -->
+            <div id="pageSavedAddressesCardsList" class="saved-addresses-grid-v2">
+              <!-- Dynamically rendered -->
+            </div>
+          </div>
+
+          <!-- PANE 2: PAST ORDERS & RECEIPTS -->
+          <div class="profile-pane-content" id="panePageOrders" style="display: none;">
+            <div class="content-pane-header">
+              <div>
+                <h4 class="content-pane-title">Past Orders & Receipts</h4>
+                <p class="content-pane-subtitle">All rooftop dine-in, takeaway, and delivery orders placed with your account</p>
+              </div>
+              <button type="button" class="btn-set-default-v2" id="btnPageRefreshOrders">
+                <i class="fas fa-sync-alt"></i> Refresh
+              </button>
+            </div>
+
+            <!-- Past Orders List Container -->
+            <div id="pageOrdersListContainer" class="profile-orders-list">
+              <!-- Dynamically rendered -->
+            </div>
+          </div>
+
+          <!-- PANE 3: EDIT PERSONAL DETAILS -->
+          <div class="profile-pane-content" id="panePagePersonal" style="display: none;">
+            <div class="content-pane-header">
+              <div>
+                <h4 class="content-pane-title">Personal Account Details</h4>
+                <p class="content-pane-subtitle">Update your name and primary contact number for bills and order tracking</p>
+              </div>
+            </div>
+
+            <form id="pagePersonalInfoForm" onsubmit="return false;" class="personal-form-v2">
+              <div class="form-group-v2">
+                <label for="pageInputName" class="form-label-v2">
+                  Full Name <span style="color:#dc2626;">*</span>
+                </label>
+                <input type="text" id="pageInputName" class="input-modern" placeholder="Your Full Name">
+              </div>
+
+              <div class="form-group-v2">
+                <label for="pageInputPhone" class="form-label-v2">
+                  Primary WhatsApp / Mobile Number <span style="color:#dc2626;">*</span>
+                </label>
+                <div class="phone-input-combined">
+                  <span class="phone-flag-prefix">
+                    <span style="font-size: 1.05rem;">🇮🇳</span> +91
+                  </span>
+                  <input type="tel" id="pageInputPhone" class="phone-input-raw" maxlength="10" placeholder="10-digit mobile number" inputmode="numeric">
+                </div>
+                <small style="color: #78716c; font-size: 0.78rem; display: block; margin-top: 6px;">
+                  Used for order delivery calls, payment receipts, and kitchen status updates.
+                </small>
+              </div>
+
+              <div class="form-group-v2" style="margin-bottom: 24px;">
+                <label class="form-label-v2">
+                  Google Account Email
+                </label>
+                <div class="verified-email-box">
+                  <span id="pageDisplayEmailText" style="font-weight: 600; color: #1c1917;">customer@gmail.com</span>
+                  <span class="badge-email-verified">
+                    <i class="fas fa-check-circle"></i> Verified Google
+                  </span>
+                </div>
+                <input type="hidden" id="pageDisplayEmail">
+              </div>
+
+              <button type="button" class="btn-luxury-gold" id="btnPageSavePersonal">
+                <i class="fas fa-save"></i> Save Personal Details
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- Footer Sign Out -->
+        <div class="profile-footer-signout">
+          <button type="button" class="link-signout" id="btnPageSignOut">
+            <i class="fas fa-sign-out-alt"></i> Sign Out of Breeze
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       MODAL: CUSTOMER AUTHENTICATION (Google 1-Tap)
+       ========================================================================== -->
+  <div class="modal-overlay" id="customerAuthModal" role="dialog" aria-modal="true" aria-labelledby="customerAuthTitle">
+    <div class="modal-container customer-auth-container">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-user-lock"></i> Breeze Customer Account</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="customerAuthTitle">Sign In</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="customerAuthCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin: 8px 0 20px; text-align: left; line-height: 1.5;" id="customerAuthSubtitle">
+        Sign in with Google to view your customer profile, saved delivery addresses, and past orders.
+      </p>
+
+      <div style="padding: 10px 0 16px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div id="googleBtnContainer" class="google-auth-wrapper" style="display: flex; justify-content: center; width: 100%; margin: 6px 0;"></div>
+      </div>
+
+      <div style="font-size: 0.76rem; color: #8c8275; margin-top: 10px; padding-top: 14px; border-top: 1px solid #f0e6d6; text-align: center;">
+        <i class="fas fa-shield-alt" style="color: #b5883d;"></i> 1-Tap secure sign-in powered by Google Identity
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: GOOGLE LOGIN MOBILE NUMBER LINKING (Marketing & Order Status)
+       ========================================================================== -->
+  <div class="modal-overlay" id="googlePhonePromptModal" role="dialog" aria-modal="true" aria-labelledby="googlePhoneModalTitle">
+    <div class="modal-container google-phone-container" style="max-width: 420px; padding: 24px; border-radius: 16px;">
+      <div class="modal-sticky-header" style="border: none; padding: 0 0 12px 0;">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 6px;"><i class="fas fa-sparkles" style="color: #b5883d;"></i> Account Setup</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="googlePhoneModalTitle">
+            Welcome to Breeze! 🎉
+          </h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="googlePhoneCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin: 4px 0 18px; line-height: 1.5;" id="googlePhoneModalSubtitle">
+        Add your WhatsApp or Mobile number for live kitchen updates, bill receipts, and exclusive rooftop member offers.
+      </p>
+
+      <form id="googlePhoneForm" onsubmit="return false;">
+        <label for="googlePhoneInput" style="display: block; font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Mobile Number
+        </label>
+        <div class="phone-input-wrap" style="margin-bottom: 8px;">
+          <span class="country-prefix"><i class="fas fa-flag" style="margin-right: 4px; font-size: 0.72rem; color: #138808;"></i> +91</span>
+          <input type="tel" id="googlePhoneInput" class="auth-mobile-input" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric">
+        </div>
+        <div id="googlePhoneError" style="display: none; color: #c62828; font-size: 0.78rem; margin-bottom: 10px; font-weight: 600;"></div>
+
+        <button type="button" class="btn btn-primary btn-block" id="btnSaveGooglePhone" style="height: 46px; font-weight: 700; margin-top: 10px;">
+          <span>Save & Continue</span> <i class="fas fa-arrow-right" style="margin-left: 6px;"></i>
+        </button>
+
+        <button type="button" id="btnSkipGooglePhone" style="display: block; width: 100%; text-align: center; background: none; border: none; color: #8c8275; font-size: 0.82rem; margin-top: 12px; cursor: pointer; text-decoration: underline; padding: 6px;">
+          Skip for now (I'll add it later)
+        </button>
+      </form>
+
+      <div style="font-size: 0.74rem; color: #a0988e; margin-top: 16px; padding-top: 12px; border-top: 1px solid #f0e6d6; text-align: center;">
+        <i class="fas fa-shield-alt" style="color: #b5883d;"></i> We respect your privacy. No spam guaranteed.
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: ORDER TRACKING & RECEIPT
+       ========================================================================== -->
+  <div class="modal-overlay" id="orderTrackingModal" role="dialog" aria-modal="true" aria-labelledby="trackingOrderTitle">
+    <div class="modal-container tracking-modal-container">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="tracking-header-badge" id="trackingStatusBadge">
+            <i class="fas fa-circle" style="font-size: 0.55rem;"></i> <span id="trackingStatusBadgeText">Kitchen Confirmed</span>
+          </span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 4px 0 0;" id="trackingOrderTitle">Order #BRZ-0000</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="orderTrackingCloseBtn" aria-label="Close tracking">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Hero Visual Status Card -->
+      <div class="tracking-hero-status" id="trackingHeroCard">
+        <div class="tracking-radar-ring">
+          <i class="fas fa-utensils" id="trackingHeroIcon"></i>
+        </div>
+        <h2 id="trackingHeroHeading">Order Placed Successfully!</h2>
+        <p id="trackingHeroSubtext">The restaurant is reviewing your order details.</p>
+        <div class="tracking-prep-estimate" id="trackingPrepEstimate">
+          <i class="fas fa-stopwatch"></i> <span id="trackingPrepTimeText">Est. Prep & Delivery: ~25 Mins</span>
+        </div>
+      </div>
+
+      <!-- 60-Second Grace Cancellation Box / Kitchen Locked Alert -->
+      <div class="tracking-cancellation-box" id="trackingCancelBox">
+        <div class="cancellation-timer-desc">
+          <i class="fas fa-clock"></i>
+          <span>Grace Window: <strong id="cancelTimerCountdown">60s</strong></span>
+        </div>
+        <button type="button" class="btn-tracking-cancel" id="btnCancelOrder">Cancel Order</button>
+      </div>
+
+      <div class="tracking-kitchen-locked" id="trackingKitchenLocked" style="display: none;">
+        <i class="fas fa-utensils"></i>
+        <div>
+          <strong>Food is being prepared:</strong> Your dishes are being cooked fresh. This order can no longer be cancelled.
+        </div>
+      </div>
+
+      <!-- 5-Step Live Progress Stepper -->
+      <div class="tracking-stepper" id="trackingStepper">
+        <div class="tracking-step completed" id="step1">
+          <div class="step-node" id="step1Node"><i class="fas fa-check"></i></div>
+          <div class="step-details">
+            <div class="step-title">Order Placed</div>
+            <div class="step-desc" id="step1Desc">We have received your order.</div>
+          </div>
+        </div>
+
+        <div class="tracking-step active" id="step2">
+          <div class="step-node" id="step2Node"><i class="fas fa-check-double"></i></div>
+          <div class="step-details">
+            <div class="step-title">Order Confirmed</div>
+            <div class="step-desc" id="step2Desc">Restaurant has accepted your order.</div>
+          </div>
+        </div>
+
+        <div class="tracking-step" id="step3">
+          <div class="step-node" id="step3Node"><i class="fas fa-utensils"></i></div>
+          <div class="step-details">
+            <div class="step-title">Food Being Prepared</div>
+            <div class="step-desc" id="step3Desc">Chef is freshly preparing your dishes.</div>
+          </div>
+        </div>
+
+        <div class="tracking-step" id="step4">
+          <div class="step-node" id="step4Node"><i class="fas fa-motorcycle"></i></div>
+          <div class="step-details">
+            <div class="step-title">Out for Delivery</div>
+            <div class="step-desc" id="step4Desc">Delivery partner is on the way.</div>
+          </div>
+        </div>
+
+        <div class="tracking-step" id="step5">
+          <div class="step-node" id="step5Node"><i class="fas fa-smile-beam"></i></div>
+          <div class="step-details">
+            <div class="step-title">Order Delivered</div>
+            <div class="step-desc" id="step5Desc">Delivered. Enjoy your meal!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assigned Delivery Partner Card (Realtime Live Tracking) -->
+      <div class="tracking-rider-card" id="trackingRiderCard" style="display: none; background: #fdfbf7; border: 1.5px solid #d4af37; border-radius: 14px; padding: 14px 16px; margin: 16px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: #d4af37; color: #1c1917; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.15rem;" id="trackingRiderAvatar">
+              <i class="fas fa-motorcycle"></i>
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <strong style="font-size: 0.95rem; color: #1c1917;" id="trackingRiderName">Delivery Partner</strong>
+                <span style="background: #dcfce7; color: #166534; font-size: 0.68rem; font-weight: 800; padding: 2px 7px; border-radius: 999px;"><i class="fas fa-check"></i> Assigned</span>
+              </div>
+              <small style="color: #78716c; font-size: 0.78rem; display: block; margin-top: 2px;" id="trackingRiderVehicle">Breeze Express Partner • Out for Delivery</small>
+            </div>
+          </div>
+          <a href="tel:" id="trackingRiderPhoneBtn" style="background: #16a34a; color: #ffffff; padding: 8px 14px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);">
+            <i class="fas fa-phone"></i> <span>Call Rider</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Delivered Celebration & Feedback Card (Shows ONLY when order is delivered) -->
+      <div class="tracking-delivered-card" id="trackingDeliveredCard" style="display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px; padding: 18px; margin: 16px 0; text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+          <i class="fas fa-check"></i>
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 800; color: #166534; margin: 0 0 4px;">Delivered & Settled!</h4>
+        <p style="font-size: 0.82rem; color: #15803d; margin: 0 0 14px; line-height: 1.4;" id="trackingDeliveredNote">
+          Your food was delivered. Thank you for choosing Breeze Rooftop Cafe!
+        </p>
+
+        <!-- Star Rating Widget -->
+        <div style="background: #ffffff; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: #166534; margin-bottom: 6px;">How was your dining experience?</div>
+          <div class="tracking-rating-stars" id="trackingRatingStars" style="display: flex; justify-content: center; gap: 10px; font-size: 1.4rem; color: #eab308; cursor: pointer;">
+            <i class="fas fa-star rating-star" data-star="1"></i>
+            <i class="fas fa-star rating-star" data-star="2"></i>
+            <i class="fas fa-star rating-star" data-star="3"></i>
+            <i class="fas fa-star rating-star" data-star="4"></i>
+            <i class="fas fa-star rating-star" data-star="5"></i>
+          </div>
+          <div style="font-size: 0.75rem; color: #16a34a; font-weight: 700; margin-top: 6px; display: none;" id="ratingFeedbackMsg">
+            ⭐ Thank you for your 5-star rating!
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block" id="btnReorderFromTracking" style="margin-top: 6px;">
+          <i class="fas fa-redo"></i> Order Again / Explore Menu
+        </button>
+      </div>
+
+      <!-- Cancelled Status Card (Shows ONLY when order is cancelled) -->
+      <div class="tracking-cancelled-card" id="trackingCancelledCard" style="display: none; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 18px; margin: 16px 0; text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #fee2e2; color: #dc2626; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;" id="trackingCancelledIconCircle">
+          <i class="fas fa-times"></i>
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 800; color: #991b1b; margin: 0 0 6px;" id="trackingCancelledTitle">Order Cancelled</h4>
+        <div style="background: #ffffff; border: 1px solid #fca5a5; border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; color: #7f1d1d; margin-bottom: 12px; text-align: left;" id="trackingCancelReasonNotice">
+          <i class="fas fa-info-circle" style="color: #dc2626; margin-right: 4px;" id="trackingCancelNoticeIcon"></i>
+          <span id="trackingCancelReasonText">Reason loading...</span>
+        </div>
+        <div style="font-size: 0.78rem; color: #991b1b; margin-bottom: 16px;" id="trackingRefundStatusText">
+          Any online transaction will be refunded automatically to source account.
+        </div>
+        <button type="button" class="btn btn-primary btn-block" id="btnBrowseMenuFromCancelled">
+          <i class="fas fa-utensils"></i> Browse Menu & Order Something Else
+        </button>
+      </div>
+
+      <!-- Order Details Summary Card -->
+      <div class="tracking-details-card">
+        <h4><span>Order Summary</span> <span id="trackingTotalAmount">₹0</span></h4>
+        <div class="tracking-items-list" id="trackingItemsList">
+          <!-- Dynamically populated items -->
+        </div>
+        <div class="tracking-bill-row">
+          <span>Amount:</span>
+          <span id="trackingFinalBill">₹0</span>
+        </div>
+        <div id="trackingPaymentPillWrap">
+          <span class="tracking-payment-pill" id="trackingPaymentPill">
+            <i class="fas fa-check-circle"></i> Paid Online via Razorpay UPI
+          </span>
+        </div>
+        <div style="font-size: 0.77rem; color: var(--text-muted); margin-top: 10px;" id="trackingDestinationInfo">
+          <!-- Destination address or table info -->
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div style="display: flex; gap: 10px; flex-direction: column;">
+        <a href="tel:9623999095" class="btn btn-secondary btn-block">
+          <i class="fas fa-phone"></i> Call Cafe Desk (+91 9623999095)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: CUSTOMER CANCELLATION CONFIRMATION & REASON
+       ========================================================================== -->
+  <div class="modal-overlay" id="customerCancelOrderModal" role="dialog" aria-modal="true" aria-labelledby="cancelModalTitle" style="display: none;">
+    <div class="modal-container" style="max-width: 440px; width: 92%; padding: 22px; border-radius: 16px;">
+      <div class="modal-sticky-header" style="margin-bottom: 12px;">
+        <div>
+          <span class="badge-tag" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; margin-bottom: 4px;">
+            <i class="fas fa-clock"></i> 60s Grace Window Active
+          </span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-dark); margin: 0;" id="cancelModalTitle">
+            Cancel Order?
+          </h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnDismissCancelModal" aria-label="Keep order">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.45;">
+        You can cancel now with <strong>zero cancellation fee</strong>. Any online transaction will be refunded 100% immediately.
+      </p>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px;">
+          Please select your reason:
+        </label>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff;">
+            <input type="radio" name="customerCancelReason" value="Placed order by mistake / testing" checked style="accent-color: #dc2626;">
+            <span>Placed order by mistake / testing</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff;">
+            <input type="radio" name="customerCancelReason" value="Need to change items or delivery address" style="accent-color: #dc2626;">
+            <span>Need to change items or delivery address</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff;">
+            <input type="radio" name="customerCancelReason" value="Changed mind / Ordering later" style="accent-color: #dc2626;">
+            <span>Changed mind / Ordering later</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #374151; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff;">
+            <input type="radio" name="customerCancelReason" value="custom" style="accent-color: #dc2626;">
+            <span>Other reason</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" id="customerCancelCustomWrap" style="display: none; margin-bottom: 16px;">
+        <input type="text" id="customerCancelCustomInput" class="form-control" placeholder="Specify your reason (optional)" style="font-size: 0.82rem;">
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 18px;">
+        <button type="button" class="btn btn-secondary btn-block" id="btnKeepOrder" style="flex: 1; font-weight: 600;">
+          Keep Order
+        </button>
+        <button type="button" class="btn btn-block" id="btnConfirmCustomerCancel" style="flex: 1; background: #dc2626; color: #ffffff; border: none; font-weight: 700;">
+          Yes, Cancel Order
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Mobile Sticky Quick Action Bottom Bar -->
+  <nav class="mobile-bottom-bar" aria-label="Mobile quick actions">
+    <div class="mobile-bottom-bar-inner">
+      <a href="/" class="mobile-bar-btn" aria-label="Home">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="/menu" class="mobile-bar-btn" aria-label="Menu">
+        <i class="fas fa-utensils"></i>
+        <span>Menu</span>
+      </a>
+      <a href="/profile" class="mobile-bar-btn active" aria-label="Profile">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ==========================================================================
+       SCRIPTS
+       ========================================================================== -->
+  <script src="js/main.js?v=9.2"></script>
+  <script src="js/profile.js?v=9.2"></script>
+  <!-- Progressive Web App Controller & Live-Update Engine -->
+  <script src="js/pwa-install.js?v=9.2"></script>
+</body>
+</html>
