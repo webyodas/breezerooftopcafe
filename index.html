@@ -90,7 +90,6 @@
 
   <!-- Main Stylesheet with Cache Busting -->
   <link rel="stylesheet" href="css/style.css?v=10.1-phone-auth">
-  <!-- Google Identity Services for Real 1-Tap Google Sign-In -->
   <!-- Supabase JS Client for Cloud Customer & Order Database -->
   <!-- Cloudflare D1 Client (Replaced Supabase) -->
   <script src="js/cf-client.js"></script>
@@ -1072,7 +1071,7 @@
             <span class="profile-vip-pill" id="profileVipPill"><i class="fas fa-gem"></i> VIP Guest</span>
           </div>
           <div class="profile-hero-meta">
-            <span id="profileHeroEmail" class="profile-meta-item"><i class="fab fa-google" style="color: #4285f4;"></i> customer@gmail.com</span>
+            <span id="profileHeroEmail" class="profile-meta-item"><i class="fas fa-shield-alt" style="color: #16a34a;"></i> Verified Customer</span>
             <span id="profileHeroPhone" class="profile-meta-item"><i class="fas fa-phone"></i> +91 ----------</span>
           </div>
         </div>
@@ -1295,6 +1294,58 @@
 
       <div style="font-size: 0.76rem; color: #8c8275; margin-top: 16px; padding-top: 14px; border-top: 1px solid #f0e6d6; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
         <i class="fas fa-shield-alt" style="color: #b5883d;"></i> 100% Privacy • Instant Order Tracking & WhatsApp Receipts
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: RAZORPAY PAYMENT GATEWAY (Live SDK / Simulation Adapter)
+       ========================================================================== -->
+  <div class="modal-overlay" id="razorpaySimModal" role="dialog" aria-modal="true" aria-labelledby="rzpModalTitle">
+    <div class="modal-container razorpay-sim-container">
+      <div class="rzp-header">
+        <div class="rzp-brand">
+          <img src="assets/logo-transparent.png" alt="Breeze Logo" onerror="this.style.display='none'">
+          <div>
+            <span id="rzpModalTitle">Breeze The Roof-Top Café</span>
+            <div style="font-size: 0.72rem; color: #93c5fd;"><i class="fas fa-shield-alt"></i> Razorpay Secure Gateway</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="rzpSimCloseBtn" aria-label="Close payment" style="color: #fff; background: rgba(255,255,255,0.15);">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="rzp-body">
+        <div class="rzp-amount-box">
+          <div class="rzp-amount-label">Amount Payable</div>
+          <div class="rzp-amount-val" id="rzpSimAmount">₹0</div>
+          <div style="font-size: 0.74rem; color: #64748b; margin-top: 4px;">Zero Convenience Fees • Direct Rooftop Price</div>
+        </div>
+
+        <div style="margin-bottom: 12px; font-weight: 700; font-size: 0.84rem; color: #334155;">
+          Select UPI App / Payment Option:
+        </div>
+
+        <div class="upi-apps-grid">
+          <button type="button" class="upi-app-btn active" data-app="Google Pay">
+            <i class="fab fa-google" style="color: #4285F4;"></i> Google Pay
+          </button>
+          <button type="button" class="upi-app-btn" data-app="PhonePe">
+            <i class="fas fa-mobile-alt" style="color: #5f259f;"></i> PhonePe
+          </button>
+          <button type="button" class="upi-app-btn" data-app="Paytm UPI">
+            <i class="fas fa-wallet" style="color: #00b9f1;"></i> Paytm UPI
+          </button>
+          <button type="button" class="upi-app-btn" data-app="Cards / NetBanking">
+            <i class="fas fa-credit-card" style="color: #059669;"></i> Cards / NetBanking
+          </button>
+        </div>
+
+        <button type="button" class="rzp-action-pay" id="rzpSimPayBtn">
+          <i class="fas fa-lock"></i> Pay <span id="rzpSimBtnAmount">₹0</span> via UPI
+        </button>
+        <p style="text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 12px; margin-bottom: 0;"><i class="fas fa-shield-alt"></i> 100% Safe &amp; Secure Payment • 256-bit Encrypted</p>
       </div>
     </div>
   </div>

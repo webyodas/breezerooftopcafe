@@ -3061,6 +3061,9 @@ function initCartSystem() {
     // Refresh hero card in profile
     if (profileHeroName) profileHeroName.textContent = nameVal;
     if (profileHeroPhone) profileHeroPhone.innerHTML = `<i class="fas fa-phone"></i> +91 ${digits}`;
+    if (profileDisplaySecurityPhone) {
+      profileDisplaySecurityPhone.textContent = '+91 ' + digits;
+    }
     const initial = nameVal.charAt(0).toUpperCase() || 'B';
     if (profileHeroAvatar && !customerProfile.avatar) {
       profileHeroAvatar.textContent = initial;
@@ -6928,8 +6931,8 @@ function initCartSystem() {
         }, 250);
       }
 
-      const payOrderId = urlParams.get('payOrder') || (urlParams.get('pay') === 'now' ? urlParams.get('track') : null);
-      const trackOrderId = urlParams.get('track');
+      const payOrderId = urlParams.get('payOrder') || (urlParams.get('pay') === 'now' ? (urlParams.get('track') || urlParams.get('id') || urlParams.get('orderId')) : null);
+      const trackOrderId = urlParams.get('track') || urlParams.get('id') || urlParams.get('orderId');
 
       if (payOrderId) {
         await initiateDoorstepCustomerPayment(payOrderId);

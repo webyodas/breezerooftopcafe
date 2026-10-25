@@ -2111,6 +2111,7 @@ button {
   border-radius: var(--radius-md, 10px);
   transition: all var(--transition-fast);
   min-width: 72px;
+  min-height: 48px;
   text-decoration: none;
 }
 
@@ -2227,8 +2228,10 @@ button {
   background: #f4eee2;
   border: 1px solid var(--border-subtle);
   color: var(--text-primary);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -3105,6 +3108,10 @@ button {
   color: var(--text-muted);
   cursor: pointer;
   padding: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -4220,9 +4227,11 @@ button {
   }
 
   .modal-close-btn {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 0.95rem !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    font-size: 1.1rem !important;
     flex-shrink: 0 !important;
   }
 
@@ -4954,6 +4963,19 @@ button {
 .tracking-header-badge.cancelled {
   background: #ffebee;
   color: #c62828;
+}
+.tracking-token-pill {
+  display: inline-block;
+  background: #fdf6e7;
+  color: #b5883d;
+  border: 1px solid rgba(181, 136, 61, 0.35);
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  vertical-align: middle;
+  margin-left: 6px;
+  font-family: var(--font-sans);
 }
 .tracking-hero-status {
   background: linear-gradient(145deg, #181410, #2c241b);
@@ -7727,3 +7749,10 @@ body:has(.mobile-nav-drawer.open) {
     padding-bottom: max(6px, env(safe-area-inset-bottom, 6px)) !important;
   }
 }
+
+@keyframes pulseRinger {
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.04); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+

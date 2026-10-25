@@ -27,6 +27,10 @@
 /contact/css/*    /css/:splat      200
 /contact/assets/* /assets/:splat   200
 
+/track/js/*       /js/:splat       200
+/track/css/*      /css/:splat      200
+/track/assets/*   /assets/:splat   200
+
 # Route Mappings
 /admin         /admin/index.html   200
 /admin/        /admin/index.html   200
@@ -52,6 +56,10 @@
 /rider/        /rider/index.html   200
 /delivery      /rider              301
 /delivery/     /rider              301
+
+/track         /track/index.html   200
+/track/        /track/index.html   200
+/track.html    /track              301
 
 /privacy       /privacy/index.html 200
 /privacy/      /privacy/index.html 200

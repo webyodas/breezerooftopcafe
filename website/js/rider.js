@@ -134,12 +134,81 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --------------------------------------------------------------------------
+  // CONTINUOUS NEW ASSIGNMENT RINGER ENGINE (RIDER COCKPIT)
+  // Keeps ringing with alarm sound every 3.5s until acknowledged or picked up
+  // --------------------------------------------------------------------------
+  let riderRingerTimer = null;
+  let isRiderRingingActive = false;
+
+  function startRiderRinger(orderId) {
+    if (!isAudioEnabled) return;
+    isRiderRingingActive = true;
+    updateRiderRingingBanner(orderId);
+    playOrderArrivalChime();
+
+    if (!riderRingerTimer) {
+      riderRingerTimer = setInterval(() => {
+        if (!isAudioEnabled || !isRiderRingingActive) {
+          stopRiderRinger();
+          return;
+        }
+        playOrderArrivalChime();
+        updateRiderRingingBanner(orderId);
+      }, 3500);
+    }
+  }
+
+  function stopRiderRinger() {
+    isRiderRingingActive = false;
+    if (riderRingerTimer) {
+      clearInterval(riderRingerTimer);
+      riderRingerTimer = null;
+    }
+    hideRiderRingingBanner();
+  }
+
+  function updateRiderRingingBanner(orderId) {
+    let banner = document.getElementById('riderRingingBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'riderRingingBanner';
+      banner.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;align-items:center;gap:12px;padding:10px 20px;border-radius:30px;background:#0284c7;color:#ffffff;font-size:0.88rem;font-weight:700;box-shadow:0 8px 24px rgba(2,132,199,0.45);animation:pulseRinger 1.2s infinite ease-in-out;cursor:pointer;';
+      banner.innerHTML = `
+        <i class="fas fa-motorcycle fa-shake" style="font-size:1.15rem;"></i>
+        <span id="riderRingingText">🛵 New Delivery Assigned!</span>
+        <button type="button" id="btnRiderSilenceRinger" style="background:#ffffff;color:#0284c7;border:none;border-radius:20px;padding:5px 14px;font-size:0.78rem;font-weight:800;cursor:pointer;margin-left:4px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">Acknowledge</button>
+      `;
+      document.body.appendChild(banner);
+      const silenceBtn = banner.querySelector('#btnRiderSilenceRinger');
+      if (silenceBtn) {
+        silenceBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          stopRiderRinger();
+          showRiderToast('🔕 Alert acknowledged.');
+        });
+      }
+      banner.addEventListener('click', () => {
+        stopRiderRinger();
+      });
+    }
+    banner.style.display = 'flex';
+  }
+
+  function hideRiderRingingBanner() {
+    const banner = document.getElementById('riderRingingBanner');
+    if (banner) banner.style.display = 'none';
+  }
+
   if (btnAudioToggle) {
     btnAudioToggle.addEventListener('click', () => {
       isAudioEnabled = !isAudioEnabled;
       localStorage.setItem(RIDER_AUDIO_KEY, isAudioEnabled ? 'true' : 'false');
       btnAudioToggle.classList.toggle('active', isAudioEnabled);
       btnAudioToggle.innerHTML = isAudioEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+      if (!isAudioEnabled) {
+        stopRiderRinger();
+      }
       showRiderToast(isAudioEnabled ? 'Audio alerts turned ON' : 'Audio alerts muted');
     });
   }
@@ -618,6 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   if (btnActionPickup) {
     btnActionPickup.addEventListener('click', async () => {
+      stopRiderRinger();
       if (!activeDeliveryOrder) return;
       btnActionPickup.disabled = true;
       btnActionPickup.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming Pick-up...';
@@ -640,6 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnActionTransit) {
     btnActionTransit.addEventListener('click', async () => {
+      stopRiderRinger();
       if (!activeDeliveryOrder) return;
       btnActionTransit.disabled = true;
       btnActionTransit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Heading Out...';
@@ -660,6 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnActionDelivered) {
     btnActionDelivered.addEventListener('click', async () => {
+      stopRiderRinger();
       if (!activeDeliveryOrder) return;
 
       const isCod = activeDeliveryOrder.payment_method === 'cod' || activeDeliveryOrder.payment_status !== 'paid';
@@ -853,6 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (updated.status === 'cancelled') {
+      stopRiderRinger();
       if (activeDeliveryOrder && activeDeliveryOrder.id === updated.id) {
         showRiderToast('⚠️ Order #' + updated.id + ' was cancelled by customer.');
         activeDeliveryOrder = null;
@@ -867,7 +940,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderActiveOrderUI(activeDeliveryOrder);
 
     if (isNew) {
-      playOrderArrivalChime();
+      if (!updated.picked_up_at && updated.status !== 'delivered' && updated.status !== 'cancelled') {
+        startRiderRinger(updated.id);
+      } else {
+        playOrderArrivalChime();
+      }
       showRiderToast('🔔 NEW DELIVERY ORDER: #' + updated.id);
     }
   }

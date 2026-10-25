@@ -932,6 +932,10 @@ document.addEventListener('DOMContentLoaded', () => {
     profile.phone = digits;
     saveProfileState();
     renderHeroSummary();
+    const pageDisplaySecurityPhone = document.getElementById('pageDisplaySecurityPhone');
+    if (pageDisplaySecurityPhone) {
+      pageDisplaySecurityPhone.textContent = '+91 ' + digits;
+    }
     notify('✓ Personal details updated successfully!');
   }
 

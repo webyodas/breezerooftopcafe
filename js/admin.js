@@ -582,6 +582,88 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --------------------------------------------------------------------------
+  // CONTINUOUS NEW ORDER RINGER ENGINE (ADMIN / KITCHEN COCKPIT)
+  // Keeps ringing with alarm sound every 3.5s until accepted, rejected, or muted
+  // --------------------------------------------------------------------------
+  let adminRingerTimer = null;
+  const pendingRingingOrderIds = new Set();
+
+  function startAdminRinger(orderId, orderSummary = '') {
+    if (orderId) pendingRingingOrderIds.add(orderId);
+    if (!isAudioEnabled) return;
+
+    updateAdminRingingBanner();
+    playNewOrderChime();
+
+    if (!adminRingerTimer) {
+      adminRingerTimer = setInterval(() => {
+        if (!isAudioEnabled || pendingRingingOrderIds.size === 0) {
+          stopAdminRinger();
+          return;
+        }
+        playNewOrderChime();
+        updateAdminRingingBanner();
+      }, 3500);
+    }
+  }
+
+  function stopAdminRinger(orderId = null) {
+    if (orderId) {
+      pendingRingingOrderIds.delete(orderId);
+    } else {
+      pendingRingingOrderIds.clear();
+    }
+
+    if (pendingRingingOrderIds.size === 0) {
+      if (adminRingerTimer) {
+        clearInterval(adminRingerTimer);
+        adminRingerTimer = null;
+      }
+      hideAdminRingingBanner();
+    } else {
+      updateAdminRingingBanner();
+    }
+  }
+
+  function updateAdminRingingBanner() {
+    let banner = document.getElementById('adminRingingBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'adminRingingBanner';
+      banner.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;align-items:center;gap:12px;padding:10px 20px;border-radius:30px;background:#dc2626;color:#ffffff;font-size:0.88rem;font-weight:700;box-shadow:0 8px 24px rgba(220,38,38,0.45);animation:pulseRinger 1.2s infinite ease-in-out;cursor:pointer;';
+      banner.innerHTML = `
+        <i class="fas fa-bell fa-shake" style="font-size:1.15rem;"></i>
+        <span id="adminRingingText">🔔 Incoming Order Ringing!</span>
+        <button type="button" id="btnAdminSilenceRinger" style="background:#ffffff;color:#dc2626;border:none;border-radius:20px;padding:5px 14px;font-size:0.78rem;font-weight:800;cursor:pointer;margin-left:4px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">Silence</button>
+      `;
+      document.body.appendChild(banner);
+      const silenceBtn = banner.querySelector('#btnAdminSilenceRinger');
+      if (silenceBtn) {
+        silenceBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          stopAdminRinger();
+          showAdminToast('🔕 Ringing alarm silenced.');
+        });
+      }
+      banner.addEventListener('click', () => {
+        stopAdminRinger();
+        if (typeof switchTab === 'function') switchTab('orders');
+      });
+    }
+    const txt = banner.querySelector('#adminRingingText');
+    if (txt) {
+      const count = pendingRingingOrderIds.size;
+      txt.textContent = count > 1 ? `🔔 ${count} Incoming Orders Ringing!` : `🔔 New Incoming Order Ringing!`;
+    }
+    banner.style.display = 'flex';
+  }
+
+  function hideAdminRingingBanner() {
+    const banner = document.getElementById('adminRingingBanner');
+    if (banner) banner.style.display = 'none';
+  }
+
   if (btnAudioToggle) {
     btnAudioToggle.addEventListener('click', () => {
       isAudioEnabled = !isAudioEnabled;
@@ -593,6 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playNewOrderChime();
         showAdminToast('Audio alerts turned ON (Test chime played)');
       } else {
+        stopAdminRinger();
         showAdminToast('Audio alerts muted');
       }
     });
@@ -973,8 +1056,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (allOrders.length > 0) {
           const freshNewOrders = data.filter(d => !allOrders.some(existing => existing.id === d.id));
           if (freshNewOrders.length > 0) {
-            playNewOrderChime();
             freshNewOrders.forEach(no => {
+              const st = (no.status || 'placed').toLowerCase().trim();
+              if (st === 'placed' || st === 'pending') {
+                startAdminRinger(no.id, `₹${no.total_amount || 0}`);
+              } else {
+                playNewOrderChime();
+              }
               showAdminToast(`🔔 New Order #${no.id} received! (₹${no.total_amount || 0})`);
             });
           }
@@ -1387,7 +1475,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isNew && newRow) {
       if (!allOrders.some(o => o.id === newRow.id)) {
         allOrders.unshift(newRow);
-        playNewOrderChime();
+        const st = (newRow.status || 'placed').toLowerCase().trim();
+        if (st === 'placed' || st === 'pending') {
+          startAdminRinger(newRow.id, `₹${newRow.total_amount || 0}`);
+        } else {
+          playNewOrderChime();
+        }
         showAdminToast(`🔔 New Order #${newRow.id} received! (₹${newRow.total_amount || 0})`);
       }
     } else if (eventType === 'UPDATE' && newRow) {
@@ -1396,10 +1489,14 @@ document.addEventListener('DOMContentLoaded', () => {
         allOrders[idx] = Object.assign({}, allOrders[idx], newRow);
       } else {
         allOrders.unshift(newRow);
-        playNewOrderChime();
+      }
+      const st = (newRow.status || '').toLowerCase().trim();
+      if (st && st !== 'placed' && st !== 'pending') {
+        stopAdminRinger(newRow.id);
       }
     } else if (eventType === 'DELETE' && oldRow) {
       allOrders = allOrders.filter(o => o.id !== oldRow.id);
+      stopAdminRinger(oldRow.id);
     }
 
     updateKPISummaries();
@@ -2428,6 +2525,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Order status update in Supabase
   async function updateOrderStatus(orderId, newStatus, extraFields = {}) {
+    stopAdminRinger(orderId);
     if (!supabaseClient) return;
     const now = new Date().toISOString();
     const payload = Object.assign({
@@ -2461,6 +2559,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Complete Order & Free Rider
   async function completeOrderDelivery(orderId) {
+    stopAdminRinger(orderId);
     if (!supabaseClient) return;
     const target = allOrders.find(o => o.id === orderId);
     const now = new Date().toISOString();
@@ -5076,7 +5175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (dispTotalCustomersCount) dispTotalCustomersCount.textContent = totalCount;
-    if (dispVerifiedCustomersSub) dispVerifiedCustomersSub.textContent = `${registeredCount} Google Accounts`;
+    if (dispVerifiedCustomersSub) dispVerifiedCustomersSub.textContent = `${registeredCount} Registered Accounts`;
     if (dispRepeatCustomersCount) dispRepeatCustomersCount.textContent = orderedCustomersCount;
     if (dispRepeatRateSub) dispRepeatRateSub.textContent = `Placed 1+ orders`;
     if (dispAvgCustomerLtv) dispAvgCustomerLtv.textContent = totalOrdersCount;

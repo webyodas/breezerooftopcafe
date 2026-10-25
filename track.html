@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Order Tracking | Breeze Rooftop Cafe</title>
+  <meta name="description" content="Track your live food order, kitchen cooking progress, and delivery partner in real-time from Breeze The Roof-Top Cafe, Palghar.">
+  <link rel="icon" type="image/png" href="/assets/logo-emblem.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  <!-- Progressive Web App Configuration -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Breeze Track">
+  <link rel="apple-touch-icon" href="assets/pwa/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "Breeze The Roof-Top Cafe",
+    "image": "https://breezerooftopcafe.pages.dev/assets/logo-full.png",
+    "telephone": "+919623999095",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "5th Floor, Kanchan Aura, Above Naturals Ice Cream, Opp. HDFC Bank, Mahim Rd",
+      "addressLocality": "Palghar",
+      "addressRegion": "Maharashtra",
+      "postalCode": "401404",
+      "addressCountry": "IN"
+    },
+    "servesCuisine": ["Continental", "Italian", "Burgers", "Cafe", "Beverages"],
+    "priceRange": "₹₹",
+    "openingHours": "Mo-Su 11:00-23:00"
+  }
+  </script>
+
+  <!-- Cloudflare D1 Client -->
+  <script src="/js/cf-client.js"></script>
+  <!-- Razorpay Checkout -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body class="profile-page-body track-page-body">
+
+  <!-- ==========================================================================
+       HEADER & NAVIGATION (Clean, focused header for Breeze)
+       ========================================================================== -->
+  <header class="header profile-header-clean">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo-link" aria-label="Breeze The Rooftop Cafe Home">
+        <img src="assets/logo-full.png" alt="Breeze The Rooftop Cafe" class="brand-logo-img">
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/menu" class="nav-link">Menu</a></li>
+          <li><a href="/about" class="nav-link">About &amp; Vibe</a></li>
+          <li><a href="/contact" class="nav-link">Contact &amp; Desk</a></li>
+        </ul>
+      </nav>
+
+      <!-- Right: User Account Profile & Dropdown -->
+      <div class="nav-actions">
+        <div class="nav-user-area" id="navUserArea">
+          <button type="button" class="btn btn-outline-gold btn-sm nav-auth-btn" id="navAuthBtn">
+            <i class="fas fa-user-circle"></i> <span>Sign In</span>
+          </button>
+
+          <div class="nav-user-dropdown" id="navUserDropdown" style="display: none;">
+            <button type="button" class="nav-user-profile-btn" id="navUserProfileToggle" aria-label="Customer profile menu">
+              <span class="user-avatar-initial" id="navUserAvatar">B</span>
+              <span class="user-name-label" id="navUserName">Account</span>
+              <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
+            </button>
+            <div class="nav-user-menu" id="navUserMenu">
+              <div class="user-menu-profile-card" id="userMenuProfileHeaderCard" style="cursor: default; text-decoration: none;">
+                <div class="menu-avatar" id="dropdownAvatar">B</div>
+                <div style="flex: 1; min-width: 0;">
+                  <strong id="dropdownUserName">Customer Profile</strong>
+                  <span id="dropdownUserPhone">Verified Customer</span>
+                </div>
+              </div>
+              <div class="user-menu-divider"></div>
+              <a href="/profile?tab=addresses" class="user-menu-item" id="menuProfileBtn" style="text-decoration: none;">
+                <i class="fas fa-map-marker-alt"></i> Saved Addresses
+              </a>
+              <a href="/profile?tab=orders" class="user-menu-item" id="menuOrderHistoryBtn" style="text-decoration: none;">
+                <i class="fas fa-receipt"></i> Order History &amp; Receipts
+              </a>
+              <div class="user-menu-divider"></div>
+              <button type="button" class="user-menu-item text-danger" id="menuSignOutBtn">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN TRACKING WRAPPER
+       ========================================================================== -->
+  <main class="profile-main-layout" style="padding: 30px 16px 80px;">
+    <div class="container" style="max-width: 820px; margin: 0 auto;">
+
+      <!-- Tracking Search Box / Header Banner -->
+      <div style="background: linear-gradient(135deg, #1c1814 0%, #110e0b 100%); border: 1.5px solid rgba(181, 136, 61, 0.28); border-radius: 20px; padding: 28px 24px; color: #ffffff; margin-bottom: 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.18);">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary-gold); font-weight: 800; margin-bottom: 8px;">
+          <i class="fas fa-satellite-dish"></i> LIVE ORDER RADAR
+        </div>
+        <h1 style="font-family: var(--font-serif); font-size: 1.75rem; font-weight: 700; margin: 0 0 8px; color: #ffffff;">
+          Track Your Breeze Order
+        </h1>
+        <p style="font-size: 0.9rem; color: #a8a092; margin: 0 0 20px; line-height: 1.5;">
+          Enter your <strong>Order ID</strong> (e.g. <code>BRZ-...</code> or Token <code>#4321</code>) or your <strong>10-digit mobile number</strong> to view live kitchen cooking, packing, and partner delivery updates.
+        </p>
+
+        <!-- Search Form -->
+        <form id="trackSearchForm" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 240px; position: relative;">
+            <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #78716c;"></i>
+            <input type="text" id="trackInputLookup" placeholder="Order ID or 10-digit mobile number..." style="width: 100%; height: 50px; border-radius: 12px; border: 1.5px solid rgba(181, 136, 61, 0.4); background: #0c0a08; color: #ffffff; padding: 0 16px 0 44px; font-size: 0.95rem; font-family: inherit; outline: none; transition: border-color 0.2s;" autocomplete="off">
+          </div>
+          <button type="submit" id="btnTrackLookup" class="btn btn-primary" style="height: 50px; min-height: 48px; min-width: 140px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+            <i class="fas fa-radar"></i> <span>Track Order</span>
+          </button>
+        </form>
+
+        <button type="button" id="trackRecentBtn" style="display: none; background: rgba(181, 136, 61, 0.15); border: 1px solid rgba(181, 136, 61, 0.35); color: var(--primary-gold); font-size: 0.8rem; font-weight: 700; padding: 6px 14px; border-radius: 999px; margin-top: 14px; cursor: pointer; align-items: center; gap: 6px;">
+          <i class="fas fa-history"></i> Track Your Latest Order
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="trackLoadingState" style="display: none; text-align: center; padding: 40px 20px; background: #ffffff; border-radius: 18px; border: 1px solid #eee5d7; margin-bottom: 24px;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 2.2rem; color: var(--primary-gold); margin-bottom: 12px;"></i>
+        <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: #1c1814; margin: 0 0 4px;">Connecting to Kitchen Radar...</h3>
+        <p style="font-size: 0.85rem; color: #78716c; margin: 0;">Retrieving live preparation and delivery status.</p>
+      </div>
+
+      <!-- Empty / Not Found State -->
+      <div id="trackEmptyState" style="text-align: center; padding: 48px 24px; background: #ffffff; border-radius: 18px; border: 1px solid #eee5d7; box-shadow: 0 4px 16px rgba(0,0,0,0.04); margin-bottom: 24px;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #faf7f2; border: 1.5px solid #eee5d7; color: var(--primary-gold); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 16px;">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: #1c1814; margin: 0 0 6px;">No Order Selected Yet</h3>
+        <p style="font-size: 0.88rem; color: #78716c; max-width: 440px; margin: 0 auto 20px; line-height: 1.5;">
+          Enter your Order ID or phone number in the search bar above to view the live status of your meal.
+        </p>
+        <a href="/menu" class="btn btn-outline-gold btn-sm" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px;">
+          <i class="fas fa-utensils"></i> <span>Browse Cafe Menu</span>
+        </a>
+      </div>
+
+      <!-- Live Order Results Container -->
+      <div id="trackResultsContainer" style="display: none;">
+        
+        <!-- Order Header Card -->
+        <div style="background: #ffffff; border-radius: 18px; border: 1px solid #eee5d7; padding: 22px 24px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <span class="tracking-header-badge" id="trackStatusBadge">
+                <i class="fas fa-circle" style="font-size: 0.55rem;"></i> <span id="trackStatusBadgeText">Order Placed</span>
+              </span>
+              <h2 style="font-family: var(--font-serif); font-size: 1.35rem; color: #1c1814; margin: 6px 0 0;" id="trackDisplayOrderId">Order #BRZ-0000</h2>
+            </div>
+            <div style="text-align: right;">
+              <small style="color: #78716c; font-size: 0.78rem; display: block;">Placed At</small>
+              <strong style="font-size: 0.88rem; color: #1c1814;" id="trackOrderDate">Today</strong>
+            </div>
+          </div>
+
+          <!-- Hero Status Visual Card -->
+          <div class="tracking-hero-status" id="trackingHeroCard" style="margin: 16px 0;">
+            <div class="tracking-radar-ring">
+              <i class="fas fa-receipt" id="trackingHeroIcon"></i>
+            </div>
+            <h3 id="trackingHeroHeading" style="font-size: 1.25rem; font-weight: 800; margin: 0 0 6px;">Order Placed Successfully!</h3>
+            <p id="trackingHeroSubtext" style="font-size: 0.88rem; margin: 0 0 10px;">The restaurant is reviewing your order details.</p>
+            <div class="tracking-prep-estimate" id="trackingPrepEstimate">
+              <i class="fas fa-stopwatch"></i> <span id="trackingPrepTimeText">Est. Prep &amp; Delivery: ~25 Mins</span>
+            </div>
+          </div>
+
+          <!-- 60-Second Grace Cancellation Box / Kitchen Locked Alert -->
+          <div class="tracking-cancellation-box" id="trackingCancelBox" style="display: flex; justify-content: space-between; align-items: center; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin: 16px 0;">
+            <div class="cancellation-timer-desc" style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #92400e;">
+              <i class="fas fa-clock"></i>
+              <span>Cancellation Grace Window: <strong id="cancelTimerCountdown">60s</strong></span>
+            </div>
+            <button type="button" class="btn-tracking-cancel" id="btnCancelOrder" style="background: #ef4444; color: #ffffff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; min-height: 44px; min-width: 44px;">Cancel Order</button>
+          </div>
+
+          <div class="tracking-kitchen-locked" id="trackingKitchenLocked" style="display: none; align-items: center; gap: 10px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 12px; padding: 12px 16px; margin: 16px 0; font-size: 0.85rem; color: #991b1b;">
+            <i class="fas fa-utensils" style="font-size: 1.1rem;"></i>
+            <div>
+              <strong>Dishes are cooking:</strong> Your meal is being freshly prepared in the kitchen. Order is locked and can no longer be cancelled.
+            </div>
+          </div>
+
+          <!-- 5-Step Live Progress Stepper -->
+          <div class="tracking-stepper" id="trackingStepper" style="margin: 24px 0 16px;">
+            <div class="tracking-step completed" id="step1">
+              <div class="step-node" id="step1Node"><i class="fas fa-check"></i></div>
+              <div class="step-details">
+                <div class="step-title">Order Placed</div>
+                <div class="step-desc" id="step1Desc">We have received your order.</div>
+              </div>
+            </div>
+
+            <div class="tracking-step" id="step2">
+              <div class="step-node" id="step2Node"><i class="fas fa-check-double"></i></div>
+              <div class="step-details">
+                <div class="step-title">Order Confirmed</div>
+                <div class="step-desc" id="step2Desc">Restaurant has accepted your order.</div>
+              </div>
+            </div>
+
+            <div class="tracking-step" id="step3">
+              <div class="step-node" id="step3Node"><i class="fas fa-utensils"></i></div>
+              <div class="step-details">
+                <div class="step-title">Food Being Prepared</div>
+                <div class="step-desc" id="step3Desc">Chef is freshly preparing your dishes.</div>
+              </div>
+            </div>
+
+            <div class="tracking-step" id="step4">
+              <div class="step-node" id="step4Node"><i class="fas fa-motorcycle"></i></div>
+              <div class="step-details">
+                <div class="step-title">Out for Delivery</div>
+                <div class="step-desc" id="step4Desc">Delivery partner is on the way.</div>
+              </div>
+            </div>
+
+            <div class="tracking-step" id="step5">
+              <div class="step-node" id="step5Node"><i class="fas fa-smile-beam"></i></div>
+              <div class="step-details">
+                <div class="step-title">Order Delivered</div>
+                <div class="step-desc" id="step5Desc">Delivered. Enjoy your meal!</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assigned Delivery Partner Card -->
+          <div class="tracking-rider-card" id="trackingRiderCard" style="display: none; background: #fdfbf7; border: 1.5px solid #d4af37; border-radius: 14px; padding: 14px 16px; margin: 18px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #d4af37; color: #1c1917; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.15rem;" id="trackingRiderAvatar">
+                  <i class="fas fa-motorcycle"></i>
+                </div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <strong style="font-size: 0.95rem; color: #1c1917;" id="trackingRiderName">Delivery Partner</strong>
+                    <span style="background: #dcfce7; color: #166534; font-size: 0.68rem; font-weight: 800; padding: 2px 7px; border-radius: 999px;"><i class="fas fa-check"></i> Assigned</span>
+                  </div>
+                  <small style="color: #78716c; font-size: 0.78rem; display: block; margin-top: 2px;" id="trackingRiderVehicle">Breeze Express Partner • Out for Delivery</small>
+                </div>
+              </div>
+              <a href="tel:" id="trackingRiderPhoneBtn" style="background: #16a34a; color: #ffffff; padding: 8px 14px; border-radius: 999px; text-decoration: none; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3); min-height: 44px; min-width: 44px;">
+                <i class="fas fa-phone"></i> <span>Call Rider</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Delivered Celebration Card & Star Rating Widget -->
+          <div class="tracking-delivered-card" id="trackingDeliveredCard" style="display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px; padding: 18px; margin: 18px 0; text-align: center;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+              <i class="fas fa-check"></i>
+            </div>
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: #166534; margin: 0 0 4px;">Delivered &amp; Settled!</h4>
+            <p style="font-size: 0.85rem; color: #15803d; margin: 0 0 14px; line-height: 1.4;">
+              Your food was delivered. Thank you for dining with Breeze The Roof-Top Cafe!
+            </p>
+
+            <div style="background: #ffffff; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px; margin-bottom: 14px; max-width: 420px; margin-left: auto; margin-right: auto;">
+              <div style="font-size: 0.8rem; font-weight: 700; color: #166534; margin-bottom: 6px;">How was your dining experience?</div>
+              <div class="tracking-rating-stars" id="trackingRatingStars" style="display: flex; justify-content: center; gap: 10px; font-size: 1.5rem; color: #eab308; cursor: pointer;">
+                <i class="fas fa-star rating-star" data-star="1"></i>
+                <i class="fas fa-star rating-star" data-star="2"></i>
+                <i class="fas fa-star rating-star" data-star="3"></i>
+                <i class="fas fa-star rating-star" data-star="4"></i>
+                <i class="fas fa-star rating-star" data-star="5"></i>
+              </div>
+              <div style="font-size: 0.78rem; color: #16a34a; font-weight: 700; margin-top: 6px; display: none;" id="ratingFeedbackMsg">
+                ⭐ Thank you for your 5-star rating!
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="btnReorderFromTracking" style="margin-top: 6px; min-height: 44px; min-width: 44px;">
+              <i class="fas fa-redo"></i> <span>Order Again From Breeze</span>
+            </button>
+          </div>
+
+          <!-- Destination Info Box -->
+          <div style="background: #faf7f2; border: 1px solid #eee5d7; border-radius: 12px; padding: 12px 16px; margin: 16px 0; font-size: 0.88rem; color: #44403c;" id="trackingDestinationInfo">
+            <i class="fas fa-map-marker-alt" style="color: var(--primary-gold);"></i> Delivery Address
+          </div>
+
+          <!-- Items Breakdown -->
+          <div style="margin-top: 20px;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #1c1814; margin: 0 0 10px; border-bottom: 1.5px solid #f2ece1; padding-bottom: 8px;">
+              Order Summary
+            </h4>
+            <div id="trackingItemsList"></div>
+
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1.5px dashed #e7e5e4;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.88rem; color: #78716c; margin-bottom: 6px;">
+                <span>Subtotal</span>
+                <span id="trackSubtotalAmount">₹0</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.88rem; color: #78716c; margin-bottom: 6px;">
+                <span>Delivery Charges</span>
+                <span style="color: #16a34a; font-weight: 700;">FREE</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; color: #1c1814; margin-top: 8px;">
+                <span>Total Amount</span>
+                <span id="trackingTotalAmount">₹0</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 14px;" id="trackingPaymentPillContainer">
+              <div class="tracking-payment-pill" id="trackingPaymentPill">
+                <i class="fas fa-check-circle"></i> Paid Online
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       FOOTER (Standard Luxury Breeze Footer with Mandatory Legal Links)
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-grid">
+        <div class="footer-col footer-brand-col">
+          <img src="assets/logo-full.png" alt="Breeze Rooftop Cafe" class="footer-logo">
+          <p class="footer-tagline">Palghar's Premier Rooftop Lounge &amp; Dining Experience</p>
+          <div class="footer-social-links">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="footer-social-icon" aria-label="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://wa.me/919623999095" target="_blank" rel="noopener noreferrer" class="footer-social-icon" aria-label="WhatsApp">
+              <i class="fab fa-whatsapp"></i>
+            </a>
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="footer-social-icon" aria-label="Google Maps">
+              <i class="fas fa-map-marker-alt"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul class="footer-links-list">
+            <li><a href="/" class="footer-link">Home</a></li>
+            <li><a href="/menu" class="footer-link">Food &amp; Drink Menu</a></li>
+            <li><a href="/about" class="footer-link">About &amp; Rooftop Vibe</a></li>
+            <li><a href="/contact" class="footer-link">Location &amp; Timings</a></li>
+            <li><a href="/profile" class="footer-link">Customer Account &amp; Orders</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Menu Highlights</h4>
+          <ul class="footer-links-list">
+            <li><a href="/menu" class="footer-link">Strawberry Iced Matcha</a></li>
+            <li><a href="/menu" class="footer-link">Cheesy Burst Burger</a></li>
+            <li><a href="/menu" class="footer-link">Paneer Zinger Burger</a></li>
+            <li><a href="/menu" class="footer-link">Cheesy Peri Peri Fries</a></li>
+            <li><a href="/menu" class="footer-link">Exotic Veggie Pizza</a></li>
+            <li><a href="/menu" class="footer-link">Alfredo Pasta</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col footer-contact-col">
+          <h4>Visit &amp; Contact</h4>
+          <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="footer-contact-link" title="Open Google Maps Location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>5th Floor Kanchan Aura, Mahim Rd, Palghar 401404</span>
+          </a>
+          <div class="footer-contact-item">
+            <i class="fas fa-clock"></i>
+            <span class="store-hours-display">11:00 AM – 11:00 PM Daily</span>
+          </div>
+          <a href="tel:+919623999095" class="footer-contact-link" title="Call Breeze Cafe">
+            <i class="fas fa-phone"></i>
+            <span>+91 9623999095</span>
+          </a>
+          <div class="footer-contact-actions">
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold btn-sm" title="Directions on Google Maps">
+              <i class="fas fa-location-arrow"></i> Directions
+            </a>
+            <a href="tel:+919623999095" class="btn btn-primary btn-sm" title="Call directly">
+              <i class="fas fa-phone"></i> Call Us
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          &copy; 2026 Breeze The Roof-Top Caf&eacute;. All Rights Reserved.
+        </div>
+        <div class="footer-legal-links">
+          <a href="/privacy" class="footer-legal-link">Privacy Policy</a>
+          <span class="footer-legal-sep">&bull;</span>
+          <a href="/terms" class="footer-legal-link">Terms &amp; Conditions</a>
+          <span class="footer-legal-sep">&bull;</span>
+          <a href="/refund" class="footer-legal-link">Refund Policy</a>
+          <span class="footer-legal-sep">&bull;</span>
+          <a href="/shipping" class="footer-legal-link">Delivery &amp; Shipping</a>
+        </div>
+        <div>
+          Crafted by <a href="https://webyodas.pages.dev" target="_blank" rel="noopener noreferrer" class="webyodas-link">Webyodas</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Mobile Sticky Quick Action Bottom Bar -->
+  <nav class="mobile-bottom-bar" aria-label="Mobile quick actions">
+    <div class="mobile-bottom-bar-inner">
+      <a href="/" class="mobile-bar-btn" aria-label="Home">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="/menu" class="mobile-bar-btn" aria-label="Menu">
+        <i class="fas fa-utensils"></i>
+        <span>Menu</span>
+      </a>
+      <a href="/track" class="mobile-bar-btn active" aria-label="Track Order">
+        <i class="fas fa-satellite-dish"></i>
+        <span>Track</span>
+      </a>
+      <a href="/profile" class="mobile-bar-btn" aria-label="Profile">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ==========================================================================
+       SCRIPTS
+       ========================================================================== -->
+  <script src="js/main.js?v=10.1-phone-auth"></script>
+  <script src="js/track.js?v=1.0"></script>
+  <script src="js/pwa-install.js?v=9.2"></script>
+</body>
+</html>
