@@ -4500,7 +4500,7 @@
       </div>
 
       <!-- Rider identity banner -->
-      <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <div style="font-size: 0.74rem; font-weight: 700; color: #92400e; text-transform: uppercase;">Delivery Partner</div>
           <strong style="font-size: 1.05rem; color: #78350f;" id="settleModalRiderName">Rider Name</strong>
@@ -4510,6 +4510,14 @@
           <div style="font-size: 0.74rem; font-weight: 700; color: #92400e; text-transform: uppercase;">Unsettled Cash Due</div>
           <strong style="font-size: 1.5rem; color: #b45309; font-weight: 900;" id="settleModalDueAmount">₹0.00</strong>
         </div>
+      </div>
+
+      <!-- Quick Fill Options -->
+      <div style="display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap;">
+        <span style="font-size: 0.74rem; font-weight: 700; color: var(--admin-text-muted); text-transform: uppercase;">Quick Fill:</span>
+        <button type="button" id="btnSettleQuickFull" class="btn-action-outline" style="font-size: 0.76rem; padding: 4px 10px; border-radius: 6px; font-weight: 700; color: #166534; border-color: #86efac; background: #f0fdf4; cursor: pointer;">
+          <i class="fas fa-check-double"></i> Pay Full Due (<span id="settleQuickFullLabel">₹0.00</span>)
+        </button>
       </div>
 
       <!-- Unsettled orders breakdown -->
@@ -4525,11 +4533,23 @@
 
       <!-- Remittance input -->
       <div class="form-group" style="margin-bottom: 14px;">
-        <label class="form-label" for="inputSettleAmountReceived">Amount Received at Counter (₹)</label>
-        <input type="number" id="inputSettleAmountReceived" class="form-input" style="font-size: 1.15rem; font-weight: 800; color: #166534;" placeholder="0.00" step="0.5">
-        <small style="font-size: 0.74rem; color: var(--admin-text-muted); display: block; margin-top: 4px;">
-          Confirming remittance marks orders as settled and resets rider's cash in hand to ₹0.00.
-        </small>
+        <label class="form-label" for="inputSettleAmountReceived" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Amount Received at Counter (₹)</span>
+          <span id="settlePaymentModeBadge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; background: #dcfce7; color: #15803d; transition: all 0.2s ease;">Full Payment</span>
+        </label>
+        <div style="position: relative;">
+          <input type="number" id="inputSettleAmountReceived" class="form-input" style="font-size: 1.15rem; font-weight: 800; color: #166534;" placeholder="0.00" step="0.5" min="0">
+        </div>
+        <!-- Live dynamic settlement helper card -->
+        <div id="settleDynamicHelper" style="margin-top: 8px; padding: 10px 12px; border-radius: 8px; font-size: 0.78rem; line-height: 1.4; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fas fa-info-circle"></i> <strong id="settleHelperTitle">Full Settlement</strong></span>
+            <span id="settleHelperRemaining" style="font-weight: 800;">Remaining Due: ₹0.00</span>
+          </div>
+          <div id="settleHelperDesc" style="margin-top: 4px; font-size: 0.72rem; opacity: 0.9;">
+            Clears all orders and resets rider cash in hand to ₹0.00.
+          </div>
+        </div>
       </div>
 
       <div class="form-group" style="margin-bottom: 18px;">

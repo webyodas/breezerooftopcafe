@@ -280,6 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const settleModalOrdersList = document.getElementById('settleModalOrdersList');
   const inputSettleAmountReceived = document.getElementById('inputSettleAmountReceived');
   const inputSettleNotes = document.getElementById('inputSettleNotes');
+  const btnSettleQuickFull = document.getElementById('btnSettleQuickFull');
+  const settleQuickFullLabel = document.getElementById('settleQuickFullLabel');
+  const settlePaymentModeBadge = document.getElementById('settlePaymentModeBadge');
+  const settleDynamicHelper = document.getElementById('settleDynamicHelper');
+  const settleHelperTitle = document.getElementById('settleHelperTitle');
+  const settleHelperRemaining = document.getElementById('settleHelperRemaining');
+  const settleHelperDesc = document.getElementById('settleHelperDesc');
   let activeSettleRider = null;
   let activeSettleOrders = [];
   let allSettlements = [];
@@ -4522,7 +4529,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (o.payment_method === 'cod' || Number(o.cash_collected) > 0) &&
         !o.settled_with_admin
       );
-      const computed = rDeliveredCod.reduce((sum, o) => sum + (Number(o.cash_collected) || Number(o.total_amount) || 0), 0);
+      const computed = rDeliveredCod.reduce((sum, o) => sum + (Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0), 0);
       const rDue = computed > 0 ? computed : (Number(r.cash_in_hand) || 0);
       fleetTotalPendingCash += rDue;
       fleetTotalPendingOrdersCount += rDeliveredCod.length;
@@ -4592,7 +4599,7 @@ document.addEventListener('DOMContentLoaded', () => {
       );
       const unsettledOrders = riderDeliveredCod.filter(o => !o.settled_with_admin);
       const computedDue = unsettledOrders.reduce((sum, o) => {
-        return sum + (Number(o.cash_collected) || Number(o.total_amount) || 0);
+        return sum + (Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0);
       }, 0);
       const riderDbCash = Number(rider.cash_in_hand) || 0;
       const due = computedDue > 0 ? computedDue : riderDbCash;
@@ -4882,7 +4889,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // MODAL 10: SETTLE RIDER CASH REMITTANCE (CLEAR DUE BALANCE)
+  // MODAL 10: SETTLE RIDER CASH REMITTANCE (FULL & PARTIAL DUE CLEARANCE)
   // --------------------------------------------------------------------------
   function openSettleRiderModal(riderId, riderName, dueAmt) {
     if (!settleRiderModal) return;
@@ -4894,41 +4901,143 @@ document.addEventListener('DOMContentLoaded', () => {
       (o.payment_method === 'cod' || Number(o.cash_collected) > 0) &&
       !o.settled_with_admin
     );
+    // Sort oldest first so partial payments greedily clear oldest orders first
+    activeSettleOrders.sort((a, b) => new Date(a.delivered_at || a.created_at) - new Date(b.delivered_at || b.created_at));
+
+    const computedDue = activeSettleOrders.reduce((sum, o) => {
+      return sum + (Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0);
+    }, 0);
+    const effectiveDue = computedDue > 0 ? computedDue : (dueAmt > 0 ? dueAmt : (Number(activeSettleRider.cash_in_hand) || 0));
 
     if (settleModalRiderName) settleModalRiderName.textContent = riderName;
     if (settleModalRiderId) settleModalRiderId.textContent = riderId;
-    if (settleModalDueAmount) settleModalDueAmount.textContent = `₹${dueAmt.toFixed(2)}`;
+    if (settleModalDueAmount) settleModalDueAmount.textContent = `₹${effectiveDue.toFixed(2)}`;
     if (settleModalOrdersCount) settleModalOrdersCount.textContent = `${activeSettleOrders.length} Order${activeSettleOrders.length !== 1 ? 's' : ''}`;
+
+    if (settleQuickFullLabel) settleQuickFullLabel.textContent = `₹${effectiveDue.toFixed(2)}`;
 
     if (settleModalOrdersList) {
       if (activeSettleOrders.length === 0) {
         settleModalOrdersList.innerHTML = `
           <div style="color: var(--admin-text-muted); text-align: center; padding: 12px;">
-            Current wallet balance: <strong>₹${dueAmt.toFixed(2)}</strong> (Recorded on rider shift balance)
+            Current wallet balance: <strong>₹${effectiveDue.toFixed(2)}</strong> (Recorded on rider shift balance)
           </div>
         `;
       } else {
-        settleModalOrdersList.innerHTML = activeSettleOrders.map(o => `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--admin-border-light);">
-            <div>
-              <strong style="color: var(--admin-text-main);">#${o.id}</strong>
-              <span style="color: var(--admin-text-muted); margin-left: 6px;">${escapeHtml(o.customer_name || 'Customer')}</span>
-              <small style="color: var(--admin-text-muted); display: block; font-size: 0.72rem;">${formatRelativeTime(o.delivered_at || o.created_at)}</small>
+        settleModalOrdersList.innerHTML = activeSettleOrders.map(o => {
+          const oDue = Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0;
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--admin-border-light);">
+              <div>
+                <strong style="color: var(--admin-text-main);">#${o.id}</strong>
+                <span style="color: var(--admin-text-muted); margin-left: 6px;">${escapeHtml(o.customer_name || 'Customer')}</span>
+                <small style="color: var(--admin-text-muted); display: block; font-size: 0.72rem;">${formatRelativeTime(o.delivered_at || o.created_at)}</small>
+              </div>
+              <div style="font-weight: 800; color: #b45309;">
+                ₹${oDue.toFixed(2)}
+              </div>
             </div>
-            <div style="font-weight: 800; color: #b45309;">
-              ₹${(Number(o.cash_collected) || Number(o.total_amount) || 0).toFixed(2)}
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
     }
 
     if (inputSettleAmountReceived) {
-      inputSettleAmountReceived.value = dueAmt > 0 ? dueAmt.toFixed(2) : '';
+      inputSettleAmountReceived.value = effectiveDue > 0 ? effectiveDue.toFixed(2) : '';
     }
     if (inputSettleNotes) inputSettleNotes.value = '';
 
+    updateSettleCalculation();
+
     settleRiderModal.style.display = 'flex';
+  }
+
+  function updateSettleCalculation() {
+    if (!activeSettleRider) return;
+    const computedDue = (activeSettleOrders || []).reduce((sum, o) => {
+      return sum + (Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0);
+    }, 0);
+    const totalDue = computedDue > 0 ? computedDue : (Number(activeSettleRider.cash_in_hand) || 0);
+
+    const amountVal = parseFloat(inputSettleAmountReceived ? inputSettleAmountReceived.value : '0') || 0;
+    const isFull = amountVal >= (totalDue - 0.001) && totalDue > 0;
+    const isPartial = amountVal > 0 && amountVal < (totalDue - 0.001);
+    const remDue = Math.max(0, totalDue - amountVal);
+
+    if (isFull) {
+      if (settlePaymentModeBadge) {
+        settlePaymentModeBadge.textContent = 'Full Payment';
+        settlePaymentModeBadge.style.background = '#dcfce7';
+        settlePaymentModeBadge.style.color = '#15803d';
+      }
+      if (settleDynamicHelper) {
+        settleDynamicHelper.style.background = '#f0fdf4';
+        settleDynamicHelper.style.borderColor = '#bbf7d0';
+        settleDynamicHelper.style.color = '#166534';
+      }
+      if (settleHelperTitle) settleHelperTitle.textContent = 'Full Settlement';
+      if (settleHelperRemaining) settleHelperRemaining.textContent = 'Remaining Due: ₹0.00';
+      if (settleHelperDesc) {
+        settleHelperDesc.textContent = `Clears all ${activeSettleOrders.length} order(s). Rider cash in hand will be reset to ₹0.00.`;
+      }
+      if (btnConfirmSettleRider) {
+        btnConfirmSettleRider.innerHTML = `<i class="fas fa-check-circle"></i> Confirm Full Cash (₹${amountVal.toFixed(2)}) &amp; Clear Due`;
+        btnConfirmSettleRider.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+        btnConfirmSettleRider.style.borderColor = '#15803d';
+      }
+    } else if (isPartial) {
+      let allocRem = amountVal;
+      let clearedCount = 0;
+      (activeSettleOrders || []).forEach(o => {
+        const oDue = Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0;
+        if (allocRem >= oDue) {
+          clearedCount++;
+          allocRem -= oDue;
+        }
+      });
+
+      if (settlePaymentModeBadge) {
+        settlePaymentModeBadge.textContent = 'Partial Payment';
+        settlePaymentModeBadge.style.background = '#fef3c7';
+        settlePaymentModeBadge.style.color = '#b45309';
+      }
+      if (settleDynamicHelper) {
+        settleDynamicHelper.style.background = '#fffbeb';
+        settleDynamicHelper.style.borderColor = '#fde68a';
+        settleDynamicHelper.style.color = '#92400e';
+      }
+      if (settleHelperTitle) settleHelperTitle.textContent = 'Partial Settlement';
+      if (settleHelperRemaining) settleHelperRemaining.textContent = `Remaining Due: ₹${remDue.toFixed(2)}`;
+      if (settleHelperDesc) {
+        settleHelperDesc.textContent = `${clearedCount} of ${activeSettleOrders.length} order(s) will be fully settled. Remaining balance of ₹${remDue.toFixed(2)} stays recorded on rider's account.`;
+      }
+      if (btnConfirmSettleRider) {
+        btnConfirmSettleRider.innerHTML = `<i class="fas fa-hand-holding-usd"></i> Confirm Partial Cash (₹${amountVal.toFixed(2)}) &amp; Keep ₹${remDue.toFixed(2)} Due`;
+        btnConfirmSettleRider.style.background = 'linear-gradient(135deg, #d97706 0%, #b45309 100%)';
+        btnConfirmSettleRider.style.borderColor = '#b45309';
+      }
+    } else {
+      if (settlePaymentModeBadge) {
+        settlePaymentModeBadge.textContent = 'Enter Amount';
+        settlePaymentModeBadge.style.background = '#f1f5f9';
+        settlePaymentModeBadge.style.color = '#64748b';
+      }
+      if (settleDynamicHelper) {
+        settleDynamicHelper.style.background = '#fafaf9';
+        settleDynamicHelper.style.borderColor = '#e7e5e4';
+        settleDynamicHelper.style.color = '#78716c';
+      }
+      if (settleHelperTitle) settleHelperTitle.textContent = 'Awaiting Amount';
+      if (settleHelperRemaining) settleHelperRemaining.textContent = `Total Due: ₹${totalDue.toFixed(2)}`;
+      if (settleHelperDesc) {
+        settleHelperDesc.textContent = 'Please enter the amount received from the rider at the register.';
+      }
+      if (btnConfirmSettleRider) {
+        btnConfirmSettleRider.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Cash Received';
+        btnConfirmSettleRider.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+        btnConfirmSettleRider.style.borderColor = '#15803d';
+      }
+    }
   }
 
   function closeSettleRiderModal() {
@@ -4939,6 +5048,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnCloseSettleRiderModal) btnCloseSettleRiderModal.addEventListener('click', closeSettleRiderModal);
   if (btnCancelSettleModal) btnCancelSettleModal.addEventListener('click', closeSettleRiderModal);
+
+  if (inputSettleAmountReceived) {
+    inputSettleAmountReceived.addEventListener('input', updateSettleCalculation);
+    inputSettleAmountReceived.addEventListener('change', updateSettleCalculation);
+  }
+
+  if (btnSettleQuickFull) {
+    btnSettleQuickFull.addEventListener('click', () => {
+      if (!activeSettleRider) return;
+      const computedDue = (activeSettleOrders || []).reduce((sum, o) => {
+        return sum + (Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0);
+      }, 0);
+      const totalDue = computedDue > 0 ? computedDue : (Number(activeSettleRider.cash_in_hand) || 0);
+      if (inputSettleAmountReceived) {
+        inputSettleAmountReceived.value = totalDue > 0 ? totalDue.toFixed(2) : '';
+      }
+      updateSettleCalculation();
+    });
+  }
 
   async function executeConfirmSettleRider() {
     if (!activeSettleRider) return;
@@ -4951,7 +5079,15 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const orderIds = (activeSettleOrders || []).map(o => o.id);
+    const unsettled = (activeSettleOrders || []).slice();
+    unsettled.sort((a, b) => new Date(a.delivered_at || a.created_at) - new Date(b.delivered_at || b.created_at));
+
+    const totalDue = unsettled.length > 0 
+      ? unsettled.reduce((s, o) => s + (Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0), 0)
+      : (Number(activeSettleRider.cash_in_hand) || 0);
+
+    const isFullSettlement = amountVal >= (totalDue - 0.001);
+    const remainingDue = Math.max(0, totalDue - amountVal);
     const notes = inputSettleNotes ? inputSettleNotes.value.trim() : '';
     const nowIso = new Date().toISOString();
 
@@ -4961,38 +5097,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
+      const fullySettledOrderIds = [];
+      const partialOrderUpdates = []; // [{ id, cash_collected }]
+
+      if (isFullSettlement) {
+        unsettled.forEach(o => fullySettledOrderIds.push(o.id));
+      } else {
+        // Partial settlement allocation: greedy oldest-first
+        let remAlloc = amountVal;
+        for (const o of unsettled) {
+          const oDue = Number(o.cash_collected !== undefined && o.cash_collected !== null ? o.cash_collected : o.total_amount) || 0;
+          if (remAlloc >= oDue) {
+            fullySettledOrderIds.push(o.id);
+            remAlloc -= oDue;
+          } else if (remAlloc > 0) {
+            const newOrderDue = Math.max(0, oDue - remAlloc);
+            partialOrderUpdates.push({ id: o.id, cash_collected: newOrderDue });
+            remAlloc = 0;
+          }
+        }
+      }
+
       // 1. Audit log in rider_settlements
       const settlementRecord = {
         id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('stl_' + Date.now()),
         rider_id: targetRiderId,
         rider_name: targetRiderName,
         amount_settled: amountVal,
-        orders_count: orderIds.length,
-        order_ids: orderIds,
-        notes: notes || 'Counter cash remittance cleared by admin',
+        orders_count: fullySettledOrderIds.length,
+        order_ids: fullySettledOrderIds,
+        notes: notes 
+          ? `${notes} (${isFullSettlement ? 'Full Settlement' : `Partial: ₹${remainingDue.toFixed(2)} due remaining`})`
+          : (isFullSettlement 
+              ? 'Full counter cash remittance cleared by admin' 
+              : `Partial counter cash remittance: ₹${amountVal.toFixed(2)} received, ₹${remainingDue.toFixed(2)} remaining due`),
         settled_by: 'Breeze Admin',
         created_at: nowIso
       };
 
       if (supabaseClient) {
+        // A. Insert settlement audit row
         const { error: logErr } = await supabaseClient
           .from('rider_settlements')
           .insert(settlementRecord);
         if (logErr) console.warn('rider_settlements insert error:', logErr);
 
-        // 2. Reset rider cash_in_hand in delivery_partners
+        // B. Update rider cash_in_hand in delivery_partners
         const { error: rErr } = await supabaseClient
           .from('delivery_partners')
           .update({
-            cash_in_hand: 0,
+            cash_in_hand: remainingDue,
             last_settled_at: nowIso,
             updated_at: nowIso
           })
           .eq('id', targetRiderId);
-        if (rErr) console.warn('delivery_partners reset cash error:', rErr);
+        if (rErr) console.warn('delivery_partners update cash error:', rErr);
 
-        // 3. Mark orders as settled
-        if (orderIds.length > 0) {
+        // C. Update fully settled orders
+        if (fullySettledOrderIds.length > 0) {
           const { error: oErr } = await supabaseClient
             .from('orders')
             .update({
@@ -5000,19 +5162,31 @@ document.addEventListener('DOMContentLoaded', () => {
               settled_at: nowIso,
               updated_at: nowIso
             })
-            .in('id', orderIds);
+            .in('id', fullySettledOrderIds);
           if (oErr) console.warn('orders mark settled error:', oErr);
+        }
+
+        // D. Update partially settled orders
+        for (const p of partialOrderUpdates) {
+          const { error: pErr } = await supabaseClient
+            .from('orders')
+            .update({
+              cash_collected: p.cash_collected,
+              updated_at: nowIso
+            })
+            .eq('id', p.id);
+          if (pErr) console.warn('orders update cash_collected error:', pErr);
         }
       }
 
       // 4. Update in-memory state
       const rIdx = allRiders.findIndex(r => r.id === targetRiderId);
       if (rIdx !== -1) {
-        allRiders[rIdx].cash_in_hand = 0;
+        allRiders[rIdx].cash_in_hand = remainingDue;
         allRiders[rIdx].last_settled_at = nowIso;
       }
 
-      orderIds.forEach(id => {
+      fullySettledOrderIds.forEach(id => {
         const oIdx = allOrders.findIndex(o => o.id === id);
         if (oIdx !== -1) {
           allOrders[oIdx].settled_with_admin = true;
@@ -5020,10 +5194,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
+      partialOrderUpdates.forEach(p => {
+        const oIdx = allOrders.findIndex(o => o.id === p.id);
+        if (oIdx !== -1) {
+          allOrders[oIdx].cash_collected = p.cash_collected;
+        }
+      });
+
       allSettlements.unshift(settlementRecord);
 
       closeSettleRiderModal();
-      showAdminToast(`✅ Cash Remittance of ₹${amountVal.toFixed(2)} for "${targetRiderName}" cleared!`);
+      if (isFullSettlement) {
+        showAdminToast(`✅ Full Cash Remittance of ₹${amountVal.toFixed(2)} for "${targetRiderName}" cleared!`);
+      } else {
+        showAdminToast(`💰 Partial Cash of ₹${amountVal.toFixed(2)} recorded for "${targetRiderName}". Remaining Due: ₹${remainingDue.toFixed(2)}`);
+      }
       renderRidersTab();
     } catch (err) {
       console.warn('executeConfirmSettleRider error:', err);

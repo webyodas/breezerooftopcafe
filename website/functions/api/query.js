@@ -434,6 +434,21 @@ async function handleQueryExecution({ env, body }) {
             whereClauses.push(`"${col}" = ?`);
             params.push(val);
           }
+        } else if (op === 'in') {
+          if (Array.isArray(val) && val.length > 0) {
+            const placeholders = val.map(() => '?').join(',');
+            whereClauses.push(`"${col}" IN (${placeholders})`);
+            params.push(...val);
+          } else {
+            whereClauses.push('1 = 0');
+          }
+        } else if (op === 'neq') {
+          if (val === null) {
+            whereClauses.push(`"${col}" IS NOT NULL`);
+          } else {
+            whereClauses.push(`"${col}" != ?`);
+            params.push(val);
+          }
         }
       }
 
@@ -542,6 +557,21 @@ async function handleQueryExecution({ env, body }) {
             params.push(val);
           } else {
             whereClauses.push(`"${col}" = ?`);
+            params.push(val);
+          }
+        } else if (op === 'in') {
+          if (Array.isArray(val) && val.length > 0) {
+            const placeholders = val.map(() => '?').join(',');
+            whereClauses.push(`"${col}" IN (${placeholders})`);
+            params.push(...val);
+          } else {
+            whereClauses.push('1 = 0');
+          }
+        } else if (op === 'neq') {
+          if (val === null) {
+            whereClauses.push(`"${col}" IS NOT NULL`);
+          } else {
+            whereClauses.push(`"${col}" != ?`);
             params.push(val);
           }
         }
