@@ -8,11 +8,66 @@
   <meta name="description" content="Find Breeze The Rooftop Café on the 5th floor of Kanchan Aura, Mahim Road, Palghar. Interactive Google map, opening timings, desk telephone (+91 9623999095) & table bookings.">
   <meta name="keywords" content="Breeze Rooftop Cafe Palghar location, Breeze Cafe address, Kanchan Aura Mahim Road Palghar, Breeze cafe contact number, Breeze table booking Palghar">
 
+  <link rel="canonical" href="https://breezerooftopcafe.pages.dev/contact">
+
   <!-- Open Graph / Social Sharing -->
   <meta property="og:title" content="Location & Contact | Breeze The Roof-Top Café">
   <meta property="og:description" content="5th Floor, Kanchan Aura, Mahim Road, Palghar. Open daily 11 AM - 11 PM. Call +91 9623999095 for table reservations and inquiries.">
-  <meta property="og:image" content="assets/rooftop-night.jpg">
+  <meta property="og:image" content="https://breezerooftopcafe.pages.dev/assets/rooftop-night.jpg">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://breezerooftopcafe.pages.dev/contact">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Location & Contact | Breeze The Roof-Top Café">
+  <meta name="twitter:description" content="5th Floor, Kanchan Aura, Mahim Road, Palghar. Open daily 11 AM - 11 PM. Call +91 9623999095 for table reservations and inquiries.">
+  <meta name="twitter:image" content="https://breezerooftopcafe.pages.dev/assets/rooftop-night.jpg">
+
+  <!-- Local SEO & Structured Data (Schema.org) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "Breeze The Roof-Top Café",
+    "image": "https://breezerooftopcafe.pages.dev/assets/rooftop-night.jpg",
+    "@id": "https://breezerooftopcafe.pages.dev/#restaurant",
+    "url": "https://breezerooftopcafe.pages.dev/contact",
+    "telephone": "+919623999095",
+    "priceRange": "₹₹",
+    "servesCuisine": ["Cafe", "Italian", "Fast Food", "Beverages"],
+    "menu": "https://breezerooftopcafe.pages.dev/menu",
+    "acceptsReservations": "True",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "5th Floor, Kanchan Aura Building, Opp. New Palghar Railway Station, Palghar West",
+      "addressLocality": "Palghar",
+      "addressRegion": "Maharashtra",
+      "postalCode": "401404",
+      "addressCountry": "IN"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 19.6967,
+      "longitude": 72.7655
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ],
+        "opens": "11:00",
+        "closes": "23:00"
+      }
+    ]
+  }
+  </script>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/assets/logo-emblem.png">
@@ -385,20 +440,20 @@
     </div>
   </nav>
 
-  <!-- Floating Cart Pill -->
-  <aside class="floating-cart-pill" id="floatingCartPill" aria-label="View current cart summary" style="display: none;">
-    <div class="floating-cart-info">
-      <div class="cart-pill-icon"><i class="fas fa-shopping-bag"></i></div>
-      <div class="cart-pill-text">
-        <strong id="floatingCartCount">0 Items</strong>
-        <span id="floatingCartTotal">₹0</span>
-      </div>
+  <!-- Floating Cart Action Button -->
+  <div class="floating-cart-pill" id="floatingCartBtn" role="button" aria-label="View current order" style="display: none;">
+    <div class="cart-pill-icon">
+      <i class="fas fa-shopping-bag"></i>
+      <span class="cart-pill-count" id="cartCountBadge">0</span>
     </div>
-    <button type="button" class="cart-pill-action" id="floatingCartActionBtn">
-      <span>View Cart</span>
-      <i class="fas fa-chevron-right"></i>
-    </button>
-  </aside>
+    <div class="cart-pill-text">
+      <span class="cart-pill-title">Your Order</span>
+      <span class="cart-pill-total" id="cartTotalBadge">₹0</span>
+    </div>
+    <div class="cart-pill-arrow">
+      <span>View Cart</span> <i class="fas fa-chevron-right"></i>
+    </div>
+  </div>
 
   <!-- Back to Top Button -->
   <button id="backToTopBtn" class="back-to-top" aria-label="Scroll back to top">
@@ -408,133 +463,326 @@
   <!-- Toast Notification -->
   <div id="toastNotification" class="toast-notification" role="status" aria-live="polite"></div>
 
-  <!-- Cart Drawer Component -->
+  <!-- ==========================================================================
+       CART DRAWER & BACKDROP
+       ========================================================================== -->
   <div class="cart-drawer-backdrop" id="cartDrawerBackdrop"></div>
-  <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Your Cart">
+  <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Shopping Cart">
     <div class="cart-drawer-header">
-      <div class="cart-drawer-title">
-        <i class="fas fa-shopping-bag" style="color: var(--primary-gold);"></i>
-        <h3>Your Rooftop Order</h3>
-        <span class="cart-count-pill" id="cartItemsCountPill">0</span>
+      <div class="cart-header-title">
+        <div class="cart-header-icon"><i class="fas fa-shopping-bag"></i></div>
+        <div>
+          <h3>Your Rooftop Order</h3>
+          <span class="cart-items-count-badge" id="cartDrawerItemCount">0 items selected</span>
+        </div>
       </div>
-      <button type="button" class="cart-close-btn" id="cartCloseBtn" aria-label="Close Cart">
+      <button type="button" class="cart-drawer-close" id="cartDrawerCloseBtn" aria-label="Close cart">
         <i class="fas fa-times"></i>
       </button>
     </div>
-    <div class="cart-items-wrap" id="cartItemsContainer">
-      <div class="cart-empty-state">
-        <i class="fas fa-utensils"></i>
-        <h4>Your plate is empty</h4>
-        <p>Explore our menu and add your favorite dishes to begin your order.</p>
-        <a href="/menu" class="btn btn-primary btn-sm" style="margin-top: 14px;">Browse Food Menu</a>
-      </div>
+
+    <div class="cart-drawer-body" id="cartDrawerBody">
+      <!-- Items dynamically populated via JavaScript -->
     </div>
-    <div class="cart-drawer-footer" id="cartDrawerFooter" style="display: none;">
-      <div class="cart-price-summary">
-        <div class="cart-price-row">
-          <span>Item Total</span>
-          <span id="cartSubtotal">₹0</span>
-        </div>
-        <div class="cart-price-row" id="cartDeliveryRow" style="display: none;">
-          <span>Delivery Fee</span>
-          <span id="cartDeliveryFee">₹0</span>
-        </div>
-        <div class="cart-price-row" id="cartTaxRow" style="display: none;">
-          <span>Govt Taxes & GST</span>
-          <span id="cartTax">₹0</span>
-        </div>
-        <div class="cart-price-divider"></div>
-        <div class="cart-price-row cart-total-row">
-          <span>To Pay</span>
-          <strong id="cartGrandTotal">₹0</strong>
-        </div>
+
+    <div class="cart-drawer-footer" id="cartDrawerFooter">
+      <div class="cart-direct-savings-badge">
+        <i class="fas fa-tag"></i> <span>Direct Rooftop Prices • <strong>Zero Zomato 25% Markups</strong></span>
       </div>
-      <button type="button" class="btn btn-primary btn-block" id="cartCheckoutBtn">
-        Proceed to Checkout <i class="fas fa-arrow-right"></i>
+
+      <div class="cart-summary-total">
+        <span>Total Bill:</span>
+        <strong id="cartDrawerTotalAmount">₹0</strong>
+      </div>
+
+      <button type="button" class="btn btn-primary cart-checkout-btn" id="cartCheckoutBtn">
+        <i class="fas fa-shopping-bag"></i> Place Order
+      </button>
+      <button type="button" class="cart-clear-btn" id="cartClearBtn">
+        <i class="fas fa-trash-alt"></i> Clear All Items
       </button>
     </div>
   </aside>
 
-  <!-- Table Reservation Modal -->
-  <div class="modal-overlay" id="reservationModal" role="dialog" aria-modal="true" aria-labelledby="modalReserveTitle" style="display: none;">
-    <div class="modal-container">
+  <!-- ==========================================================================
+       MODAL: ORDER DETAILS & ADDRESS PROMPT (Cart & Direct Order)
+       ========================================================================== -->
+  <div class="modal-overlay" id="orderDetailsModal" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+    <div class="modal-container order-modal-container">
+      <div class="modal-drag-handle"></div>
       <div class="modal-sticky-header">
         <div>
-          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-calendar-check"></i> 5th Floor Rooftop</span>
-          <h3 style="font-family: var(--font-serif); font-size: 1.45rem; color: var(--text-dark); margin: 0;" id="modalReserveTitle">
-            Reserve Your Rooftop Table
-          </h3>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-motorcycle"></i> Fast Rooftop Checkout</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="orderModalTitle">Enter Order Details</h3>
         </div>
-        <button type="button" class="modal-close-btn" id="modalReserveCloseBtn" aria-label="Close reservation form">
+        <button type="button" class="modal-close-btn" id="orderModalCloseBtn" aria-label="Close modal">
           <i class="fas fa-times"></i>
         </button>
       </div>
 
-      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 18px;">
-        Book your sunset or twilight table at Breeze. For immediate reservations within 1 hour, please call <a href="tel:9623999095" style="color: var(--primary-gold); font-weight: 700;">+91 9623999095</a>.
+      <!-- Direct pricing badge -->
+      <div class="direct-pricing-callout">
+        <i class="fas fa-shield-alt"></i>
+        <span>Direct Cafe Price: <strong>Zero Zomato Markups & Fees</strong> • Fresh Kitchen Prep</span>
+      </div>
+
+      <!-- Checkout User Banner (if logged in) -->
+      <div class="checkout-user-banner" id="checkoutUserBanner" style="display: none;">
+        <div class="checkout-user-info">
+          <i class="fas fa-check-circle" style="color: #2e7d32;"></i>
+          <span>Ordering as <strong id="checkoutUserWelcome">Customer</strong></span>
+        </div>
+        <button type="button" class="btn-link-edit" id="checkoutChangeUserBtn">Change Profile</button>
+      </div>
+
+      <div class="order-modal-summary" id="orderModalSummary">
+        <!-- Dynamically injected items & total -->
+      </div>
+
+      <form id="orderDetailsForm" class="order-details-form" onsubmit="return false;">
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="orderCustName"><i class="fas fa-user"></i> Your Full Name <span class="required-star">*</span></label>
+            <input type="text" id="orderCustName" class="form-control" placeholder="Enter your full name" required autocomplete="name">
+          </div>
+          <div class="form-group flex-1">
+            <label for="orderCustPhone"><i class="fas fa-phone"></i> Phone Number <span class="required-star">*</span></label>
+            <input type="tel" id="orderCustPhone" class="form-control" placeholder="e.g. 9876543210" required autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-concierge-bell"></i> Dining / Order Type <span class="required-star">*</span></label>
+          <div class="order-type-pills" id="orderTypePills">
+            <button type="button" class="order-type-pill active" data-type="Home Delivery">
+              <i class="fas fa-motorcycle"></i> <span>Delivery</span>
+            </button>
+            <button type="button" class="order-type-pill" data-type="Takeaway / Pick-Up">
+              <i class="fas fa-shopping-bag"></i> <span>Takeaway</span>
+            </button>
+            <button type="button" class="order-type-pill" data-type="Dine-In (Rooftop Table)">
+              <i class="fas fa-utensils"></i> <span>Dine-In</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" id="orderAddressGroup">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label for="checkoutAddressSelect" style="margin-bottom: 0;"><i class="fas fa-map-marker-alt"></i> Delivery Address <span class="required-star">*</span></label>
+            <span class="saved-address-tag" id="savedAddressTag" style="display:none;"><i class="fas fa-check-circle"></i> Using saved address</span>
+          </div>
+          <!-- Saved Address Dropdown Selector -->
+          <div class="checkout-addr-select-wrap" style="margin-bottom: 8px;">
+            <select id="checkoutAddressSelect" class="form-control checkout-addr-select">
+              <option value="custom">✏️ Enter custom address (for this order only)</option>
+            </select>
+          </div>
+          <!-- Complete Address Textarea -->
+          <textarea id="orderCustAddress" class="form-control form-textarea" rows="2" placeholder="Flat/House No., Building Name, Street / Area, Landmark, Palghar"></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; flex-wrap: wrap; gap: 4px;">
+            <small class="form-hint" id="checkoutAddressHint" style="margin-top: 0; font-size: 0.75rem; color: #78716c;">
+              <i class="fas fa-info-circle"></i> Fast delivery across Palghar from Kanchan Aura 5th Floor.
+            </small>
+            <button type="button" id="btnManageAddressesFromCheckout" style="background: none; border: none; color: var(--primary-gold); font-size: 0.74rem; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
+              + Manage Saved Addresses
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" id="orderTableGroup" style="display: none;">
+          <label for="orderCustTable"><i class="fas fa-chair"></i> Table Number (Optional)</label>
+          <input type="text" id="orderCustTable" class="form-control" placeholder="e.g. Table 4 / Open-Sky Terrace">
+        </div>
+
+        <div class="form-group">
+          <label for="orderCustNotes"><i class="fas fa-comment-dots"></i> Special Cooking / Delivery Request (Optional)</label>
+          <input type="text" id="orderCustNotes" class="form-control" placeholder="e.g. Jain preparation, less spicy, extra ketchup">
+        </div>
+
+        <!-- PAYMENT METHOD SELECTION -->
+        <div class="form-group checkout-payment-group">
+          <label><i class="fas fa-credit-card"></i> Payment Method <span class="required-star">*</span></label>
+          <div class="payment-method-selector" id="paymentMethodSelector">
+            <label class="payment-option-card active" for="payMethodRazorpay" id="payCardRazorpay">
+              <input type="radio" name="payment_method" value="razorpay" id="payMethodRazorpay" checked>
+              <div class="payment-option-content">
+                <div class="payment-option-head">
+                  <span class="payment-option-title"><i class="fas fa-bolt" style="color: #b5883d;"></i> Razorpay Online Payment</span>
+                  <span class="badge-recommended">Recommended</span>
+                </div>
+                <p class="payment-option-subtitle">Instant UPI (Google Pay, PhonePe, Paytm), Cards & NetBanking • Auto-Refund Safe</p>
+              </div>
+            </label>
+
+            <label class="payment-option-card" for="payMethodCod" id="payCardCod">
+              <input type="radio" name="payment_method" value="cod" id="payMethodCod">
+              <div class="payment-option-content">
+                <div class="payment-option-head">
+                  <span class="payment-option-title"><i class="fas fa-money-bill-wave"></i> Cash on Delivery (COD)</span>
+                  <span class="badge-cod-limit">Max ₹1,000</span>
+                </div>
+                <p class="payment-option-subtitle">Pay cash or scan QR when rider arrives</p>
+                <div class="payment-limit-alert" id="codLimitAlert" style="display: none;">
+                  <i class="fas fa-exclamation-triangle"></i> COD is limited to ₹1,000 to prevent kitchen loss. Please choose Online Payment.
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="order-modal-actions">
+          <button type="submit" class="btn btn-primary btn-block" id="orderConfirmSubmitBtn">
+            <i class="fas fa-lock"></i> <span id="orderSubmitBtnLabel">Proceed to Pay & Confirm Order</span>
+          </button>
+          <p class="order-secure-note"><i class="fas fa-shield-alt"></i> 100% Safe & Secure Order • Direct from Breeze The Rooftop Cafe</p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: CUSTOMER AUTHENTICATION (Fast Mobile + Name)
+       ========================================================================== -->
+  <div class="modal-overlay" id="customerAuthModal" role="dialog" aria-modal="true" aria-labelledby="customerAuthTitle">
+    <div class="modal-container customer-auth-container" style="max-width: 440px; border-radius: 20px; padding: 24px; box-sizing: border-box;">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header" style="border: none; padding-bottom: 8px;">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-sparkles" style="color: #b5883d;"></i> Breeze Rooftop Rewards</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-dark); margin: 2px 0 0;" id="customerAuthTitle">Sign In / Register</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="customerAuthCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin: 6px 0 20px; line-height: 1.45;" id="customerAuthSubtitle">
+        Enter your full name and mobile number to live-track orders, save delivery addresses, and enjoy 1-click checkout.
       </p>
 
-      <form id="reservationForm" class="reservation-form">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="reserveName">Your Full Name *</label>
-            <input type="text" id="reserveName" class="form-control" placeholder="e.g. Rajesh Suthar" required>
+      <form id="fastPhoneAuthForm" onsubmit="return false;">
+        <div style="margin-bottom: 14px;">
+          <label for="authCustomerName" style="display: block; font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            Full Name *
+          </label>
+          <div style="position: relative;">
+            <i class="far fa-user" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #a8a29e; font-size: 0.95rem;"></i>
+            <input type="text" id="authCustomerName" class="form-input" placeholder="e.g. Rajesh Suthar" required autocomplete="name" style="width: 100%; height: 48px; padding-left: 42px; border-radius: 12px; border: 1.5px solid #e7e2d9; font-size: 0.95rem; background: #fff; box-sizing: border-box;">
           </div>
-          <div class="form-group">
-            <label for="reservePhone">WhatsApp / Mobile Number *</label>
-            <input type="tel" id="reservePhone" class="form-control" placeholder="10-digit number" pattern="[0-9]{10}" required>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label for="authCustomerPhone" style="display: block; font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            Mobile Number *
+          </label>
+          <div class="phone-input-wrap" style="display: flex; align-items: center; border: 1.5px solid #e7e2d9; border-radius: 12px; background: #fff; height: 48px; overflow: hidden; box-sizing: border-box;">
+            <span class="country-prefix" style="padding: 0 12px; font-weight: 700; color: #1c1917; font-size: 0.92rem; background: #fbf9f5; border-right: 1px solid #e7e2d9; height: 100%; display: flex; align-items: center; gap: 4px;">
+              <i class="fas fa-flag" style="color: #138808; font-size: 0.75rem;"></i> +91
+            </span>
+            <input type="tel" id="authCustomerPhone" class="auth-mobile-input" maxlength="10" placeholder="10-digit mobile number" required autocomplete="tel" inputmode="numeric" style="flex: 1; border: none; padding: 0 14px; font-size: 1rem; font-weight: 600; outline: none; height: 100%; box-sizing: border-box;">
           </div>
-          <div class="form-group">
-            <label for="reserveDate">Reservation Date *</label>
+          <div id="authPhoneError" style="display: none; color: #dc2626; font-size: 0.78rem; margin-top: 6px; font-weight: 600;"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="btnSubmitPhoneAuth" style="height: 48px; font-size: 1rem; font-weight: 700; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box;">
+          <span>Continue to Order</span> <i class="fas fa-arrow-right"></i>
+        </button>
+      </form>
+
+      <div style="font-size: 0.76rem; color: #8c8275; margin-top: 16px; padding-top: 14px; border-top: 1px solid #f0e6d6; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <i class="fas fa-shield-alt" style="color: #b5883d;"></i> 100% Privacy • Instant Order Tracking & WhatsApp Receipts
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: ROOFTOP TABLE RESERVATION (DIRECT PLATFORM SYSTEM)
+       ========================================================================== -->
+  <div class="modal-overlay" id="tableBookingModal" role="dialog" aria-modal="true" aria-labelledby="tableBookingTitle">
+    <div class="modal-container" style="max-width: 480px; width: 92%; padding: 24px;">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-sticky-header">
+        <div>
+          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-calendar-check"></i> 5th Floor Rooftop Lounge</span>
+          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="tableBookingTitle">Reserve a Rooftop Table</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="tableBookingCloseBtn" aria-label="Close modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 16px;">
+        Reserve your table under the stars at Palghar's premier open-air rooftop sanctuary. Instant confirmation.
+      </p>
+
+      <form id="tableBookingForm" onsubmit="return false;">
+        <div class="form-row">
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveDate"><i class="fas fa-calendar-alt"></i> Date <span class="required-star">*</span></label>
             <input type="date" id="reserveDate" class="form-control" required>
           </div>
-          <div class="form-group">
-            <label for="reserveTime">Seating Time *</label>
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveTime"><i class="fas fa-clock"></i> Time Slot <span class="required-star">*</span></label>
             <select id="reserveTime" class="form-control" required>
-              <option value="">Select Time Slot</option>
               <option value="12:00 PM">12:00 PM (Lunch)</option>
-              <option value="01:00 PM">01:00 PM</option>
-              <option value="02:00 PM">02:00 PM</option>
-              <option value="04:30 PM">04:30 PM (Golden Hour Teaser)</option>
-              <option value="05:30 PM">05:30 PM (Sunset View)</option>
-              <option value="06:30 PM">06:30 PM (Twilight Fairy Lights)</option>
-              <option value="07:30 PM">07:30 PM (Prime Dinner)</option>
-              <option value="08:30 PM">08:30 PM (Prime Dinner)</option>
-              <option value="09:30 PM">09:30 PM (Late Night Vibe)</option>
-              <option value="10:00 PM">10:00 PM (Last Seating)</option>
+              <option value="01:00 PM">01:00 PM (Lunch)</option>
+              <option value="05:00 PM">05:00 PM (Sunset View)</option>
+              <option value="06:30 PM">06:30 PM (Golden Hour)</option>
+              <option value="07:30 PM" selected>07:30 PM (Rooftop Evening)</option>
+              <option value="08:30 PM">08:30 PM (Dinner & Vibe)</option>
+              <option value="09:30 PM">09:30 PM (Starlit Lounge)</option>
+              <option value="10:00 PM">10:00 PM (Late Night Bites)</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="reserveGuests">Number of Guests *</label>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveGuests"><i class="fas fa-users"></i> Guests <span class="required-star">*</span></label>
             <select id="reserveGuests" class="form-control" required>
-              <option value="1">1 Person</option>
-              <option value="2" selected>2 Guests (Romantic / Duo)</option>
-              <option value="3">3 Guests</option>
-              <option value="4">4 Guests (Family / Friends)</option>
-              <option value="5">5 - 6 Guests</option>
-              <option value="7">7 - 10 Guests (Party Seating)</option>
-              <option value="12">10+ Guests (Celebration / Event)</option>
+              <option value="2 Guests">2 Guests (Couple / Pair)</option>
+              <option value="4 Guests" selected>4 Guests (Family / Friends)</option>
+              <option value="6 Guests">6 Guests (Group)</option>
+              <option value="8+ Guests">8+ Guests (Celebration Party)</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="reserveOccasion">Occasion / Special Request</label>
-            <select id="reserveOccasion" class="form-control">
-              <option value="Casual Rooftop Hangout">Casual Rooftop Dining</option>
-              <option value="Romantic Date Night">Romantic Date Night</option>
-              <option value="Birthday Celebration">Birthday Celebration</option>
-              <option value="Anniversary">Anniversary</option>
-              <option value="Friends Reunion">Friends Reunion</option>
-              <option value="Business / Family Dinner">Family Dinner</option>
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveArea"><i class="fas fa-chair"></i> Seating Area</label>
+            <select id="reserveArea" class="form-control">
+              <option value="Open-Sky Terrace">Open-Sky Terrace</option>
+              <option value="Sunset View Edge">Sunset View Edge</option>
+              <option value="5th Floor Indoor Lounge">Indoor AC Lounge</option>
             </select>
           </div>
         </div>
-        <div class="form-group" style="margin-top: 10px;">
-          <label for="reserveNotes">Special Seating Requests (Optional)</label>
-          <textarea id="reserveNotes" class="form-control" rows="2" placeholder="e.g. Near edge for sunset view, birthday decor assistance..."></textarea>
+
+        <div class="form-row">
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveCustName"><i class="fas fa-user"></i> Full Name <span class="required-star">*</span></label>
+            <input type="text" id="reserveCustName" class="form-control" placeholder="Enter your name" required autocomplete="name">
+          </div>
+          <div class="form-group flex-1" style="margin-bottom: 12px;">
+            <label for="reserveCustPhone"><i class="fas fa-phone"></i> Mobile Number <span class="required-star">*</span></label>
+            <input type="tel" id="reserveCustPhone" class="form-control" placeholder="10-digit number" required autocomplete="tel">
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 18px; padding: 14px;">
-          <i class="fas fa-check-circle"></i> Confirm Table Reservation via WhatsApp
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="reserveNotes"><i class="fas fa-comment-dots"></i> Special Request (Optional)</label>
+          <input type="text" id="reserveNotes" class="form-control" placeholder="e.g. Birthday, anniversary, quiet corner table">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="btnConfirmReservation">
+          <i class="fas fa-calendar-check"></i> Reserve a Table
         </button>
+
+        <button type="button" class="btn btn-whatsapp-reserve btn-block" id="btnReserveWhatsApp">
+          <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> Reserve Now via WhatsApp
+        </button>
+
+        <a href="tel:9623999095" class="btn btn-secondary btn-sm btn-block" style="margin-top: 10px;">
+          <i class="fas fa-phone"></i> Call Cafe Desk for Instant Table (+91 9623999095)
+        </a>
       </form>
     </div>
   </div>

@@ -3238,8 +3238,10 @@ button {
   font-weight: 700 !important;
   color: #1c1917 !important;
   cursor: pointer !important;
-  width: 22px !important;
-  height: 22px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;

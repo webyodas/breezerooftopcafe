@@ -124,6 +124,7 @@ async function syncCustomerToSupabase(profile, activeCart = null) {
     if (existingRow && existingRow.id) {
       await client.from('customers').update(payload).eq('id', existingRow.id);
     } else {
+      payload.id = 'CUST-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
       payload.created_at = new Date().toISOString();
       await client.from('customers').insert(payload);
     }
@@ -1182,6 +1183,8 @@ async function syncReservationToSupabase(reservation) {
   if (!client) return;
   try {
     const payload = {
+      id: reservation.id || ('TBL-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4)),
+      created_at: reservation.createdAt || new Date().toISOString(),
       guest_name: reservation.customer?.name || reservation.name || 'Guest',
       guest_phone: reservation.customer?.phone || reservation.phone || '',
       guest_email: reservation.customer?.email || (typeof customerProfile !== 'undefined' ? customerProfile.email : null) || null,
@@ -4558,6 +4561,23 @@ function initCartSystem() {
       if (googlePhonePromptModal && googlePhonePromptModal.classList.contains('active')) closeGooglePhonePromptModal();
       const storeClosedModal = document.getElementById('storeClosedModal');
       if (storeClosedModal && storeClosedModal.classList.contains('active')) closeStoreClosedModal();
+      if (typeof closeCartDrawer === 'function') closeCartDrawer();
+      const mobileNavDrawer = document.getElementById('mobileNavDrawer');
+      const mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
+      if (mobileNavDrawer && mobileNavDrawer.classList.contains('open')) {
+        mobileNavDrawer.classList.remove('open');
+        if (mobileNavBackdrop) mobileNavBackdrop.classList.remove('active');
+      }
+      document.querySelectorAll('.modal-overlay.active, .cart-drawer.active, .lightbox-modal.active, .image-lightbox.active').forEach(modal => {
+        modal.classList.remove('active');
+        if (modal.style.display === 'flex' || modal.style.display === 'block') {
+          modal.style.display = 'none';
+        }
+      });
+      document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
   });
 
@@ -6279,6 +6299,19 @@ function initCartSystem() {
       e.preventDefault();
       openTableBookingModal();
     });
+  });
+
+  document.querySelectorAll('.open-reserve-modal-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openTableBookingModal();
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && tableBookingModal && tableBookingModal.classList.contains('active')) {
+      closeTableBookingModal();
+    }
   });
 
   if (tableBookingCloseBtn) tableBookingCloseBtn.addEventListener('click', closeTableBookingModal);

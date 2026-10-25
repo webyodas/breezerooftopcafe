@@ -165,6 +165,24 @@ async function handleQueryExecution({ env, body }) {
       );
     }
 
+    const ALLOWED_TABLES = new Set([
+      'orders',
+      'menu_items',
+      'delivery_partners',
+      'customers',
+      'table_reservations',
+      'store_settings',
+      'app_events',
+      'rider_settlements'
+    ]);
+
+    if (table === 'admin_users' || !ALLOWED_TABLES.has(table)) {
+      return new Response(
+        JSON.stringify({ data: null, error: { message: `Access to table '${table}' is unauthorized or forbidden` } }),
+        { status: 403, headers: CORS_HEADERS }
+      );
+    }
+
     // ------------------------------------------------------------------------
     // 1. SELECT ACTION
     // ------------------------------------------------------------------------

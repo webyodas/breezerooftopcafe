@@ -3695,12 +3695,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (adminAssignTableModal && adminAssignTableModal.style.display === 'flex') {
-        closeAssignTableModal();
-      }
-      if (adminAddReservationModal && adminAddReservationModal.style.display === 'flex') {
-        closeAddReservationModal();
-      }
+      document.querySelectorAll('.admin-modal-overlay').forEach((modal) => {
+        if (modal.style.display === 'flex' || modal.classList.contains('active') || (modal.style.display && modal.style.display !== 'none')) {
+          modal.style.display = 'none';
+          modal.classList.remove('active');
+        }
+      });
     }
   });
 
