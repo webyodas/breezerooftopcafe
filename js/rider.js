@@ -927,7 +927,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updated.status === 'cancelled') {
       stopRiderRinger();
       if (activeDeliveryOrder && activeDeliveryOrder.id === updated.id) {
-        showRiderToast('⚠️ Order #' + updated.id + ' was cancelled by customer.');
+        const by = (updated.cancelled_by === 'customer') ? 'customer' : 'restaurant kitchen';
+        showRiderToast('⚠️ Order #' + updated.id + ' was cancelled by ' + by + '.');
         activeDeliveryOrder = null;
         renderActiveOrderUI(null);
       }

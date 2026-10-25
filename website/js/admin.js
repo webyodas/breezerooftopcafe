@@ -2274,7 +2274,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const isOnlinePaid = !isCod && total > 0;
       const cleanPhone = (order.customer_phone || '').replace(/\D/g, '').slice(-10);
       const reasonStr = order.cancellation_reason || '';
-      const isCustomerCancelled = /customer|mistake|grace window|changed mind/i.test(reasonStr);
+      const isCustomerCancelled = (order.cancelled_by === 'customer');
       cancelStrip = `
         <div style="background: ${isCustomerCancelled ? '#f1f5f9' : '#fef2f2'}; border: 1px solid ${isCustomerCancelled ? '#cbd5e1' : '#fecaca'}; border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: ${isCustomerCancelled ? '#334155' : '#991b1b'};">
           <i class="fas ${isCustomerCancelled ? 'fa-user-slash' : 'fa-info-circle'}" style="color: ${isCustomerCancelled ? '#64748b' : '#dc2626'}; margin-right: 4px;"></i>
@@ -3044,7 +3044,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       await updateOrderStatus(id, 'cancelled', {
-        cancellation_reason: reason
+        cancellation_reason: reason,
+        cancelled_by: 'admin'
       });
       showAdminToast(`Order #${id} rejected: ${reason}`, false);
     });

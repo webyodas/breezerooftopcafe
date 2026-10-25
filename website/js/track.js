@@ -417,11 +417,14 @@
       isDeliveredState = true;
     } else if (st === 'cancelled' || st === 'rejected') {
       activeIndex = -1;
-      badgeText = 'Order Cancelled';
-      badgeClass = 'cancelled';
-      heroIcon = 'fa-times-circle';
-      heroHeading = 'Order Cancelled';
-      heroSub = order.cancellation_reason || 'This order was cancelled.';
+      const isCust = (order.cancelled_by === 'customer');
+      badgeText = isCust ? 'Cancelled by You' : 'Cancelled by Restaurant';
+      badgeClass = isCust ? 'customer-cancelled' : 'cancelled';
+      heroIcon = isCust ? 'fa-user-check' : 'fa-times-circle';
+      heroHeading = isCust ? 'Order Cancelled by You' : 'Order Cancelled by Restaurant';
+      heroSub = isCust
+        ? 'You cancelled this order during the grace period. No charges were incurred.'
+        : (order.cancellation_reason ? ('Reason: ' + order.cancellation_reason) : 'Our kitchen was unable to fulfill this order at this time. We apologize for the inconvenience.');
       isCancelledState = true;
     }
 
@@ -435,7 +438,10 @@
     if (trackingHeroCard) {
       trackingHeroCard.classList.remove('delivered-state', 'cancelled-state', 'user-cancelled-state');
       if (isDeliveredState) trackingHeroCard.classList.add('delivered-state');
-      if (isCancelledState) trackingHeroCard.classList.add('cancelled-state');
+      if (isCancelledState) {
+        const isCust = (order.cancelled_by === 'customer');
+        trackingHeroCard.classList.add(isCust ? 'user-cancelled-state' : 'cancelled-state');
+      }
     }
     if (trackHeroIcon) {
       trackHeroIcon.className = 'fas ' + heroIcon;
@@ -530,6 +536,7 @@
       }
 
       currentActiveOrder.status = 'cancelled';
+      currentActiveOrder.cancelled_by = 'customer';
       currentActiveOrder.cancellation_reason = 'Cancelled by customer within 60s grace window';
       renderOrderTracking(currentActiveOrder, false);
       if (window.showToast) window.showToast('Order #' + currentActiveOrder.id + ' has been cancelled.');

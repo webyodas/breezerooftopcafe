@@ -1062,13 +1062,14 @@ async function syncOrderToSupabase(order) {
   }
 }
 
-async function updateOrderStatusInSupabase(orderId, status, reason = null) {
+async function updateOrderStatusInSupabase(orderId, status, reason = null, cancelledBy = null) {
   if (!orderId) return;
   const client = getSupabaseClient();
   if (!client) return;
   try {
     const updateData = { status: status, updated_at: new Date().toISOString() };
     if (reason) updateData.cancellation_reason = reason;
+    if (cancelledBy) updateData.cancelled_by = cancelledBy;
     const { error } = await client.from('orders').update(updateData).eq('id', orderId);
     if (error) console.warn('Supabase status update:', error.message);
   } catch (err) {
@@ -1159,6 +1160,7 @@ async function fetchUserOrdersFromSupabase(email, phone = null) {
         accepted_at: row.accepted_at || null,
         food_ready_at: row.food_ready_at || null,
         cancellation_reason: row.cancellation_reason || null,
+        cancelled_by: row.cancelled_by || null,
         delay_reason: row.delay_reason || null,
         rider_id: row.rider_id || null,
         rider_name: row.rider_name || null,
@@ -5289,6 +5291,7 @@ function initCartSystem() {
       if (dbOrder.estimated_delivery_time !== undefined) customerActiveOrder.estimated_delivery_time = dbOrder.estimated_delivery_time;
       if (dbOrder.estimated_delivery_by !== undefined) customerActiveOrder.estimated_delivery_by = dbOrder.estimated_delivery_by;
       if (dbOrder.cancellation_reason !== undefined) customerActiveOrder.cancellation_reason = dbOrder.cancellation_reason;
+      if (dbOrder.cancelled_by !== undefined) customerActiveOrder.cancelled_by = dbOrder.cancelled_by;
       if (dbOrder.delay_reason !== undefined) customerActiveOrder.delay_reason = dbOrder.delay_reason;
 
       if (st === 'placed') customerActiveOrder.currentStep = 2;
@@ -5332,13 +5335,13 @@ function initCartSystem() {
           playCustomerAlertTone('info');
           syncUserOrders(customerProfile.email, customerProfile.phone);
         } else if (st === 'cancelled' || st === 'rejected') {
-          const isCust = (dbOrder.cancelled_by === 'customer') || /customer|mistake|grace window|changed mind/i.test(dbOrder.cancellation_reason || '');
+          const isCust = (dbOrder.cancelled_by === 'customer');
           if (isCust) {
             const cleanReason = (dbOrder.cancellation_reason || '').replace(/^cancelled by customer:\s*/i, '').trim();
             showToast('ℹ️ Order #' + dbOrder.id + ' cancelled by customer' + (cleanReason ? (': ' + cleanReason) : '.'));
             playCustomerAlertTone('info');
           } else {
-            showToast('❌ Order #' + dbOrder.id + ' was declined by kitchen: ' + (dbOrder.cancellation_reason || 'Peak kitchen capacity'));
+            showToast('❌ Order #' + dbOrder.id + ' was cancelled by restaurant: ' + (dbOrder.cancellation_reason || 'Kitchen operational constraints'));
             playCustomerAlertTone('declined');
           }
           syncUserOrders(customerProfile.email, customerProfile.phone);
@@ -5422,13 +5425,12 @@ function initCartSystem() {
     // ========================================================================
     if (isCancelled) {
       const reasonStr = String(order.cancellation_reason || '').trim();
-      const isCust = (order.cancelled_by === 'customer') ||
-                     /customer|mistake|grace window|changed mind/i.test(reasonStr);
+      const isCust = (order.cancelled_by === 'customer');
 
       if (trackingStatusBadge) {
         trackingStatusBadge.className = isCust ? 'tracking-header-badge customer-cancelled' : 'tracking-header-badge cancelled';
         if (trackingStatusBadgeText) {
-          trackingStatusBadgeText.textContent = isCust ? 'Cancelled by You' : 'Declined by Kitchen';
+          trackingStatusBadgeText.textContent = isCust ? 'Cancelled by You' : 'Cancelled by Restaurant';
         }
       }
 
@@ -5440,12 +5442,12 @@ function initCartSystem() {
         trackingHeroCard.classList.add(isCust ? 'user-cancelled-state' : 'cancelled-state');
       }
       if (trackingHeroHeading) {
-        trackingHeroHeading.textContent = isCust ? 'Order Cancelled by You' : 'Order Declined by Kitchen';
+        trackingHeroHeading.textContent = isCust ? 'Order Cancelled by You' : 'Order Cancelled by Restaurant';
       }
       if (trackingHeroSubtext) {
         trackingHeroSubtext.textContent = isCust
           ? 'You cancelled this order during the grace period. No charges were incurred.'
-          : 'Our kitchen was unable to accept this order at this time. We apologize for the inconvenience.';
+          : 'Our kitchen was unable to fulfill this order at this time. We apologize for the inconvenience.';
       }
       if (trackingHeroIcon) {
         trackingHeroIcon.className = isCust ? 'fas fa-user-check' : 'fas fa-times-circle';
@@ -5505,7 +5507,7 @@ function initCartSystem() {
             iconCircle.innerHTML = '<i class="fas fa-times"></i>';
           }
           if (cancelTitleEl) {
-            cancelTitleEl.textContent = 'Order Declined by Kitchen';
+            cancelTitleEl.textContent = 'Order Cancelled by Restaurant';
             cancelTitleEl.style.color = '#991b1b';
           }
           if (cancelNoticeBox) {
@@ -5518,8 +5520,8 @@ function initCartSystem() {
             cancelNoticeIcon.style.color = '#dc2626';
           }
           if (trackingCancelReasonText) {
-            const cleanReason = reasonStr || 'Kitchen currently at peak capacity';
-            trackingCancelReasonText.innerHTML = `<strong>Kitchen Explanation:</strong> ${escapeHtml(cleanReason)}`;
+            const cleanReason = reasonStr || 'Kitchen operational constraints';
+            trackingCancelReasonText.innerHTML = `<strong>Reason:</strong> ${escapeHtml(cleanReason)}`;
           }
         }
 
@@ -5908,7 +5910,7 @@ function initCartSystem() {
     activeOrder.cancelled_by = 'customer';
     activeOrder.currentStep = 0;
 
-    await updateOrderStatusInSupabase(activeOrder.id, 'cancelled', reason);
+    await updateOrderStatusInSupabase(activeOrder.id, 'cancelled', reason, 'customer');
 
     const userKey = customerProfile.phone || customerProfile.email;
     customerActiveOrder = null;
@@ -6760,6 +6762,7 @@ function initCartSystem() {
       estimated_delivery_time: row.estimated_delivery_time || null,
       estimated_delivery_by: row.estimated_delivery_by || null,
       cancellation_reason: row.cancellation_reason || null,
+      cancelled_by: row.cancelled_by || null,
       delay_reason: row.delay_reason || null
     };
   }
