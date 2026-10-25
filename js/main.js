@@ -2455,7 +2455,7 @@ function initCartSystem() {
           }
         }
         if (dropdownUserName) dropdownUserName.textContent = displayName;
-        if (dropdownUserPhone) dropdownUserPhone.textContent = customerProfile.phone ? ('+91 ' + customerProfile.phone) : (customerProfile.email || 'Verified Customer');
+        if (dropdownUserPhone) dropdownUserPhone.textContent = customerProfile.phone ? ('+91 ' + customerProfile.phone) : (customerProfile.email || 'Breeze Guest');
         if (menuManagePhoneLabel) {
           menuManagePhoneLabel.textContent = customerProfile.phone ? ('+91 ' + customerProfile.phone) : '+ Add Mobile Number';
         }
@@ -3133,14 +3133,17 @@ function initCartSystem() {
         profileHeroEmail.style.display = 'inline-flex';
         profileHeroEmail.innerHTML = `<i class="fas fa-envelope" style="color: #6366f1;"></i> ${escapeHtml(customerProfile.email)}`;
       } else {
-        profileHeroEmail.style.display = 'inline-flex';
-        profileHeroEmail.innerHTML = `<i class="fas fa-shield-alt" style="color: #16a34a;"></i> Verified Customer`;
+        profileHeroEmail.style.display = 'none';
+        profileHeroEmail.innerHTML = '';
       }
     }
     if (profileHeroPhone) {
-      profileHeroPhone.innerHTML = customerProfile.phone
-        ? `<i class="fas fa-phone"></i> +91 ${escapeHtml(customerProfile.phone)}`
-        : `<i class="fas fa-phone"></i> Verified Session`;
+      if (customerProfile.phone) {
+        profileHeroPhone.style.display = 'inline-flex';
+        profileHeroPhone.innerHTML = `<i class="fas fa-phone"></i> +91 ${escapeHtml(customerProfile.phone)}`;
+      } else {
+        profileHeroPhone.style.display = 'none';
+      }
     }
 
     // Stats calculations
@@ -6176,7 +6179,7 @@ function initCartSystem() {
           <div style="text-align: center; padding: 30px 10px; color: var(--text-muted);">
             <i class="fas fa-lock" style="font-size: 2.2rem; margin-bottom: 10px; color: #b5883d;"></i>
             <p style="margin: 0; font-weight: 600; color: var(--text-dark);">Sign in to view your orders</p>
-            <p style="font-size: 0.85rem; margin-top: 4px;">Sign in with Mobile OTP or Google to live track rooftop orders and view past receipts.</p>
+            <p style="font-size: 0.85rem; margin-top: 4px;">Sign in with your mobile number to live track rooftop orders and view past receipts.</p>
           </div>
         `;
       }

@@ -185,7 +185,7 @@
                 <div class="menu-avatar" id="dropdownAvatar">R</div>
                 <div style="flex: 1; min-width: 0;">
                   <strong id="dropdownUserName">Customer Profile</strong>
-                  <span id="dropdownUserPhone">Verified Customer</span>
+                  <span id="dropdownUserPhone">Breeze Guest</span>
                 </div>
                 <i class="fas fa-chevron-right" style="color: var(--primary-gold); font-size: 0.8rem; margin-left: 6px;"></i>
               </a>
@@ -1062,7 +1062,6 @@
       <div class="profile-hero-card">
         <div class="profile-hero-avatar-wrap">
           <div class="profile-hero-avatar" id="profileHeroAvatar">R</div>
-          <span class="profile-verified-badge" title="Verified Customer"><i class="fas fa-check"></i></span>
         </div>
         <div class="profile-hero-details">
           <div class="profile-hero-name-row">
@@ -1070,8 +1069,8 @@
             <span class="profile-vip-pill" id="profileVipPill"><i class="fas fa-gem"></i> VIP Guest</span>
           </div>
           <div class="profile-hero-meta">
-            <span id="profileHeroEmail" class="profile-meta-item"><i class="fas fa-shield-alt" style="color: #16a34a;"></i> Verified Customer</span>
             <span id="profileHeroPhone" class="profile-meta-item"><i class="fas fa-phone"></i> +91 ----------</span>
+            <span id="profileHeroEmail" class="profile-meta-item" style="display: none;"></span>
           </div>
         </div>
       </div>
@@ -1214,18 +1213,7 @@
             </small>
           </div>
 
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label style="font-size: 0.78rem; font-weight: 700; color: #4a4238; margin-bottom: 6px; display: block;">
-              Account Verification &amp; Security
-            </label>
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #fbf9f5; border: 1.5px solid #ece4d8; border-radius: 10px;">
-              <span id="profileDisplaySecurityPhone" style="font-weight: 600; color: #1c1917; font-size: 0.88rem;">+91 ----------</span>
-              <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                <i class="fas fa-check-circle"></i> Verified Session
-              </span>
-            </div>
-            <input type="hidden" id="profileDisplayEmail">
-          </div>
+          <input type="hidden" id="profileDisplayEmail">
 
           <button type="button" class="btn btn-primary btn-block" id="btnSavePersonalInfo" style="height: 44px; font-weight: 700;">
             <i class="fas fa-save" style="margin-right: 6px;"></i> Save Personal Details

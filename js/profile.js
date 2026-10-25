@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navUserDropdown.style.removeProperty('display');
         navUserDropdown.classList.remove('hidden');
 
-        const displayName = profile.name || (profile.phone ? ('Customer ' + profile.phone.slice(-4)) : 'Verified Customer');
+        const displayName = profile.name || (profile.phone ? ('Customer ' + profile.phone.slice(-4)) : 'Guest');
         const initial = (profile.name || 'B').trim().charAt(0).toUpperCase() || 'B';
         const firstName = profile.name ? profile.name.trim().split(' ')[0] : 'Account';
 
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         if (dropdownUserName) dropdownUserName.textContent = displayName;
-        if (dropdownUserPhone) dropdownUserPhone.textContent = profile.phone ? ('+91 ' + profile.phone) : (profile.email || 'Verified Customer');
+        if (dropdownUserPhone) dropdownUserPhone.textContent = profile.phone ? ('+91 ' + profile.phone) : (profile.email || 'Breeze Guest');
       } else {
         navAuthBtn.style.removeProperty('display');
         navAuthBtn.classList.remove('hidden');
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderHeroSummary() {
-    const displayName = profile.name || (profile.phone ? ('Customer ' + profile.phone.slice(-4)) : 'Verified Customer');
+    const displayName = profile.name || (profile.phone ? ('Customer ' + profile.phone.slice(-4)) : 'Guest');
     const initial = (profile.name || 'B').trim().charAt(0).toUpperCase() || 'B';
 
     if (pageHeroAvatar) {
@@ -371,14 +371,17 @@ document.addEventListener('DOMContentLoaded', () => {
         pageHeroEmail.style.display = 'inline-flex';
         pageHeroEmail.innerHTML = `<i class="fas fa-envelope" style="color: #6366f1;"></i> ${escapeHtml(profile.email)}`;
       } else {
-        pageHeroEmail.style.display = 'inline-flex';
-        pageHeroEmail.innerHTML = `<i class="fas fa-shield-alt" style="color: #16a34a;"></i> Verified Customer`;
+        pageHeroEmail.style.display = 'none';
+        pageHeroEmail.innerHTML = '';
       }
     }
     if (pageHeroPhone) {
-      pageHeroPhone.innerHTML = profile.phone
-        ? `<i class="fas fa-phone" style="color: #16a34a;"></i> +91 ${escapeHtml(profile.phone)}`
-        : `<i class="fas fa-phone" style="color: #16a34a;"></i> Verified Session`;
+      if (profile.phone) {
+        pageHeroPhone.style.display = 'inline-flex';
+        pageHeroPhone.innerHTML = `<i class="fas fa-phone" style="color: #16a34a;"></i> +91 ${escapeHtml(profile.phone)}`;
+      } else {
+        pageHeroPhone.style.display = 'none';
+      }
     }
 
     updateStatsBar();
