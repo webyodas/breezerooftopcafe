@@ -6373,6 +6373,10 @@ function initCartSystem() {
   if (tableBookingForm) {
     tableBookingForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (btnReserveWhatsApp) {
+        btnReserveWhatsApp.click();
+        return;
+      }
       const date = reserveDate ? reserveDate.value : '';
       const time = reserveTime ? reserveTime.value : '';
       const guests = reserveGuests ? reserveGuests.value : '';
