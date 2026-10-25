@@ -2135,14 +2135,76 @@
     }
 
     @media print {
-      body * {
-        visibility: hidden !important;
+      @page {
+        size: 80mm auto;
+        margin: 0;
       }
-      /* If printing period statement report */
-      body.printing-period-report #periodReportModal,
-      body.printing-period-report #periodReportModal * {
+      html, body {
+        height: auto !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      /* Hide all top-level dashboard chrome so it never takes up blank pages */
+      body > *:not(#kotModal):not(#periodReportModal),
+      .admin-sidebar,
+      .admin-header,
+      .admin-kpi-grid,
+      .admin-table-container,
+      .admin-filter-bar,
+      .modal-header,
+      button,
+      .btn,
+      .btn-modal-close,
+      .btn-gold-primary,
+      .btn-action-outline {
+        display: none !important;
+      }
+
+      /* KOT Thermal Print Slip */
+      #kotModal,
+      body.printing-kot #kotModal {
+        display: block !important;
+        position: static !important;
         visibility: visible !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 78mm !important;
+        max-width: 78mm !important;
+        box-shadow: none !important;
+        border: none !important;
       }
+      #kotModal .admin-modal-card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 78mm !important;
+        max-width: 78mm !important;
+        background: #ffffff !important;
+      }
+      #kotPrintSection {
+        display: block !important;
+        position: static !important;
+        visibility: visible !important;
+        width: 74mm !important;
+        max-width: 74mm !important;
+        margin: 0 !important;
+        padding: 3mm !important;
+        border: 1px dashed #000000 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Courier New', Courier, monospace !important;
+        font-size: 12px !important;
+      }
+      #kotPrintSection * {
+        visibility: visible !important;
+        color: #000000 !important;
+        background: transparent !important;
+      }
+
+      /* Period Statement Report */
       body.printing-period-report #periodReportModal {
         position: static !important;
         display: block !important;
@@ -2161,43 +2223,9 @@
         max-width: 100% !important;
         background: #ffffff !important;
       }
-      body.printing-period-report #periodReportModal .modal-header button {
-        display: none !important;
-      }
-
-      /* Default / KOT thermal print fallback when not printing report */
-      body:not(.printing-period-report) #kotModal {
-        display: block !important;
-        background: transparent !important;
-        position: static !important;
-        padding: 0 !important;
-      }
-      body:not(.printing-period-report) #kotModal .modal-container,
-      body:not(.printing-period-report) #kotModal .admin-modal-card {
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        background: transparent !important;
-      }
-      body:not(.printing-period-report) #kotModal .modal-header,
-      body:not(.printing-period-report) #kotModal button {
-        display: none !important;
-      }
-      body:not(.printing-period-report) #kotPrintSection, 
-      body:not(.printing-period-report) #kotPrintSection * {
+      body.printing-period-report #periodReportModal * {
         visibility: visible !important;
-      }
-      body:not(.printing-period-report) #kotPrintSection {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 78mm;
-        margin: 0;
-        padding: 4mm;
-        border: 1px dashed #000;
-        font-family: var(--font-mono), monospace;
+        color: #000000 !important;
       }
     }
 

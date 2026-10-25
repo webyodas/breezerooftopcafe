@@ -6319,9 +6319,103 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (btnPrintKotBtn) {
-    btnPrintKotBtn.addEventListener('click', () => {
+    btnPrintKotBtn.addEventListener('click', printKotSlip);
+  }
+
+  function printKotSlip() {
+    const printSection = document.getElementById('kotPrintSection');
+    if (!printSection) {
+      document.body.classList.add('printing-kot');
       window.print();
-    });
+      setTimeout(() => document.body.classList.remove('printing-kot'), 1000);
+      return;
+    }
+
+    try {
+      const printFrame = document.createElement('iframe');
+      printFrame.setAttribute('title', 'KOT Receipt Print');
+      printFrame.style.position = 'fixed';
+      printFrame.style.top = '-9999px';
+      printFrame.style.left = '-9999px';
+      printFrame.style.width = '80mm';
+      printFrame.style.height = '100px';
+      printFrame.style.border = 'none';
+      document.body.appendChild(printFrame);
+
+      const frameDoc = printFrame.contentWindow.document;
+      frameDoc.open();
+      frameDoc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Kitchen Order Ticket</title>
+          <style>
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+            html, body {
+              margin: 0;
+              padding: 4mm;
+              background: #ffffff !important;
+              color: #000000 !important;
+              font-family: 'Courier New', Courier, monospace;
+              font-size: 13px;
+              line-height: 1.35;
+              width: 72mm;
+              max-width: 72mm;
+            }
+            * {
+              box-sizing: border-box;
+              color: #000000 !important;
+              background: transparent !important;
+            }
+            .kot-slip-title {
+              text-align: center;
+              font-weight: 800;
+              font-size: 13px;
+              margin-bottom: 8px;
+              line-height: 1.3;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 12px;
+              margin: 6px 0;
+            }
+            th, td {
+              padding: 3px 0;
+            }
+          </style>
+        </head>
+        <body>
+          ${printSection.innerHTML}
+        </body>
+        </html>
+      `);
+      frameDoc.close();
+
+      setTimeout(() => {
+        try {
+          printFrame.contentWindow.focus();
+          printFrame.contentWindow.print();
+        } catch (err) {
+          document.body.classList.add('printing-kot');
+          window.print();
+          setTimeout(() => document.body.classList.remove('printing-kot'), 1000);
+        }
+        setTimeout(() => {
+          if (document.body.contains(printFrame)) {
+            document.body.removeChild(printFrame);
+          }
+        }, 2000);
+      }, 300);
+    } catch (e) {
+      document.body.classList.add('printing-kot');
+      window.print();
+      setTimeout(() => document.body.classList.remove('printing-kot'), 1000);
+    }
   }
 
   // --------------------------------------------------------------------------
