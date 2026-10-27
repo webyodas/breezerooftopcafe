@@ -145,7 +145,7 @@ export async function onRequestGet(context) {
 
     // For public listeners, filter to specific order if tracking, or public events
     if (!isStaff && orderIdParam) {
-      sql += ' AND (record_id = ? OR table_name IN ('store_settings', 'menu_items'))';
+      sql += " AND (record_id = ? OR table_name IN ('store_settings', 'menu_items'))";
       params.push(orderIdParam);
     }
 
