@@ -8,6 +8,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   const RIDER_SESSION_KEY = 'breeze_rider_session';
+  const RIDER_TOKEN_KEY = 'breeze_rider_token';
   const RIDER_AUDIO_KEY = 'breeze_rider_audio_pref';
 
   // Config fallback
@@ -234,72 +235,66 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // 1. Verify against Supabase delivery_partners
-      let matchedRider = null;
-      let queryAttempted = false;
-      if (supabaseClient) {
-        try {
-          const { data, error } = await supabaseClient
-            .from('delivery_partners')
-            .select('*')
-            .eq('id', targetId)
-            .single();
+      const btnSubmit = riderLoginForm.querySelector('button[type="submit"]');
+      const origHtml = btnSubmit ? btnSubmit.innerHTML : '';
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+      }
 
-          queryAttempted = true;
-          if (!error && data) {
-            // Check exact passcode, case-insensitive passcode, or master fallback
-            const passMatches = data.passcode === enteredPasscode || 
-                                (data.passcode && data.passcode.toLowerCase() === enteredPasscode.toLowerCase()) || 
-                                enteredPasscode === 'breeze2026';
-            if (passMatches) {
-              matchedRider = data;
-            } else {
-              showRiderToast('Incorrect passcode for ' + targetId);
-              return;
-            }
-          } else if (error && error.code === 'PGRST116') {
-            // Row not found in database (Rider deleted or does not exist)
-            showRiderToast('Partner ID "' + targetId + '" not found in system');
-            return;
+      try {
+        const res = await fetch('/api/auth?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            type: 'rider',
+            id: targetId,
+            password: enteredPasscode
+          })
+        });
+        const json = await res.json();
+
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = origHtml;
+        }
+
+        if (res.ok && json.success && json.token) {
+          currentRider = json.rider;
+          window.BREEZE_RIDER_TOKEN = json.token;
+          if (checkRememberRider && checkRememberRider.checked) {
+            localStorage.setItem(RIDER_TOKEN_KEY, json.token);
+            localStorage.setItem(RIDER_SESSION_KEY, JSON.stringify(currentRider));
+          } else {
+            sessionStorage.setItem(RIDER_TOKEN_KEY, json.token);
+            sessionStorage.setItem(RIDER_SESSION_KEY, JSON.stringify(currentRider));
+            localStorage.removeItem(RIDER_TOKEN_KEY);
+            localStorage.removeItem(RIDER_SESSION_KEY);
           }
-        } catch (err) {
-          console.warn('Supabase rider auth query error:', err);
-        }
-      }
 
-      // Offline fallback only if network failed completely
-      if (!matchedRider && !queryAttempted) {
-        if (targetId === 'RIDER-01' && (enteredPasscode === 'breeze2026' || enteredPasscode === 'breeze')) {
-          matchedRider = { id: 'RIDER-01', name: 'Rohan Patil', phone: '9876543210', vehicle_type: 'Motorcycle', vehicle_number: 'MH-48-AB-1234', status: 'available' };
-        } else if (targetId === 'RIDER-02' && (enteredPasscode === 'breeze2026' || enteredPasscode === 'breeze')) {
-          matchedRider = { id: 'RIDER-02', name: 'Amit Sharma', phone: '9876543211', vehicle_type: 'Scooter', vehicle_number: 'MH-48-CD-5678', status: 'available' };
+          if (supabaseClient) {
+            try {
+              await supabaseClient.from('delivery_partners').update({
+                status: 'available',
+                updated_at: new Date().toISOString()
+              }).eq('id', currentRider.id);
+            } catch(e) {}
+          }
+
+          showRiderToast('Welcome, ' + currentRider.name + '! 👋');
+          initCockpit();
         } else {
-          showRiderToast('Invalid Rider ID or Passcode');
-          return;
+          showRiderToast(json.error || 'Invalid Rider ID or Passcode');
         }
+      } catch (err) {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = origHtml;
+        }
+        console.warn('Rider auth error:', err);
+        showRiderToast('Network error during authentication. Please retry.');
       }
-
-      if (!matchedRider) {
-        showRiderToast('Invalid Rider ID or Passcode');
-        return;
-      }
-
-      currentRider = matchedRider;
-      if (checkRememberRider.checked) {
-        localStorage.setItem(RIDER_SESSION_KEY, JSON.stringify(currentRider));
-      }
-
-      if (supabaseClient) {
-        try {
-          await supabaseClient.from('delivery_partners').update({
-            status: 'available',
-            updated_at: new Date().toISOString()
-          }).eq('id', currentRider.id);
-        } catch(e) {}
-      }
-
-      showRiderToast('Welcome, ' + currentRider.name + '! 👋');
-      initCockpit();
     });
   }
 
@@ -314,11 +309,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }).eq('id', currentRider.id);
           } catch(e) {}
         }
+        try {
+          await fetch('/api/auth?action=logout', { method: 'POST', credentials: 'include' });
+        } catch(e){}
         if (riderHeartbeatTimer) {
           clearInterval(riderHeartbeatTimer);
           riderHeartbeatTimer = null;
         }
         localStorage.removeItem(RIDER_SESSION_KEY);
+        localStorage.removeItem(RIDER_TOKEN_KEY);
+        sessionStorage.removeItem(RIDER_SESSION_KEY);
+        sessionStorage.removeItem(RIDER_TOKEN_KEY);
+        window.BREEZE_RIDER_TOKEN = null;
         currentRider = null;
         if (realtimeChannel) realtimeChannel.unsubscribe();
         location.reload();
@@ -959,36 +961,68 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // AUTO-LOGIN ON BOOT (WITH VALIDATION)
+  // AUTO-LOGIN ON BOOT (WITH SERVER TOKEN VALIDATION)
   // --------------------------------------------------------------------------
-  try {
-    const saved = localStorage.getItem(RIDER_SESSION_KEY);
-    if (saved) {
-      currentRider = JSON.parse(saved);
-      if (supabaseClient) {
-        supabaseClient
-          .from('delivery_partners')
-          .select('*')
-          .ilike('id', currentRider.id)
-          .single()
-          .then(({ data, error }) => {
-            if (error || !data) {
-              console.warn('Saved rider not found in database, clearing session');
-              localStorage.removeItem(RIDER_SESSION_KEY);
-              currentRider = null;
-              if (riderAuthView) riderAuthView.style.display = 'block';
-              if (riderCockpitView) riderCockpitView.style.display = 'none';
-              if (btnRiderLogout) btnRiderLogout.style.display = 'none';
-            } else {
-              currentRider = data;
-              try { localStorage.setItem(RIDER_SESSION_KEY, JSON.stringify(currentRider)); } catch(e){}
-              initCockpit();
-            }
-          });
-      } else {
-        initCockpit();
+  (async function verifyAndRestoreRiderSession() {
+    try {
+      const token = localStorage.getItem(RIDER_TOKEN_KEY) || sessionStorage.getItem(RIDER_TOKEN_KEY);
+      const saved = localStorage.getItem(RIDER_SESSION_KEY) || sessionStorage.getItem(RIDER_SESSION_KEY);
+      if (token || saved) {
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = 'Bearer ' + token;
+          window.BREEZE_RIDER_TOKEN = token;
+        }
+        const res = await fetch('/api/auth?action=me', {
+          headers,
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json && json.authenticated && json.user && json.user.type === 'rider') {
+          currentRider = { ...json.user };
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              currentRider = { ...parsed, ...json.user };
+            } catch(e){}
+          }
+          if (supabaseClient) {
+            try {
+              const { data } = await supabaseClient
+                .from('delivery_partners')
+                .select('*')
+                .eq('id', currentRider.id)
+                .single();
+              if (data) currentRider = { ...currentRider, ...data };
+            } catch(e){}
+          }
+          initCockpit();
+          return;
+        } else {
+          console.warn('[Rider Auth] Invalid session or token expired, clearing session');
+          localStorage.removeItem(RIDER_SESSION_KEY);
+          localStorage.removeItem(RIDER_TOKEN_KEY);
+          sessionStorage.removeItem(RIDER_SESSION_KEY);
+          sessionStorage.removeItem(RIDER_TOKEN_KEY);
+          window.BREEZE_RIDER_TOKEN = null;
+          currentRider = null;
+          if (riderAuthView) riderAuthView.style.display = 'block';
+          if (riderCockpitView) riderCockpitView.style.display = 'none';
+          if (btnRiderLogout) btnRiderLogout.style.display = 'none';
+        }
+      }
+    } catch (e) {
+      console.warn('[Rider Auth] Error verifying session:', e);
+      const token = localStorage.getItem(RIDER_TOKEN_KEY) || sessionStorage.getItem(RIDER_TOKEN_KEY);
+      const saved = localStorage.getItem(RIDER_SESSION_KEY) || sessionStorage.getItem(RIDER_SESSION_KEY);
+      if (token && saved) {
+        try {
+          currentRider = JSON.parse(saved);
+          window.BREEZE_RIDER_TOKEN = token;
+          initCockpit();
+        } catch(err){}
       }
     }
-  } catch (e) {}
+  })();
 
 });

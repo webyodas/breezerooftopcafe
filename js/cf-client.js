@@ -128,7 +128,21 @@
       if (this.channels.size === 0 || this.isPolling) return;
       this.isPolling = true;
       try {
-        const res = await fetch(`${getApiBaseUrl()}/api/events?since=${this.lastEventId}`);
+        const eventHeaders = {};
+        const authToken = (typeof window !== 'undefined') && (
+          window.BREEZE_AUTH_TOKEN ||
+          window.BREEZE_RIDER_TOKEN ||
+          sessionStorage.getItem('breeze_admin_token') ||
+          localStorage.getItem('breeze_admin_token') ||
+          localStorage.getItem('breeze_rider_token') ||
+          sessionStorage.getItem('breeze_rider_token')
+        );
+        if (authToken) eventHeaders['Authorization'] = `Bearer ${authToken}`;
+
+        const res = await fetch(`${getApiBaseUrl()}/api/events?since=${this.lastEventId}`, {
+          headers: eventHeaders,
+          credentials: 'include'
+        });
         if (!res.ok) return;
         const data = await res.json();
         const events = data.events || [];
@@ -370,11 +384,26 @@
       };
 
       try {
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+
+        const authToken = (typeof window !== 'undefined') && (
+          window.BREEZE_AUTH_TOKEN ||
+          window.BREEZE_RIDER_TOKEN ||
+          sessionStorage.getItem('breeze_admin_token') ||
+          localStorage.getItem('breeze_admin_token') ||
+          localStorage.getItem('breeze_rider_token') ||
+          sessionStorage.getItem('breeze_rider_token')
+        );
+        if (authToken) {
+          headers['Authorization'] = `Bearer ${authToken}`;
+        }
+
         const res = await fetch(`${getApiBaseUrl()}/api/query`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers,
+          credentials: 'include',
           body: JSON.stringify(body)
         });
 

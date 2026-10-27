@@ -16,6 +16,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   const ADMIN_SESSION_KEY = 'breeze_admin_session';
+  const ADMIN_TOKEN_KEY = 'breeze_admin_token';
   const ADMIN_AUDIO_KEY = 'breeze_admin_audio_pref';
 
   // 1. SUPABASE CLIENT INITIALIZATION
@@ -691,13 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   // AUTHENTICATION LOGIC & PERSISTENCE
   // --------------------------------------------------------------------------
-  if (hintAutofillCreds) {
-    hintAutofillCreds.addEventListener('click', () => {
-      inputAdminId.value = 'admin';
-      inputAdminPassword.value = 'breeze@2026';
-      showAdminToast('Demo credentials autofilled');
-    });
-  }
+// Demo autofill removed for security hardening
 
   if (adminLoginForm) {
     adminLoginForm.addEventListener('submit', async (e) => {
@@ -717,108 +712,60 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
       }
 
-      let authenticatedUser = null;
-
-      // 1. Try Live Supabase Query on admin_users table
       try {
-        if (supabaseClient) {
-          const { data, error } = await supabaseClient
-            .from('admin_users')
-            .select('*')
-            .ilike('username', u)
-            .eq('is_active', true)
-            .maybeSingle();
+        const res = await fetch('/api/auth?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ type: 'admin', username: u, password: p })
+        });
+        const json = await res.json();
 
-          if (error) {
-            console.warn('[Admin Auth] Supabase query warning:', error);
-          } else if (data) {
-            // Password match verification
-            if (data.password_hash === p) {
-              authenticatedUser = {
-                id: data.id,
-                username: data.username,
-                name: data.name || data.username,
-                role: data.role || 'admin',
-                phone: data.phone || '',
-                signedInAt: new Date().toISOString()
-              };
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = originalBtnHtml;
+        }
 
-              // Record last login timestamp in background
-              supabaseClient
-                .from('admin_users')
-                .update({ last_login_at: new Date().toISOString() })
-                .eq('id', data.id)
-                .then(() => {})
-                .catch(err => console.warn('[Admin Auth] Last login update error:', err));
-            }
+        if (res.ok && json.success && json.token) {
+          currentAdmin = json.user;
+          window.BREEZE_AUTH_TOKEN = json.token;
+          sessionStorage.setItem(ADMIN_TOKEN_KEY, json.token);
+          sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdmin));
+          if (checkRememberAdmin && checkRememberAdmin.checked) {
+            localStorage.setItem(ADMIN_TOKEN_KEY, json.token);
+            localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdmin));
+          } else {
+            localStorage.removeItem(ADMIN_TOKEN_KEY);
+            localStorage.removeItem(ADMIN_SESSION_KEY);
           }
+
+          showAdminToast(`Welcome, ${currentAdmin.name}! 👋`);
+          initAdminApp();
+        } else {
+          alert(json.error || 'Invalid Admin ID or Password. Please verify your credentials or contact the Master Admin.');
         }
       } catch (err) {
-        console.warn('[Admin Auth] Cloud database check error, checking fallback:', err);
-      }
-
-      // 2. Offline Fallback Safety Net (Physical Cafe Operability)
-      if (!authenticatedUser) {
-        const uLower = u.toLowerCase();
-        if ((uLower === 'admin' || uLower === 'breeze_admin') && (p === 'breeze@2026' || p === 'breeze2026')) {
-          authenticatedUser = {
-            id: 'ADMIN-01',
-            username: 'admin',
-            name: 'Master Admin (Owner)',
-            role: 'owner',
-            phone: '9623999095',
-            signedInAt: new Date().toISOString()
-          };
-        } else if (uLower === 'manager' && (p === 'breeze2026' || p === 'breeze@2026')) {
-          authenticatedUser = {
-            id: 'MGR-01',
-            username: 'manager',
-            name: 'General Manager',
-            role: 'manager',
-            phone: '9623999095',
-            signedInAt: new Date().toISOString()
-          };
-        } else if (uLower === 'kitchen' && p === 'chef2026') {
-          authenticatedUser = {
-            id: 'CHEF-01',
-            username: 'kitchen',
-            name: 'Head Chef / Kitchen',
-            role: 'kitchen',
-            phone: '9623999095',
-            signedInAt: new Date().toISOString()
-          };
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = originalBtnHtml;
         }
-      }
-
-      if (btnSubmit) {
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = originalBtnHtml;
-      }
-
-      if (authenticatedUser) {
-        currentAdmin = authenticatedUser;
-
-        // Session storage & persistence
-        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdmin));
-        if (checkRememberAdmin && checkRememberAdmin.checked) {
-          localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdmin));
-        } else {
-          localStorage.removeItem(ADMIN_SESSION_KEY);
-        }
-
-        showAdminToast(`Welcome, ${currentAdmin.name}! 👋`);
-        initAdminApp();
-      } else {
-        alert('Invalid Admin ID or Password. Please verify your credentials or contact the Master Admin.');
+        console.error('[Admin Auth] Authentication network error:', err);
+        alert('Connection error during authentication. Please verify your network and try again.');
       }
     });
   }
 
   if (btnAdminLogout) {
-    btnAdminLogout.addEventListener('click', () => {
+    btnAdminLogout.addEventListener('click', async () => {
       if (confirm('Are you sure you want to sign out of the Master Admin Portal?')) {
+        try {
+          await fetch('/api/auth?action=logout', { method: 'POST', credentials: 'include' });
+        } catch(e){}
         sessionStorage.removeItem(ADMIN_SESSION_KEY);
+        sessionStorage.removeItem(ADMIN_TOKEN_KEY);
         localStorage.removeItem(ADMIN_SESSION_KEY);
+        localStorage.removeItem(ADMIN_TOKEN_KEY);
+        window.BREEZE_AUTH_TOKEN = null;
         currentAdmin = null;
         if (ordersChannel) ordersChannel.unsubscribe();
         if (ridersChannel) ridersChannel.unsubscribe();
@@ -830,17 +777,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Check saved session across sessionStorage or localStorage
-  const savedSession = sessionStorage.getItem(ADMIN_SESSION_KEY) || localStorage.getItem(ADMIN_SESSION_KEY);
-  if (savedSession) {
-    try {
-      currentAdmin = JSON.parse(savedSession);
-      initAdminApp();
-    } catch (e) {
+  // Cryptographically verified session restore on boot
+  (async function restoreAdminSession() {
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY);
+    const savedSession = sessionStorage.getItem(ADMIN_SESSION_KEY) || localStorage.getItem(ADMIN_SESSION_KEY);
+
+    if (token || savedSession) {
+      try {
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = 'Bearer ' + token;
+          window.BREEZE_AUTH_TOKEN = token;
+        }
+        const res = await fetch('/api/auth?action=me', {
+          headers,
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json && json.authenticated && json.user && json.user.type === 'admin') {
+          currentAdmin = json.user;
+          if (savedSession) {
+            try {
+              const parsed = JSON.parse(savedSession);
+              currentAdmin = { ...parsed, ...json.user };
+            } catch(e){}
+          }
+          initAdminApp();
+          return;
+        }
+      } catch (e) {
+        console.warn('[Admin Auth] Session verification network error:', e);
+        // Fallback for temporary network glitch if token was cached
+        if (token && savedSession) {
+          try {
+            currentAdmin = JSON.parse(savedSession);
+            window.BREEZE_AUTH_TOKEN = token;
+            initAdminApp();
+            return;
+          } catch(err){}
+        }
+      }
+
+      // Invalid or expired token: clear credentials
       sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
       localStorage.removeItem(ADMIN_SESSION_KEY);
+      localStorage.removeItem(ADMIN_TOKEN_KEY);
+      window.BREEZE_AUTH_TOKEN = null;
+      currentAdmin = null;
     }
-  }
+  })();
 
   // --------------------------------------------------------------------------
   // COCKPIT APP CONTROLLER
@@ -4582,7 +4568,7 @@ document.addEventListener('DOMContentLoaded', () => {
     allRiders.forEach(rider => {
       const status = rider.status || 'available';
       const isOnline = status !== 'offline';
-      const riderPass = rider.passcode || 'breeze2026';
+      const riderPass = rider.passcode || '••••••••';
 
       let statusBadge = '<span class="rider-status-tag available"><i class="fas fa-circle" style="font-size: 6px;"></i> Available</span>';
       if (status === 'on_delivery') {
