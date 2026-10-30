@@ -1059,6 +1059,29 @@ document.addEventListener('DOMContentLoaded', () => {
               showAdminToast(`🔔 New Order #${no.id} received! (₹${no.total_amount || 0})`);
             });
           }
+
+          // Monotonic status reconciliation against local forward state:
+          const existingMap = new Map(allOrders.map(o => [o.id, o]));
+          const ranks = {
+            'placed': 1, 'pending': 1,
+            'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
+            'food_ready': 3, 'ready': 3,
+            'out_for_delivery': 4, 'dispatched': 4,
+            'delivered': 5, 'completed': 5,
+            'cancelled': 99, 'rejected': 99
+          };
+          data.forEach(incoming => {
+            const existing = existingMap.get(incoming.id);
+            if (existing && existing.status) {
+              const curRank = ranks[String(existing.status).toLowerCase().trim()] || 0;
+              const incRank = ranks[String(incoming.status).toLowerCase().trim()] || 0;
+              if ((curRank === 99 && incRank < 99) || (curRank > incRank && incRank < 99 && curRank < 99)) {
+                incoming.status = existing.status;
+                if (existing.rider_id && !incoming.rider_id) incoming.rider_id = existing.rider_id;
+                if (existing.rider_name && !incoming.rider_name) incoming.rider_name = existing.rider_name;
+              }
+            }
+          });
         }
         allOrders = data;
       }
@@ -1486,11 +1509,12 @@ document.addEventListener('DOMContentLoaded', () => {
           'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
           'food_ready': 3, 'ready': 3,
           'out_for_delivery': 4, 'dispatched': 4,
-          'delivered': 5, 'completed': 5
+          'delivered': 5, 'completed': 5,
+          'cancelled': 99, 'rejected': 99
         };
         const curRank = ranks[existingStatus] || 0;
         const incomingRank = ranks[newStatus] || 0;
-        if (incomingRank > 0 && incomingRank < curRank && newStatus !== 'cancelled' && newStatus !== 'rejected') {
+        if ((curRank === 99 && incomingRank < 99) || (incomingRank > 0 && incomingRank < curRank && newStatus !== 'cancelled' && newStatus !== 'rejected')) {
           console.warn(`[Admin Realtime] Blocked status regression for #${newRow.id}: ${existingStatus} -> ${newStatus}`);
           newRow.status = existingStatus;
         }
@@ -2517,6 +2541,19 @@ document.addEventListener('DOMContentLoaded', () => {
           picked_up_at: now,
           dispatched_at: now
         });
+
+        if (target && target.rider_id && supabaseClient) {
+          try {
+            await supabaseClient.from('delivery_partners').update({
+              status: 'on_delivery',
+              active_order_id: id,
+              updated_at: now
+            }).eq('id', target.rider_id);
+          } catch (rErr) {
+            console.warn('Could not update rider status to on_delivery:', rErr);
+          }
+        }
+
         showAdminToast(`🚀 Order #${id} dispatched with ${riderName}! Out for delivery.`);
       });
     });
@@ -2568,11 +2605,12 @@ document.addEventListener('DOMContentLoaded', () => {
         'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
         'food_ready': 3, 'ready': 3,
         'out_for_delivery': 4, 'dispatched': 4,
-        'delivered': 5, 'completed': 5
+        'delivered': 5, 'completed': 5,
+        'cancelled': 99, 'rejected': 99
       };
       const curRank = ranks[targetOrder.status] || 0;
       const nextRank = ranks[newStatus] || 0;
-      if (nextRank > 0 && nextRank < curRank && newStatus !== 'cancelled' && newStatus !== 'rejected') {
+      if ((curRank === 99 && nextRank < 99) || (nextRank > 0 && nextRank < curRank && newStatus !== 'cancelled' && newStatus !== 'rejected')) {
         console.warn(`[updateOrderStatus] Blocked status regression for #${orderId}: ${targetOrder.status} -> ${newStatus}`);
         return;
       }

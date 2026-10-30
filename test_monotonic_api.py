@@ -192,6 +192,84 @@ st, _ = get_order_status()
 assert st == 'delivered', f'FAILED! Status regressed to {st} instead of staying delivered!'
 print('  --> [PASS] Monotonic protection blocked regression to "out_for_delivery"!')
 
+print('\n10. REGRESSION ATTACK TEST 5: Attempting to regress via UPSERT conflict (delivered -> placed)...')
+api_call('/api/query', {
+    'action': 'upsert',
+    'table': 'orders',
+    'data': {
+        'id': order_id,
+        'customer_name': 'Monotonicity Test Customer',
+        'status': 'placed',
+        'updated_at': now_iso
+    },
+    'conflict_target': 'id'
+})
+st, _ = get_order_status()
+assert st == 'delivered', f'FAILED! Upsert regressed delivered order to {st}!'
+print('  --> [PASS] Upsert conflict guard blocked status regression to "placed"!')
+
+print('\n11. RESURRECTION ATTACK TEST: Verifying cancelled order cannot be resurrected into active status...')
+cancel_order_id = f'BRZ-CNCL-{int(time.time())}'
+api_call('/api/query', {
+    'action': 'insert',
+    'table': 'orders',
+    'data': {
+        'id': cancel_order_id,
+        'customer_name': 'Cancel Guard Test Customer',
+        'total_amount': 250,
+        'order_type': 'Home Delivery',
+        'status': 'cancelled',
+        'cancellation_reason': 'Customer requested cancellation during grace window',
+        'cancelled_by': 'customer',
+        'created_at': now_iso
+    }
+})
+# Attempt resurrection:
+api_call('/api/query', {
+    'action': 'update',
+    'table': 'orders',
+    'data': {'status': 'food_ready'},
+    'filters': [{'col': 'id', 'op': 'eq', 'val': cancel_order_id}]
+})
+res_c = api_call('/api/query', {
+    'action': 'select',
+    'table': 'orders',
+    'filters': [{'col': 'id', 'op': 'eq', 'val': cancel_order_id}]
+})
+st_c = res_c['data'][0]['status']
+assert st_c == 'cancelled', f'FAILED! Cancelled order was resurrected to {st_c}!'
+print('  --> [PASS] Monotonic guard blocked resurrection of cancelled order!')
+
+print('\n12. PETPOOJA WEBHOOK ATTACK TEST: Verifying delayed POS webhook cannot regress order in transit...')
+pos_order_id = f'BRZ-POS-{int(time.time())}'
+api_call('/api/query', {
+    'action': 'insert',
+    'table': 'orders',
+    'data': {
+        'id': pos_order_id,
+        'customer_name': 'Petpooja Sync Test Customer',
+        'total_amount': 300,
+        'order_type': 'Home Delivery',
+        'status': 'out_for_delivery',
+        'created_at': now_iso
+    }
+})
+# Send delayed Petpooja webhook with "COOKING"
+pos_payload = {
+    'order_id': pos_order_id,
+    'status': 'COOKING'
+}
+api_call('/api/petpooja-webhook', pos_payload)
+res_p = api_call('/api/query', {
+    'action': 'select',
+    'table': 'orders',
+    'filters': [{'col': 'id', 'op': 'eq', 'val': pos_order_id}]
+})
+st_p = res_p['data'][0]['status']
+assert st_p == 'out_for_delivery', f'FAILED! Petpooja webhook regressed out_for_delivery order to {st_p}!'
+print('  --> [PASS] Petpooja webhook status regression blocked; preserved "out_for_delivery"!')
+
 print('\n================================================================')
-print('ALL MONOTONICITY & LIFECYCLE TESTS PASSED WITH 100% SUCCESS!')
+print('ALL MONOTONICITY & LIFECYCLE TESTS (12/12) PASSED WITH 100% SUCCESS!')
 print('================================================================')
+

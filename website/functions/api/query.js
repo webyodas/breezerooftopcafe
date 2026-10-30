@@ -658,21 +658,22 @@ async function handleQueryExecution({ env, body, request }) {
         };
 
         const newRank = ORDER_STATUS_RANKS[String(norm.status).toLowerCase().trim()] || 0;
-        if (newRank > 0 && newRank < 99) {
-          const idFilter = filters.find(f => (f.col || f.column) === 'id');
-          if (idFilter && idFilter.val) {
-            try {
-              blockedOrderRecord = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(idFilter.val).first();
-              if (blockedOrderRecord && blockedOrderRecord.status) {
-                const currentRank = ORDER_STATUS_RANKS[String(blockedOrderRecord.status).toLowerCase().trim()] || 0;
-                if (currentRank > newRank && currentRank < 99) {
-                  delete norm.status;
-                  statusWasBlocked = true;
-                }
+        const idFilter = filters.find(f => (f.col || f.column) === 'id');
+        if (idFilter && idFilter.val) {
+          try {
+            blockedOrderRecord = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(idFilter.val).first();
+            if (blockedOrderRecord && blockedOrderRecord.status) {
+              const currentRank = ORDER_STATUS_RANKS[String(blockedOrderRecord.status).toLowerCase().trim()] || 0;
+              // Block status regression:
+              // 1. If currently cancelled (rank 99) and new is active (rank < 99), block resurrection
+              // 2. If currentRank > newRank and new is not cancelled/rejected (newRank < 99), block back-stepping
+              if ((currentRank === 99 && newRank < 99) || (currentRank > newRank && newRank < 99 && currentRank < 99)) {
+                delete norm.status;
+                statusWasBlocked = true;
               }
-            } catch (e) {
-              console.warn('Status regression check warning:', e);
             }
+          } catch (e) {
+            console.warn('Status regression check warning:', e);
           }
         }
       }
@@ -778,9 +779,28 @@ async function handleQueryExecution({ env, body, request }) {
         if (rowId) {
           try {
             const existingRow = await env.DB.prepare(
-              `SELECT "${conflictTarget}" FROM "${cleanTable}" WHERE "${conflictTarget}" = ?`
+              `SELECT * FROM "${cleanTable}" WHERE "${conflictTarget}" = ?`
             ).bind(rowId).first();
-            if (existingRow) existed = true;
+            if (existingRow) {
+              existed = true;
+              // Guard against regressing status in orders upsert
+              if (cleanTable === 'orders' && norm.status && existingRow.status) {
+                const ORDER_STATUS_RANKS = {
+                  'placed': 1, 'pending': 1,
+                  'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
+                  'food_ready': 3, 'ready': 3,
+                  'dispatched': 4, 'out_for_delivery': 4,
+                  'delivered': 5, 'completed': 5,
+                  'cancelled': 99, 'rejected': 99
+                };
+                const newRank = ORDER_STATUS_RANKS[String(norm.status).toLowerCase().trim()] || 0;
+                const curRank = ORDER_STATUS_RANKS[String(existingRow.status).toLowerCase().trim()] || 0;
+                if ((curRank === 99 && newRank < 99) || (curRank > newRank && newRank < 99 && curRank < 99)) {
+                  norm.status = existingRow.status; // Preserve forward status on conflict
+                  vals[keys.indexOf('status')] = existingRow.status;
+                }
+              }
+            }
           } catch (e) {}
         }
 

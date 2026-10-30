@@ -58,6 +58,26 @@ export async function onRequestPost(context) {
       dbStatus = 'cancelled';
     }
 
+    const ORDER_STATUS_RANKS = {
+      'placed': 1, 'pending': 1,
+      'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
+      'food_ready': 3, 'ready': 3,
+      'out_for_delivery': 4, 'dispatched': 4,
+      'delivered': 5, 'completed': 5,
+      'cancelled': 99, 'rejected': 99
+    };
+    const incomingRank = ORDER_STATUS_RANKS[dbStatus] || 0;
+
+    // Fetch existing order to prevent status regression from delayed POS webhooks:
+    const existingOrder = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+    if (existingOrder && existingOrder.status) {
+      const curRank = ORDER_STATUS_RANKS[String(existingOrder.status).toLowerCase().trim()] || 0;
+      if ((curRank === 99 && incomingRank < 99) || (curRank > incomingRank && incomingRank < 99 && curRank < 99)) {
+        console.warn(`[Petpooja Webhook] Blocked regression for #${orderId}: ${existingOrder.status} -> ${dbStatus}`);
+        dbStatus = existingOrder.status; // Preserve forward status!
+      }
+    }
+
     const nowIso = new Date().toISOString();
     let sql = 'UPDATE orders SET status = ?, updated_at = ?';
     const params = [dbStatus, nowIso];

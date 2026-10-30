@@ -96,7 +96,8 @@
     'cooking': 3, 'preparing': 3,
     'food_ready': 4, 'ready': 4,
     'out_for_delivery': 5, 'dispatched': 5,
-    'delivered': 6, 'completed': 6
+    'delivered': 6, 'completed': 6,
+    'cancelled': 99, 'rejected': 99
   };
 
   // --------------------------------------------------------------------------
@@ -241,7 +242,7 @@
     if (currentActiveOrder && currentActiveOrder.id === order.id) {
       const curRank = STATUS_RANKS[currentActiveOrder.status] || 0;
       const newRank = STATUS_RANKS[order.status] || 0;
-      if (newRank > 0 && newRank < curRank && order.status !== 'cancelled' && order.status !== 'rejected') {
+      if ((curRank === 99 && newRank < 99) || (newRank > 0 && newRank < curRank && order.status !== 'cancelled' && order.status !== 'rejected')) {
         order.status = currentActiveOrder.status;
       }
       if (currentActiveOrder.rider_name && !order.rider_name) order.rider_name = currentActiveOrder.rider_name;
@@ -668,10 +669,14 @@
             const updated = normalizeOrderRecord(payload.new);
             const prevSt = (currentActiveOrder && currentActiveOrder.status) ? String(currentActiveOrder.status).toLowerCase().trim() : '';
             const newSt = (updated.status || '').toLowerCase().trim();
+            const curRank = STATUS_RANKS[prevSt] || 0;
+            const incRank = STATUS_RANKS[newSt] || 0;
+            const isCancellation = (newSt === 'cancelled' || newSt === 'rejected');
+            const isAdvance = (incRank > curRank) || (curRank === 0 && incRank > 0);
 
-            if (newSt && newSt !== prevSt && newSt !== lastNotifiedStatus) {
+            if (newSt && (isAdvance || isCancellation) && newSt !== lastNotifiedStatus) {
               lastNotifiedStatus = newSt;
-              if (newSt === 'cancelled' || newSt === 'rejected') {
+              if (isCancellation) {
                 playCustomerNotificationChime('declined');
               } else {
                 playCustomerNotificationChime('info');

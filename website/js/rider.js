@@ -408,7 +408,24 @@ document.addEventListener('DOMContentLoaded', () => {
           .limit(1);
 
         if (!error && Array.isArray(data) && data.length > 0) {
-          activeDeliveryOrder = data[0];
+          const incomingOrder = data[0];
+          if (activeDeliveryOrder && activeDeliveryOrder.id === incomingOrder.id) {
+            const ranks = {
+              'placed': 1, 'pending': 1,
+              'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
+              'food_ready': 3, 'ready': 3,
+              'out_for_delivery': 4, 'dispatched': 4,
+              'delivered': 5, 'completed': 5,
+              'cancelled': 99, 'rejected': 99
+            };
+            const curRank = ranks[String(activeDeliveryOrder.status).toLowerCase().trim()] || 0;
+            const incomingRank = ranks[String(incomingOrder.status).toLowerCase().trim()] || 0;
+            if ((curRank === 99 && incomingRank < 99) || (curRank > incomingRank && incomingRank < 99 && curRank < 99)) {
+              console.warn(`[Rider Fetch] Blocked status regression for #${incomingOrder.id}: ${activeDeliveryOrder.status} -> ${incomingOrder.status}`);
+              incomingOrder.status = activeDeliveryOrder.status;
+            }
+          }
+          activeDeliveryOrder = incomingOrder;
           renderActiveOrderUI(activeDeliveryOrder);
           return;
         }
@@ -961,10 +978,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Guard against out-of-order lower status overwriting higher status
     if (activeDeliveryOrder && activeDeliveryOrder.id === updated.id) {
-      const ranks = { 'placed': 1, 'pending': 1, 'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2, 'food_ready': 3, 'ready': 3, 'out_for_delivery': 4, 'dispatched': 4, 'delivered': 5, 'completed': 5 };
+      const ranks = {
+        'placed': 1, 'pending': 1,
+        'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
+        'food_ready': 3, 'ready': 3,
+        'out_for_delivery': 4, 'dispatched': 4,
+        'delivered': 5, 'completed': 5,
+        'cancelled': 99, 'rejected': 99
+      };
       const curRank = ranks[activeDeliveryOrder.status] || 0;
       const incomingRank = ranks[updated.status] || 0;
-      if (incomingRank > 0 && incomingRank < curRank && updated.status !== 'cancelled') {
+      if ((curRank === 99 && incomingRank < 99) || (incomingRank > 0 && incomingRank < curRank && updated.status !== 'cancelled' && updated.status !== 'rejected')) {
         updated.status = activeDeliveryOrder.status;
       }
     }

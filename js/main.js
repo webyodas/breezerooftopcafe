@@ -5278,9 +5278,6 @@ function initCartSystem() {
       const prevStatus = (customerActiveOrder.status || '').toLowerCase().trim();
       const st = (dbOrder.status || '').toLowerCase().trim();
 
-      // Only alert if status has ACTUALLY CHANGED and hasn't been alerted yet
-      const isStatusChanged = Boolean(st && st !== prevStatus && st !== lastCustomerNotifiedStatus);
-
       // Monotonic status rank guard
       const ranks = {
         'placed': 1, 'pending': 1,
@@ -5288,12 +5285,19 @@ function initCartSystem() {
         'preparing': 3, 'cooking': 3,
         'food_ready': 4, 'ready': 4,
         'out_for_delivery': 5, 'dispatched': 5,
-        'delivered': 6, 'completed': 6
+        'delivered': 6, 'completed': 6,
+        'cancelled': 99, 'rejected': 99
       };
       const curRank = ranks[prevStatus] || 0;
       const incomingRank = ranks[st] || 0;
-      if (incomingRank > 0 && incomingRank < curRank && st !== 'cancelled' && st !== 'rejected') {
-        // Disallow regressing status
+      const isCancellation = (st === 'cancelled' || st === 'rejected');
+      const isAdvance = (incomingRank > curRank) || (curRank === 0 && incomingRank > 0);
+
+      // Only alert if status has ACTUALLY ADVANCED or CANCELLED and hasn't been alerted yet
+      const isStatusChanged = Boolean(st && (isAdvance || isCancellation) && st !== lastCustomerNotifiedStatus);
+
+      if ((curRank === 99 && incomingRank < 99) || (incomingRank > 0 && incomingRank < curRank && !isCancellation)) {
+        // Disallow regressing status or resurrecting cancelled order
       } else {
         customerActiveOrder.status = dbOrder.status;
       }
