@@ -223,17 +223,11 @@ export async function onRequestPost(context) {
           };
         }
       } else {
-        // Secure server-side fallback credentials
+        // Secure server-side fallback credentials (strictly single Breeze Admin)
         const uLower = u.toLowerCase();
         if ((uLower === 'admin' || uLower === 'breeze_admin') && (p === 'breeze@2026' || p === 'breeze2026')) {
           authenticated = true;
-          userData = { id: 'ADMIN-01', username: 'admin', name: 'Master Admin (Owner)', role: 'owner', phone: '9623999095' };
-        } else if (uLower === 'manager' && (p === 'breeze2026' || p === 'breeze@2026')) {
-          authenticated = true;
-          userData = { id: 'MGR-01', username: 'manager', name: 'General Manager', role: 'manager', phone: '9623999095' };
-        } else if (uLower === 'kitchen' && p === 'chef2026') {
-          authenticated = true;
-          userData = { id: 'CHEF-01', username: 'kitchen', name: 'Head Chef / Kitchen', role: 'kitchen', phone: '9623999095' };
+          userData = { id: 'ADMIN-01', username: 'admin', name: 'Breeze Admin', role: 'admin', phone: '9623999095' };
         }
       }
 

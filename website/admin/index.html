@@ -4,8 +4,8 @@
   <base href="/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Master Admin Cockpit | Breeze The Roof-Top Café, Palghar</title>
-  <meta name="description" content="Master Operations & Kitchen Management Portal for Breeze The Rooftop Cafe. Live order cockpit, rider dispatch engine, kitchen inventory & revenue analytics.">
+  <title>Admin Portal | Breeze The Roof-Top Café, Palghar</title>
+  <meta name="description" content="Operations & Kitchen Management Portal for Breeze The Rooftop Cafe. Live order management, rider dispatch, kitchen inventory & revenue analytics.">
   <link rel="icon" type="image/png" href="/assets/logo-emblem.png">
   <link rel="shortcut icon" href="/favicon.ico">
 
@@ -26,11 +26,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Brand Luxury Stylesheet -->
-  <link rel="stylesheet" href="css/style.css?v=10.4-webyodas">
+  <link rel="stylesheet" href="css/style.css?v=11.0-webyodas">
 
   <!-- Supabase JS Client for Realtime Database Sync -->
   <!-- Cloudflare D1 Client (Replaced Supabase) -->
-  <script src="/js/cf-client.js"></script>
+  <script src="/js/cf-client.js?v=11.0"></script>
 
   <style>
     /* ==========================================================================
@@ -476,7 +476,7 @@
       background: #f5eedf;
     }
 
-    /* MAIN ADMIN COCKPIT APP */
+    /* MAIN ADMIN PORTAL APP */
     .admin-main-wrap {
       max-width: 1440px;
       width: 100%;
@@ -2903,7 +2903,7 @@
 <body class="admin-body">
 
   <!-- ==========================================================================
-       HEADER: LUXURY MASTER ADMIN COCKPIT
+       HEADER: LUXURY MASTER ADMIN PORTAL
        ========================================================================== -->
   <header class="admin-header">
     <div class="admin-header-inner">
@@ -2912,7 +2912,7 @@
           <img src="assets/logo-full.png" alt="Breeze The Rooftop Cafe" class="admin-brand-logo">
         </a>
         <span class="admin-portal-badge">
-          <i class="fas fa-crown"></i> Master Cockpit
+          <i class="fas fa-store"></i> Admin Portal
         </span>
       </div>
 
@@ -2927,7 +2927,7 @@
           <span class="pulse-dot"></span> Live Sync
         </span>
 
-        <button type="button" class="btn-header-action btn-pwa-install" data-portal="Admin" title="Install Breeze Admin Cockpit to Desktop/Phone" style="display: none; border-color: var(--admin-gold); color: var(--admin-gold-dark); font-weight: 700;">
+        <button type="button" class="btn-header-action btn-pwa-install" data-portal="Admin" title="Install Breeze Admin Portal to Desktop/Phone" style="display: none; border-color: var(--admin-gold); color: var(--admin-gold-dark); font-weight: 700;">
           <i class="fas fa-download" style="color: var(--admin-gold);"></i> <span class="hide-mobile">Install App</span>
         </button>
 
@@ -2947,11 +2947,11 @@
           <div class="admin-user-avatar" id="dispAdminAvatar">BA</div>
           <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
             <span class="admin-user-name" id="dispAdminName">Breeze Admin</span>
-            <span class="admin-user-role" id="dispAdminRole" style="font-size: 0.68rem; color: var(--admin-gold); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Master Admin</span>
+            <span class="admin-user-role" id="dispAdminRole" style="font-size: 0.68rem; color: var(--admin-gold); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Admin Portal</span>
           </div>
         </div>
 
-        <button type="button" class="btn-logout-pill" id="btnAdminLogout" title="Sign Out of Master Cockpit">
+        <button type="button" class="btn-logout-pill" id="btnAdminLogout" title="Sign Out of Admin Portal">
           <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Logout</span>
         </button>
       </div>
@@ -3000,7 +3000,7 @@
         </div>
 
         <button type="submit" class="btn-gold-primary" id="btnSubmitAdminLogin">
-          <i class="fas fa-unlock-alt"></i> Sign In to Cockpit
+          <i class="fas fa-unlock-alt"></i> Sign In to Admin Portal
         </button>
       </form>
 
@@ -3011,7 +3011,7 @@
   </main>
 
   <!-- ==========================================================================
-       VIEW 2: LOGGED-IN MASTER COCKPIT APPLICATION
+       VIEW 2: LOGGED-IN ADMIN PORTAL APPLICATION
        ========================================================================== -->
   <main class="admin-main-wrap" id="adminAppView" style="display: none;">
 
@@ -3129,7 +3129,7 @@
         <div class="kpi-value" id="kpiActiveOrders" style="color: #dc2626;">0</div>
         <div class="kpi-footer">
           <span id="kpiActiveBreakdown">0 Kitchen • 0 Delivery</span>
-          <span class="kpi-badge green" id="kpiActiveBadge">Live Cockpit</span>
+          <span class="kpi-badge green" id="kpiActiveBadge">Live Orders</span>
         </div>
       </div>
 
@@ -3150,7 +3150,7 @@
     <!-- NAVIGATION TABS -->
     <nav class="admin-tabs-nav" aria-label="Admin Navigation Tabs">
       <button type="button" class="admin-tab-btn active" data-tab="orders" id="tabBtnOrders">
-        <i class="fas fa-clipboard-list"></i> Live Orders Cockpit
+        <i class="fas fa-clipboard-list"></i> Live Orders
         <span class="tab-counter-badge" id="badgeOrdersCount">0</span>
       </button>
 
@@ -3181,7 +3181,7 @@
     </nav>
 
     <!-- ========================================================================
-         TAB CONTENT 1: LIVE ORDERS COCKPIT
+         TAB CONTENT 1: LIVE ORDERS
          ======================================================================== -->
     <section class="admin-tab-pane" id="tabOrdersContent">
       <!-- Toolbar -->
@@ -3234,7 +3234,7 @@
       <div class="toolbar-bar">
         <div class="toolbar-left">
           <span style="font-size: 0.88rem; font-weight: 700; color: var(--admin-text-main);">
-            <i class="fas fa-calendar-check" style="color: var(--admin-gold);"></i> Rooftop Table Reservations &amp; Seating Cockpit
+            <i class="fas fa-calendar-check" style="color: var(--admin-gold);"></i> Rooftop Table Reservations &amp; Seating Management
           </span>
           <span style="font-size: 0.8rem; color: var(--admin-text-muted);" id="resToolbarSubtext">
             (Live guest bookings, table allocation &amp; dining status)
@@ -4287,7 +4287,7 @@
   </div>
 
   <!-- ==========================================================================
-       MODAL 8: ACCEPT ORDER & KITCHEN PREP TIME COCKPIT
+       MODAL 8: ACCEPT ORDER & KITCHEN PREP TIME
        ========================================================================== -->
   <div class="admin-modal-overlay" id="acceptOrderModal" role="dialog" aria-modal="true">
     <div class="admin-modal-card" style="max-width: 530px;">
@@ -5085,8 +5085,8 @@
   </div>
 
   <!-- SCRIPTS -->
-  <script src="js/admin.js?v=10.3"></script>
+  <script src="js/admin.js?v=11.0"></script>
   <!-- Progressive Web App Controller & Live-Update Engine -->
-  <script src="js/pwa-install.js?v=10.3"></script>
+  <script src="js/pwa-install.js?v=11.0"></script>
 </body>
 </html>

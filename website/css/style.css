@@ -2014,43 +2014,42 @@ button {
   gap: 14px;
 }
 .webyodas-link {
-  color: var(--primary-gold, #c8963e);
-  font-weight: 700;
-  text-decoration: underline;
-  text-decoration-color: rgba(181, 136, 61, 0.45);
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1.5px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.webyodas-link::after {
-  content: "↗";
-  font-size: 0.82em;
-  line-height: 1;
-  display: inline-block;
-  color: var(--primary-gold, #c8963e);
-  font-weight: 700;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  color: #f59e0b !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  padding: 3px 10px !important;
+  border-radius: 9999px !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.3px !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  margin-left: 4px !important;
 }
 
 .webyodas-link:hover,
 .webyodas-link:focus-visible {
-  color: #ffd277;
-  text-decoration-color: #ffd277;
-  background: rgba(181, 136, 61, 0.14);
-  transform: translateY(-1px);
+  color: #ffffff !important;
+  background: #b5883d !important;
+  border-color: #ffd277 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 14px rgba(181, 136, 61, 0.45) !important;
 }
 
-.webyodas-link:hover::after,
-.webyodas-link:focus-visible::after {
-  color: #ffd277;
-  transform: translate(2px, -2px);
+.webyodas-link i,
+.webyodas-link span.webyodas-arrow {
+  font-size: 0.72rem !important;
+  transition: transform 0.2s ease !important;
+}
+
+.webyodas-link:hover i,
+.webyodas-link:hover span.webyodas-arrow {
+  transform: translate(2px, -2px) !important;
 }
 
 .footer-legal-links {

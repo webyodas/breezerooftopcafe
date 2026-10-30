@@ -840,22 +840,10 @@ document.addEventListener('DOMContentLoaded', () => {
     adminAppView.style.display = 'block';
     adminHeaderActions.style.display = 'flex';
     
-    // Update user identity & role display
-    if (dispAdminName) dispAdminName.textContent = currentAdmin.name || 'Master Admin';
-    if (dispAdminAvatar) {
-      const parts = (currentAdmin.name || 'Admin').trim().split(/\s+/);
-      const initials = parts.map(p => p[0]).slice(0, 2).join('').toUpperCase();
-      dispAdminAvatar.textContent = initials || 'BA';
-    }
-    if (dispAdminRole) {
-      const roleMap = {
-        owner: 'Master Admin (Owner)',
-        manager: 'General Manager',
-        kitchen: 'Head Chef / Kitchen',
-        billing: 'Cashier / Billing'
-      };
-      dispAdminRole.textContent = roleMap[currentAdmin.role] || (currentAdmin.role || 'Admin').toUpperCase();
-    }
+    // Update user identity & clean role subtitle display (strictly single Breeze Admin)
+    if (dispAdminName) dispAdminName.textContent = 'Breeze Admin';
+    if (dispAdminAvatar) dispAdminAvatar.textContent = 'BA';
+    if (dispAdminRole) dispAdminRole.textContent = 'Admin Portal';
 
     // Role-based staff management button access
     if (btnStaffManagement) {
@@ -1961,7 +1949,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (kpiActiveBadge) {
       if (isCurrentPeriod) {
         kpiActiveBadge.className = 'kpi-badge green';
-        kpiActiveBadge.textContent = 'Live Cockpit';
+        kpiActiveBadge.textContent = 'Live Orders';
       } else {
         kpiActiveBadge.className = 'kpi-badge gold';
         kpiActiveBadge.textContent = 'Historical';
@@ -4730,8 +4718,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="btn-action-outline btn-toggle-rider-status" data-id="${rider.id}" data-current="${status}" style="flex: 1;">
               <i class="fas ${isOnline ? 'fa-moon' : 'fa-sun'}"></i> ${isOnline ? 'Mark Offline' : 'Mark Online'}
             </button>
-            <a href="/rider" target="_blank" class="btn-action-outline" style="flex: 0 0 auto;" title="Open Rider Login Cockpit">
-              <i class="fas fa-external-link-alt"></i> Cockpit
+            <a href="/rider" target="_blank" class="btn-action-outline" style="flex: 0 0 auto;" title="Open Rider Login Portal">
+              <i class="fas fa-external-link-alt"></i> Rider App
             </a>
             <button type="button" class="btn-action-outline btn-delete-rider" data-id="${rider.id}" data-name="${escapeHtml(rider.name || rider.id)}" title="Delete Delivery Partner" style="flex: 0 0 auto; color: #dc2626; border-color: #fecaca; background: #ffffff;">
               <i class="fas fa-trash-alt"></i>
@@ -4791,7 +4779,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Safety Check: Is rider currently delivering an active order?
     if (targetRider && (targetRider.status === 'on_delivery' || targetRider.active_order_id)) {
-      alert(`⚠️ Cannot delete "${riderName}" (${riderId})!\n\nThis rider is currently delivering active order #${targetRider.active_order_id || 'active'}.\n\nPlease reassign or complete that order in the Live Cockpit before deleting this rider.`);
+      alert(`⚠️ Cannot delete "${riderName}" (${riderId})!\n\nThis rider is currently delivering active order #${targetRider.active_order_id || 'active'}.\n\nPlease reassign or complete that order in Live Orders before deleting this rider.`);
       return;
     }
 
@@ -4926,12 +4914,15 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const { data, error } = await supabaseClient
           .from('delivery_partners')
-          .insert(payload)
-          .select()
-          .single();
+          .insert(payload);
 
         if (error) {
-          alert('Error registering rider: ' + error.message);
+          const errMsg = error.message || String(error);
+          if (errMsg.includes('UNIQUE constraint failed') || errMsg.includes('already exists')) {
+            alert(`Partner ID "${rId}" already exists in database. Please click 'New' to generate a unique ID.`);
+          } else {
+            alert('Error registering rider: ' + errMsg);
+          }
           return;
         }
 
