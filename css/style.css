@@ -2014,15 +2014,43 @@ button {
   gap: 14px;
 }
 .webyodas-link {
-  color: inherit;
-  text-decoration: none;
-  font-weight: inherit;
-  transition: opacity var(--transition-fast);
+  color: var(--primary-gold, #c8963e);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(181, 136, 61, 0.45);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.webyodas-link:hover {
-  text-decoration: underline;
-  opacity: 0.85;
+.webyodas-link::after {
+  content: "↗";
+  font-size: 0.82em;
+  line-height: 1;
+  display: inline-block;
+  color: var(--primary-gold, #c8963e);
+  font-weight: 700;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+.webyodas-link:hover,
+.webyodas-link:focus-visible {
+  color: #ffd277;
+  text-decoration-color: #ffd277;
+  background: rgba(181, 136, 61, 0.14);
+  transform: translateY(-1px);
+}
+
+.webyodas-link:hover::after,
+.webyodas-link:focus-visible::after {
+  color: #ffd277;
+  transform: translate(2px, -2px);
 }
 
 .footer-legal-links {
