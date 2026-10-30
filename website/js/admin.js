@@ -4854,18 +4854,19 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        allRiders.push(data);
+        const registeredRider = { ...payload, ...(data || {}) };
+        allRiders.push(registeredRider);
         closeAddRiderModal();
         addRiderForm.reset();
 
         // Open Success Credentials Modal
-        latestCreatedRider = data;
-        if (createdRiderDispName) createdRiderDispName.textContent = data.name;
-        if (createdRiderDispId) createdRiderDispId.textContent = data.id;
-        if (createdRiderDispPass) createdRiderDispPass.textContent = data.passcode;
+        latestCreatedRider = registeredRider;
+        if (createdRiderDispName) createdRiderDispName.textContent = registeredRider.name;
+        if (createdRiderDispId) createdRiderDispId.textContent = registeredRider.id;
+        if (createdRiderDispPass) createdRiderDispPass.textContent = registeredRider.passcode || payload.passcode;
         if (riderCreatedModal) riderCreatedModal.style.display = 'flex';
 
-        showAdminToast(`✓ Partner ${data.name} (${data.id}) registered successfully!`);
+        showAdminToast(`✓ Partner ${registeredRider.name} (${registeredRider.id}) registered successfully!`);
         updateKPISummaries();
         renderRidersTab();
       } catch (err) {

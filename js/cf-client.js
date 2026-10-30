@@ -238,7 +238,7 @@
   class QueryBuilder {
     constructor(table) {
       this.table = table;
-      this.action = 'select';
+      this.action = null; // Defaults to 'select' in execute() unless set to insert/update/upsert/delete
       this.columns = '*';
       this.filters = [];
       this.orderClause = null;
@@ -251,7 +251,11 @@
     }
 
     select(columns = '*') {
-      this.action = 'select';
+      // In Supabase, chaining .select() after .insert() / .update() / .upsert()
+      // specifies returning representation and must NOT overwrite the mutation action!
+      if (!this.action || this.action === 'select') {
+        this.action = 'select';
+      }
       this.columns = columns;
       return this;
     }
@@ -369,8 +373,9 @@
     }
 
     async execute() {
+      const finalAction = this.action || 'select';
       const body = {
-        action: this.action,
+        action: finalAction,
         table: this.table,
         columns: this.columns,
         filters: this.filters,
@@ -408,9 +413,27 @@
         });
 
         const json = await res.json();
+        let retData = json.data !== undefined ? json.data : null;
+        let retError = json.error || null;
+
+        if (this.isSingle) {
+          if (Array.isArray(retData)) {
+            if (retData.length === 0) {
+              retData = null;
+              retError = retError || { message: 'No rows returned for single()', code: 'PGRST116' };
+            } else {
+              retData = retData[0];
+            }
+          } else if (retData === null && !retError) {
+            retError = { message: 'No rows returned for single()', code: 'PGRST116' };
+          }
+        } else if (this.isMaybeSingle && Array.isArray(retData)) {
+          retData = retData.length > 0 ? retData[0] : null;
+        }
+
         return {
-          data: json.data !== undefined ? json.data : null,
-          error: json.error || null
+          data: retData,
+          error: retError
         };
       } catch (err) {
         return {

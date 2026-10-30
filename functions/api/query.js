@@ -619,7 +619,15 @@ async function handleQueryExecution({ env, body, request }) {
         }
       }
 
-      const resData = Array.isArray(data) ? inserted : inserted[0];
+      if (single && inserted.length === 0) {
+        return new Response(
+          JSON.stringify({ data: null, error: { message: 'No rows returned for single()', code: 'PGRST116' } }),
+          { status: 406, headers: CORS_HEADERS }
+        );
+      }
+      const resData = (single || maybeSingle)
+        ? (inserted.length > 0 ? inserted[0] : null)
+        : (Array.isArray(data) ? inserted : inserted[0]);
       return new Response(JSON.stringify({ data: resData, error: null }), { headers: CORS_HEADERS });
     }
 
@@ -692,7 +700,16 @@ async function handleQueryExecution({ env, body, request }) {
         } catch (e) {}
       }
 
-      return new Response(JSON.stringify({ data: normalizedUpdated, error: null }), { headers: CORS_HEADERS });
+      if (single && normalizedUpdated.length === 0) {
+        return new Response(
+          JSON.stringify({ data: null, error: { message: 'No rows returned for single()', code: 'PGRST116' } }),
+          { status: 406, headers: CORS_HEADERS }
+        );
+      }
+      const resData = (single || maybeSingle)
+        ? (normalizedUpdated.length > 0 ? normalizedUpdated[0] : null)
+        : normalizedUpdated;
+      return new Response(JSON.stringify({ data: resData, error: null }), { headers: CORS_HEADERS });
     }
 
     // ------------------------------------------------------------------------
