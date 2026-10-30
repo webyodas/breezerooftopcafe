@@ -88,6 +88,16 @@
   let lastNotifiedStatus = null;
   let lastChimeTimestamp = 0;
   let cachedOrdersForPhone = [];
+  let highestReachedStepIndex = 0;
+
+  const STATUS_RANKS = {
+    'placed': 1, 'pending': 1,
+    'confirmed': 2, 'accepted': 2,
+    'cooking': 3, 'preparing': 3,
+    'food_ready': 4, 'ready': 4,
+    'out_for_delivery': 5, 'dispatched': 5,
+    'delivered': 6, 'completed': 6
+  };
 
   // --------------------------------------------------------------------------
   // ESCAPE HTML HELPER
@@ -227,6 +237,20 @@
   // --------------------------------------------------------------------------
   function renderOrderTracking(order, shouldSubscribe = true) {
     if (!order) return;
+
+    if (currentActiveOrder && currentActiveOrder.id === order.id) {
+      const curRank = STATUS_RANKS[currentActiveOrder.status] || 0;
+      const newRank = STATUS_RANKS[order.status] || 0;
+      if (newRank > 0 && newRank < curRank && order.status !== 'cancelled' && order.status !== 'rejected') {
+        order.status = currentActiveOrder.status;
+      }
+      if (currentActiveOrder.rider_name && !order.rider_name) order.rider_name = currentActiveOrder.rider_name;
+      if (currentActiveOrder.rider_phone && !order.rider_phone) order.rider_phone = currentActiveOrder.rider_phone;
+      if (currentActiveOrder.picked_up_at && !order.picked_up_at) order.picked_up_at = currentActiveOrder.picked_up_at;
+      if (currentActiveOrder.dispatched_at && !order.dispatched_at) order.dispatched_at = currentActiveOrder.dispatched_at;
+    } else {
+      highestReachedStepIndex = 0;
+    }
     currentActiveOrder = order;
 
     if (trackEmptyState) trackEmptyState.style.display = 'none';
@@ -266,7 +290,9 @@
       if ((st === 'out_for_delivery' || st === 'dispatched' || st === 'food_ready' || st === 'delivered') && order.rider_name) {
         trackRiderCard.style.display = 'block';
         if (trackRiderName) trackRiderName.textContent = order.rider_name;
-        if (trackRiderVehicle) trackRiderVehicle.textContent = 'Breeze Express Partner • Out for Delivery';
+        if (trackRiderVehicle) {
+          trackRiderVehicle.textContent = (st === 'food_ready') ? 'Breeze Express Partner • Assigned (Awaiting Pickup)' : 'Breeze Express Partner • Out for Delivery';
+        }
         if (trackRiderPhoneBtn) {
           if (order.rider_phone) {
             trackRiderPhoneBtn.href = 'tel:' + encodeURIComponent(order.rider_phone);
@@ -446,6 +472,15 @@
       isCancelledState = true;
     }
 
+    // Monotonic stepper progression guard: step cannot move backwards
+    if (activeIndex !== -1) {
+      if (activeIndex < highestReachedStepIndex) {
+        activeIndex = highestReachedStepIndex;
+      } else {
+        highestReachedStepIndex = activeIndex;
+      }
+    }
+
     // Update Status Badge
     if (trackStatusBadgeText) trackStatusBadgeText.textContent = badgeText;
     if (trackStatusBadge) {
@@ -500,6 +535,25 @@
         }
       }
     });
+
+    // Update Step 4 dynamic titles, descriptions and icons for food_ready vs out_for_delivery
+    const step4TitleEl = document.getElementById('step4Title') || (step4 ? step4.querySelector('.step-title') : null);
+    const step4DescEl = document.getElementById('step4Desc');
+    const step4NodeEl = document.getElementById('step4Node') || (step4 ? step4.querySelector('.step-node') : null);
+
+    if (st === 'food_ready') {
+      if (step4TitleEl) step4TitleEl.textContent = 'Food Packed & Ready';
+      if (step4DescEl) step4DescEl.textContent = order.rider_name ? `Assigned to ${order.rider_name} • Awaiting pickup.` : 'Packed & awaiting delivery dispatch.';
+      if (step4NodeEl && activeIndex === 3) step4NodeEl.innerHTML = '<i class="fas fa-box-open"></i>';
+    } else if (st === 'out_for_delivery' || st === 'dispatched') {
+      if (step4TitleEl) step4TitleEl.textContent = 'Out for Delivery';
+      if (step4DescEl) step4DescEl.textContent = order.rider_name ? `Rider ${order.rider_name} is on the way.` : 'Delivery partner is on the way.';
+      if (step4NodeEl && activeIndex === 3) step4NodeEl.innerHTML = '<i class="fas fa-motorcycle"></i>';
+    } else if (activeIndex > 3) {
+      if (step4TitleEl) step4TitleEl.textContent = 'Out for Delivery';
+      if (step4DescEl) step4DescEl.textContent = 'Picked up & delivered by partner.';
+      if (step4NodeEl) step4NodeEl.innerHTML = '<i class="fas fa-check"></i>';
+    }
   }
 
   // --------------------------------------------------------------------------

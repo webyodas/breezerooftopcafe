@@ -522,14 +522,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cardKitchenEtaIcon) {
           cardKitchenEtaIcon.style.background = '#dcfce7';
           cardKitchenEtaIcon.style.color = '#16a34a';
-          cardKitchenEtaIcon.innerHTML = '<i class="fas fa-bell-concierge"></i>';
+          cardKitchenEtaIcon.innerHTML = '<i class="fas fa-box-open"></i>';
         }
-        if (cardKitchenEtaTitle) cardKitchenEtaTitle.textContent = '✅ Food Ready & Packed at Counter!';
-        if (cardKitchenEtaSubtext) cardKitchenEtaSubtext.textContent = deliveryTimeFormatted ? `Collect order • Target delivery: ${deliveryTimeFormatted}` : 'Collect order and start delivery!';
+        if (cardKitchenEtaTitle) cardKitchenEtaTitle.textContent = '📦 Food Packed & Ready for Pickup!';
+        if (cardKitchenEtaSubtext) cardKitchenEtaSubtext.textContent = deliveryTimeFormatted ? `Collect order • Target delivery: ${deliveryTimeFormatted}` : 'Collect order from counter and start delivery';
         if (cardKitchenStatusBadge) {
           cardKitchenStatusBadge.style.background = '#dcfce7';
           cardKitchenStatusBadge.style.color = '#15803d';
-          cardKitchenStatusBadge.textContent = 'Ready to Pick Up';
+          cardKitchenStatusBadge.textContent = 'Food Ready';
         }
       } else if (isCooking) {
         const remMins = Math.max(1, prepMins - elapsedMins);
@@ -581,12 +581,13 @@ document.addEventListener('DOMContentLoaded', () => {
     cardItemsList.innerHTML = itemsHtml || '<div style="font-size:0.8rem;color:#94a3b8;">Standard Order Items</div>';
 
     // Button Progression States:
-    // 1. If not picked up and not out for delivery -> Show "Picked Up from Cafe Kitchen"
-    // 2. Once picked up or out for delivery -> Show "Mark Order as Delivered"
+    // 1. If not picked up and not out for delivery -> Show "Pick Up Order & Start Delivery"
+    // 2. Once picked up or out for delivery -> Show "Complete Delivery"
     const isOutForDelivery = ord.status === 'out_for_delivery' || ord.status === 'dispatched' || Boolean(ord.picked_up_at);
     if (!isOutForDelivery) {
-      cardOrderStepTag.textContent = (ord.status === 'food_ready') ? 'Food Ready at Counter' : 'Assigned • Preparing in Kitchen';
+      cardOrderStepTag.textContent = (ord.status === 'food_ready') ? 'Food Ready • Collect Order' : 'Order Assigned • In Kitchen';
       btnActionPickup.style.display = 'flex';
+      btnActionPickup.innerHTML = '<i class="fas fa-box-open"></i> Pick Up Order & Start Delivery';
       btnActionTransit.style.display = 'none';
       btnActionDelivered.style.display = 'none';
     } else {
@@ -687,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
       stopRiderRinger();
       if (!activeDeliveryOrder) return;
       btnActionPickup.disabled = true;
-      btnActionPickup.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming Pick-up...';
+      btnActionPickup.innerHTML = '<i class="fas fa-motorcycle"></i> Starting Delivery...';
 
       const now = new Date().toISOString();
       activeDeliveryOrder.picked_up_at = now;
@@ -695,11 +696,29 @@ document.addEventListener('DOMContentLoaded', () => {
       activeDeliveryOrder.status = 'out_for_delivery';
 
       if (supabaseClient) {
-        await supabaseClient.from('orders').update({
-          picked_up_at: now,
-          dispatched_at: now,
-          status: 'out_for_delivery'
-        }).eq('id', activeDeliveryOrder.id);
+        try {
+          const { error } = await supabaseClient.from('orders').update({
+            picked_up_at: now,
+            dispatched_at: now,
+            status: 'out_for_delivery',
+            updated_at: now
+          }).eq('id', activeDeliveryOrder.id);
+
+          if (error) {
+            console.error('Error updating order on pickup:', error);
+            showRiderToast('⚠️ Sync notice: ' + error.message);
+          }
+
+          if (currentRider) {
+            await supabaseClient.from('delivery_partners').update({
+              status: 'on_delivery',
+              active_order_id: activeDeliveryOrder.id,
+              updated_at: now
+            }).eq('id', currentRider.id);
+          }
+        } catch (err) {
+          console.error('Pickup update error:', err);
+        }
       }
 
       showRiderToast('🛵 Order picked up! Out for delivery to customer.');
@@ -713,7 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
       stopRiderRinger();
       if (!activeDeliveryOrder) return;
       btnActionTransit.disabled = true;
-      btnActionTransit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Heading Out...';
+      btnActionTransit.innerHTML = '<i class="fas fa-motorcycle"></i> Starting Delivery...';
 
       const now = new Date().toISOString();
       activeDeliveryOrder.status = 'out_for_delivery';
@@ -748,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!confirm(promptMsg)) return;
 
       btnActionDelivered.disabled = true;
-      btnActionDelivered.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Marking Delivered...';
+      btnActionDelivered.innerHTML = '<i class="fas fa-check-circle"></i> Completing Delivery...';
 
       const now = new Date().toISOString();
       const deliveredId = activeDeliveryOrder.id;
@@ -938,6 +957,16 @@ document.addEventListener('DOMContentLoaded', () => {
         renderActiveOrderUI(null);
       }
       return;
+    }
+
+    // Guard against out-of-order lower status overwriting higher status
+    if (activeDeliveryOrder && activeDeliveryOrder.id === updated.id) {
+      const ranks = { 'placed': 1, 'pending': 1, 'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2, 'food_ready': 3, 'ready': 3, 'out_for_delivery': 4, 'dispatched': 4, 'delivered': 5, 'completed': 5 };
+      const curRank = ranks[activeDeliveryOrder.status] || 0;
+      const incomingRank = ranks[updated.status] || 0;
+      if (incomingRank > 0 && incomingRank < curRank && updated.status !== 'cancelled') {
+        updated.status = activeDeliveryOrder.status;
+      }
     }
 
     // New or updated active order!

@@ -46,8 +46,10 @@ export async function onRequestPost(context) {
     let dbStatus = 'confirmed';
     if (rawStatus.includes('ACCEPT')) {
       dbStatus = 'confirmed';
-    } else if (rawStatus.includes('READY') || rawStatus.includes('FOOD')) {
+    } else if (rawStatus.includes('COOK') || rawStatus.includes('PREPAR')) {
       dbStatus = 'preparing';
+    } else if (rawStatus.includes('READY') || rawStatus.includes('FOOD')) {
+      dbStatus = 'food_ready';
     } else if (rawStatus.includes('DISPATCH') || rawStatus.includes('OUT') || rawStatus.includes('RIDER')) {
       dbStatus = 'out_for_delivery';
     } else if (rawStatus.includes('DELIVER')) {

@@ -636,8 +636,52 @@ async function handleQueryExecution({ env, body, request }) {
     // ------------------------------------------------------------------------
     if (action === 'update') {
       const norm = normalizeIncomingRow(table, data);
+
+      let statusWasBlocked = false;
+      let blockedOrderRecord = null;
+      if (cleanTable === 'orders' && norm.status) {
+        const ORDER_STATUS_RANKS = {
+          'placed': 1,
+          'pending': 1,
+          'accepted': 2,
+          'confirmed': 2,
+          'preparing': 2,
+          'cooking': 2,
+          'food_ready': 3,
+          'ready': 3,
+          'dispatched': 4,
+          'out_for_delivery': 4,
+          'delivered': 5,
+          'completed': 5,
+          'cancelled': 99,
+          'rejected': 99
+        };
+
+        const newRank = ORDER_STATUS_RANKS[String(norm.status).toLowerCase().trim()] || 0;
+        if (newRank > 0 && newRank < 99) {
+          const idFilter = filters.find(f => (f.col || f.column) === 'id');
+          if (idFilter && idFilter.val) {
+            try {
+              blockedOrderRecord = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(idFilter.val).first();
+              if (blockedOrderRecord && blockedOrderRecord.status) {
+                const currentRank = ORDER_STATUS_RANKS[String(blockedOrderRecord.status).toLowerCase().trim()] || 0;
+                if (currentRank > newRank && currentRank < 99) {
+                  delete norm.status;
+                  statusWasBlocked = true;
+                }
+              }
+            } catch (e) {
+              console.warn('Status regression check warning:', e);
+            }
+          }
+        }
+      }
+
       const keys = Object.keys(norm);
       if (keys.length === 0) {
+        if (statusWasBlocked && blockedOrderRecord) {
+          return new Response(JSON.stringify({ data: [blockedOrderRecord], error: null }), { headers: CORS_HEADERS });
+        }
         return new Response(JSON.stringify({ data: null, error: { message: 'No fields to update' } }), { headers: CORS_HEADERS });
       }
 

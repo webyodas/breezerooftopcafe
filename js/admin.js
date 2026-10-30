@@ -1479,6 +1479,21 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (eventType === 'UPDATE' && newRow) {
       const idx = allOrders.findIndex(o => o.id === newRow.id);
       if (idx !== -1) {
+        const existingStatus = allOrders[idx].status;
+        const newStatus = newRow.status;
+        const ranks = {
+          'placed': 1, 'pending': 1,
+          'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
+          'food_ready': 3, 'ready': 3,
+          'out_for_delivery': 4, 'dispatched': 4,
+          'delivered': 5, 'completed': 5
+        };
+        const curRank = ranks[existingStatus] || 0;
+        const incomingRank = ranks[newStatus] || 0;
+        if (incomingRank > 0 && incomingRank < curRank && newStatus !== 'cancelled' && newStatus !== 'rejected') {
+          console.warn(`[Admin Realtime] Blocked status regression for #${newRow.id}: ${existingStatus} -> ${newStatus}`);
+          newRow.status = existingStatus;
+        }
         allOrders[idx] = Object.assign({}, allOrders[idx], newRow);
       } else {
         allOrders.unshift(newRow);
@@ -2345,10 +2360,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </button>
         `;
       } else if (order.rider_id) {
-        // Delivery with rider assigned at counter -> ONLY "Dispatched"
+        // Delivery with rider assigned at counter -> Action to dispatch order
         actionsHtml = `
           <button type="button" class="btn-card-action btn-action-dispatch" data-id="${order.id}" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border-color: #0284c7;">
-            <i class="fas fa-paper-plane"></i> Dispatched
+            <i class="fas fa-paper-plane"></i> Dispatch Order
           </button>
         `;
       } else {
@@ -2545,6 +2560,24 @@ document.addEventListener('DOMContentLoaded', () => {
     stopAdminRinger(orderId);
     if (!supabaseClient) return;
     const now = new Date().toISOString();
+
+    const targetOrder = allOrders.find(o => o.id === orderId);
+    if (targetOrder) {
+      const ranks = {
+        'placed': 1, 'pending': 1,
+        'accepted': 2, 'confirmed': 2, 'preparing': 2, 'cooking': 2,
+        'food_ready': 3, 'ready': 3,
+        'out_for_delivery': 4, 'dispatched': 4,
+        'delivered': 5, 'completed': 5
+      };
+      const curRank = ranks[targetOrder.status] || 0;
+      const nextRank = ranks[newStatus] || 0;
+      if (nextRank > 0 && nextRank < curRank && newStatus !== 'cancelled' && newStatus !== 'rejected') {
+        console.warn(`[updateOrderStatus] Blocked status regression for #${orderId}: ${targetOrder.status} -> ${newStatus}`);
+        return;
+      }
+    }
+
     const payload = Object.assign({
       status: newStatus,
       updated_at: now
@@ -3179,12 +3212,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetOrder = allOrders.find(o => o.id === orderId);
     const prevRiderId = targetOrder ? targetOrder.rider_id : null;
 
+    // Preserve forward status: never regress status if order was already out_for_delivery or delivered
+    let nextStatus = targetOrder?.status || 'food_ready';
+    if (['out_for_delivery', 'dispatched', 'delivered'].includes(nextStatus)) {
+      // Keep forward status
+    } else if (nextStatus === 'food_ready') {
+      nextStatus = 'food_ready';
+    } else if (['placed', 'pending'].includes(nextStatus)) {
+      nextStatus = 'accepted';
+    }
+
     const orderPayload = {
       rider_id: rider.id,
       rider_name: rider.name,
       rider_phone: rider.phone,
       rider_assigned_at: now,
-      status: 'food_ready',
+      status: nextStatus,
       updated_at: now
     };
 

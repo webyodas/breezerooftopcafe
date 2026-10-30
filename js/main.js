@@ -5281,7 +5281,23 @@ function initCartSystem() {
       // Only alert if status has ACTUALLY CHANGED and hasn't been alerted yet
       const isStatusChanged = Boolean(st && st !== prevStatus && st !== lastCustomerNotifiedStatus);
 
-      customerActiveOrder.status = dbOrder.status;
+      // Monotonic status rank guard
+      const ranks = {
+        'placed': 1, 'pending': 1,
+        'accepted': 2, 'confirmed': 2,
+        'preparing': 3, 'cooking': 3,
+        'food_ready': 4, 'ready': 4,
+        'out_for_delivery': 5, 'dispatched': 5,
+        'delivered': 6, 'completed': 6
+      };
+      const curRank = ranks[prevStatus] || 0;
+      const incomingRank = ranks[st] || 0;
+      if (incomingRank > 0 && incomingRank < curRank && st !== 'cancelled' && st !== 'rejected') {
+        // Disallow regressing status
+      } else {
+        customerActiveOrder.status = dbOrder.status;
+      }
+
       if (dbOrder.rider_id !== undefined) customerActiveOrder.rider_id = dbOrder.rider_id;
       if (dbOrder.rider_name !== undefined) customerActiveOrder.rider_name = dbOrder.rider_name;
       if (dbOrder.rider_phone !== undefined) customerActiveOrder.rider_phone = dbOrder.rider_phone;
@@ -5294,12 +5310,20 @@ function initCartSystem() {
       if (dbOrder.cancelled_by !== undefined) customerActiveOrder.cancelled_by = dbOrder.cancelled_by;
       if (dbOrder.delay_reason !== undefined) customerActiveOrder.delay_reason = dbOrder.delay_reason;
 
-      if (st === 'placed') customerActiveOrder.currentStep = 2;
-      else if (st === 'confirmed' || st === 'accepted' || st === 'cooking' || st === 'preparing') customerActiveOrder.currentStep = 3;
-      else if (st === 'food_ready') customerActiveOrder.currentStep = 4;
-      else if (st === 'dispatched' || st === 'out_for_delivery') customerActiveOrder.currentStep = 4;
-      else if (st === 'delivered' || st === 'completed') customerActiveOrder.currentStep = 5;
-      else if (st === 'cancelled' || st === 'rejected') customerActiveOrder.currentStep = 0;
+      const activeSt = (customerActiveOrder.status || '').toLowerCase().trim();
+      let newStep = 2;
+      if (activeSt === 'placed') newStep = 2;
+      else if (activeSt === 'confirmed' || activeSt === 'accepted' || activeSt === 'cooking' || activeSt === 'preparing') newStep = 3;
+      else if (activeSt === 'food_ready') newStep = 4;
+      else if (activeSt === 'dispatched' || activeSt === 'out_for_delivery') newStep = 4;
+      else if (activeSt === 'delivered' || activeSt === 'completed') newStep = 5;
+      else if (activeSt === 'cancelled' || activeSt === 'rejected') newStep = 0;
+
+      if (newStep > 0 && customerActiveOrder.currentStep && newStep < customerActiveOrder.currentStep && activeSt !== 'cancelled' && activeSt !== 'rejected') {
+        // Retain highest reached step
+      } else {
+        customerActiveOrder.currentStep = newStep;
+      }
 
       const userKey = customerProfile.phone || customerProfile.email;
       if (userKey) {
@@ -5634,12 +5658,24 @@ function initCartSystem() {
     else if (st === 'dispatched' || st === 'out_for_delivery') step = 4;
     else if (st === 'delivered' || st === 'completed') step = 5;
 
+    // Guard against monotonic stepper regression
+    if (order._highestTrackStep && step < order._highestTrackStep && st !== 'cancelled' && st !== 'rejected') {
+      step = order._highestTrackStep;
+    } else {
+      order._highestTrackStep = step;
+    }
+
     // Stepper updates
     for (let i = 1; i <= 5; i++) {
       const stepEl = document.getElementById('step' + i);
       if (!stepEl) continue;
       const nodeEl = document.getElementById('step' + i + 'Node') || stepEl.querySelector('.step-node');
       const descEl = document.getElementById('step' + i + 'Desc');
+      const titleEl = stepEl.querySelector('.step-title');
+
+      if (i === 4 && titleEl) {
+        titleEl.textContent = (st === 'food_ready') ? 'Food Packed & Ready' : 'Out for Delivery';
+      }
 
       stepEl.classList.remove('completed', 'active');
       if (i < step) {
@@ -5656,7 +5692,7 @@ function initCartSystem() {
         if (nodeEl) {
           if (i === 2) nodeEl.innerHTML = '<i class="fas fa-clock"></i>';
           else if (i === 3) nodeEl.innerHTML = '<i class="fas fa-utensils"></i>';
-          else if (i === 4) nodeEl.innerHTML = '<i class="fas fa-motorcycle"></i>';
+          else if (i === 4) nodeEl.innerHTML = (st === 'food_ready') ? '<i class="fas fa-box-open"></i>' : '<i class="fas fa-motorcycle"></i>';
           else if (i === 5) nodeEl.innerHTML = '<i class="fas fa-smile-beam"></i>';
         }
         if (descEl) {
