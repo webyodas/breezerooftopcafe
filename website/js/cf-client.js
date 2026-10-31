@@ -420,11 +420,13 @@
           if (Array.isArray(retData)) {
             if (retData.length === 0) {
               retData = null;
-              retError = retError || { message: 'No rows returned for single()', code: 'PGRST116' };
+              if (!this.action || this.action === 'select') {
+                retError = retError || { message: 'No rows returned for single()', code: 'PGRST116' };
+              }
             } else {
               retData = retData[0];
             }
-          } else if (retData === null && !retError) {
+          } else if (retData === null && !retError && (!this.action || this.action === 'select')) {
             retError = { message: 'No rows returned for single()', code: 'PGRST116' };
           }
         } else if (this.isMaybeSingle && Array.isArray(retData)) {

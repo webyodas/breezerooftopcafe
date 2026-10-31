@@ -796,12 +796,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = await res.json();
         if (json && json.authenticated && json.user && json.user.type === 'admin') {
           currentAdmin = json.user;
-          if (savedSession) {
-            try {
-              const parsed = JSON.parse(savedSession);
-              currentAdmin = { ...parsed, ...json.user };
-            } catch(e){}
-          }
+          currentAdmin.name = 'Breeze Admin';
+          currentAdmin.role = 'admin';
+          try {
+            sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdmin));
+            localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdmin));
+          } catch(e){}
           initAdminApp();
           return;
         }
@@ -1852,6 +1852,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let periodCodRev = 0;
     let periodOnlineRev = 0;
     let periodOrdersCount = 0;
+    let periodValidOrdersCount = 0;
     let periodDeliveredCount = 0;
     let periodCodCount = 0;
     let periodOnlineCount = 0;
@@ -1889,6 +1890,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!isCancelled) {
           periodRev += amt;
+          periodValidOrdersCount++;
           if (ord.payment_method === 'cod') {
             periodCodRev += amt;
             periodCodCount++;
@@ -1904,7 +1906,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const totalActiveOrders = activeKitchenCount + activeDeliveryCount;
-    const aov = periodOrdersCount > 0 ? Math.round(periodRev / periodOrdersCount) : 0;
+    // AOV (Average Order Value) strictly considers valid, non-cancelled revenue orders:
+    const aov = periodValidOrdersCount > 0 ? Math.round(periodRev / periodValidOrdersCount) : 0;
     const isCurrentPeriod = (activeAnalyticsPeriod.mode === 'today' || activeAnalyticsPeriod.mode === 'this_month' || activeAnalyticsPeriod.mode === 'all_time' || (activeAnalyticsPeriod.mode === 'month' && activeAnalyticsPeriod.yearMonth === getCurrentISTYearMonth()));
 
     // Menu stock calculations
@@ -5489,15 +5492,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Calculate lifetime metrics from matched orders if available
       if (p.orders.length > 0) {
-        p.total_orders_count = p.orders.length;
-        p.last_order_at = p.orders[0].created_at || null;
+        const validOrders = p.orders.filter(ord => ord.status !== 'cancelled' && ord.status !== 'rejected');
+        p.total_orders_count = validOrders.length;
+        p.last_order_at = (validOrders[0] || p.orders[0]).created_at || null;
         let spend = 0;
-        p.orders.forEach(ord => {
-          if (ord.status !== 'cancelled') {
-            spend += Number(ord.total_amount) || 0;
-          }
+        validOrders.forEach(ord => {
+          spend += Number(ord.total_amount) || 0;
         });
         p.total_spent = spend;
+        p.aov = validOrders.length > 0 ? Math.round(spend / validOrders.length) : 0;
       }
 
       return p;
@@ -6370,7 +6373,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const totalOrdersCount = periodOrders.length;
-    const aov = deliveredCount > 0 ? Math.round(deliveredRev / deliveredCount) : (totalOrdersCount > 0 ? Math.round(grossRev / totalOrdersCount) : 0);
+    const validOrdersCount = periodOrders.filter(o => o.status !== 'cancelled' && o.status !== 'rejected').length;
+    const aov = deliveredCount > 0 ? Math.round(deliveredRev / deliveredCount) : (validOrdersCount > 0 ? Math.round(grossRev / validOrdersCount) : 0);
     const totalPaymentOrders = codCount + onlineCount;
     const codPct = totalPaymentOrders > 0 ? Math.round((codCount / totalPaymentOrders) * 100) : 0;
     const onlinePct = totalPaymentOrders > 0 ? (100 - codPct) : 0;
@@ -7077,16 +7081,9 @@ document.addEventListener('DOMContentLoaded', () => {
         currentAdmin.role = payload.new.role;
         currentAdmin.phone = payload.new.phone;
         sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdmin));
-        if (dispAdminName) dispAdminName.textContent = currentAdmin.name;
-        if (dispAdminRole) {
-          const roleMap = {
-            owner: 'Master Admin (Owner)',
-            manager: 'General Manager',
-            kitchen: 'Head Chef / Kitchen',
-            billing: 'Cashier / Billing'
-          };
-          dispAdminRole.textContent = roleMap[currentAdmin.role] || (currentAdmin.role || 'Admin').toUpperCase();
-        }
+        if (dispAdminName) dispAdminName.textContent = 'Breeze Admin';
+        if (dispAdminAvatar) dispAdminAvatar.textContent = 'BA';
+        if (dispAdminRole) dispAdminRole.textContent = 'Admin Portal';
       }
     } else if (payload.eventType === 'DELETE' && payload.old) {
       allAdminUsers = allAdminUsers.filter(u => u.id !== payload.old.id);
@@ -7539,16 +7536,9 @@ document.addEventListener('DOMContentLoaded', () => {
           currentAdmin.role = role;
           currentAdmin.phone = phone;
           sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentAdmin));
-          if (dispAdminName) dispAdminName.textContent = name;
-          if (dispAdminRole) {
-            const roleMap = {
-              owner: 'Master Admin (Owner)',
-              manager: 'General Manager',
-              kitchen: 'Head Chef / Kitchen',
-              billing: 'Cashier / Billing'
-            };
-            dispAdminRole.textContent = roleMap[role] || role.toUpperCase();
-          }
+          if (dispAdminName) dispAdminName.textContent = 'Breeze Admin';
+          if (dispAdminAvatar) dispAdminAvatar.textContent = 'BA';
+          if (dispAdminRole) dispAdminRole.textContent = 'Admin Portal';
         }
 
         renderAdminStaffList();

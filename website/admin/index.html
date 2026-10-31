@@ -26,11 +26,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Brand Luxury Stylesheet -->
-  <link rel="stylesheet" href="css/style.css?v=11.1-webyodas">
+  <link rel="stylesheet" href="css/style.css?v=11.3-webyodas">
 
   <!-- Supabase JS Client for Realtime Database Sync -->
   <!-- Cloudflare D1 Client (Replaced Supabase) -->
-  <script src="/js/cf-client.js?v=11.0"></script>
+  <script src="/js/cf-client.js?v=11.3"></script>
 
   <style>
     /* ==========================================================================
@@ -4933,7 +4933,7 @@
             <div class="form-group" style="margin-bottom: 0;">
               <label class="form-label" for="newStaffRole" style="font-size: 0.78rem;">Access Role *</label>
               <select id="newStaffRole" class="form-select" required>
-                <option value="manager" selected>General Manager (Operations, Orders, Fleet)</option>
+                <option value="owner" selected>Master Admin / Operations (Full System Access)</option>
                 <option value="owner">Master Admin / Owner (Full System Access)</option>
                 <option value="kitchen">Head Chef / Kitchen (Orders & Preparation)</option>
                 <option value="billing">Cashier / Billing Counter</option>
@@ -5050,7 +5050,7 @@
             <label class="form-label" for="editStaffRole" style="font-size: 0.78rem;">Role *</label>
             <select id="editStaffRole" class="form-select" required>
               <option value="owner">Master Admin / Owner</option>
-              <option value="manager">General Manager</option>
+              <option value="admin">Operations Admin</option>
               <option value="kitchen">Head Chef / Kitchen</option>
               <option value="billing">Cashier / Billing</option>
             </select>
@@ -5085,7 +5085,7 @@
   </div>
 
   <!-- SCRIPTS -->
-  <script src="js/admin.js?v=11.1"></script>
+  <script src="js/admin.js?v=11.3"></script>
   <!-- Progressive Web App Controller & Live-Update Engine -->
   <script src="js/pwa-install.js?v=11.0"></script>
 </body>
