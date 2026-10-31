@@ -507,7 +507,15 @@
         trackPrepEstimate.style.display = 'none';
       } else if (isDeliveredState) {
         trackPrepEstimate.style.display = 'inline-flex';
-        if (trackPrepTimeText) trackPrepTimeText.textContent = 'Delivered on time';
+        let deliveredTimeStr = '';
+        if (order.delivered_at) {
+          try {
+            deliveredTimeStr = new Date(order.delivered_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          } catch(e) {}
+        }
+        if (trackPrepTimeText) {
+          trackPrepTimeText.textContent = deliveredTimeStr ? `Delivered at ${deliveredTimeStr}` : 'Delivered on time';
+        }
       } else {
         trackPrepEstimate.style.display = 'inline-flex';
         if (trackPrepTimeText) {

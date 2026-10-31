@@ -2166,39 +2166,121 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Rider strip if assigned
     let riderStrip = '';
+    const isDelivered = ['delivered', 'completed'].includes(status);
+    const isCancelled = status === 'cancelled' || status === 'rejected';
+
     if (isTakeaway) {
       riderStrip = `
-        <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 7px 12px; font-size: 0.78rem; color: #92400e; display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-          <i class="fas fa-bag-shopping" style="color: #d97706; font-size: 0.95rem;"></i>
-          <span><strong>Counter Pickup / Takeaway:</strong> Customer will collect directly at the 5th floor rooftop counter. No delivery rider needed.</span>
+        <div style="background: ${isDelivered ? '#f0fdf4' : '#fef3c7'}; border: 1px solid ${isDelivered ? '#bbf7d0' : '#fde68a'}; border-radius: 8px; padding: 7px 12px; font-size: 0.78rem; color: ${isDelivered ? '#166534' : '#92400e'}; display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+          <i class="fas ${isDelivered ? 'fa-check-circle' : 'fa-bag-shopping'}" style="color: ${isDelivered ? '#16a34a' : '#d97706'}; font-size: 0.95rem;"></i>
+          <span><strong>${isDelivered ? 'Collected at Rooftop Counter' : 'Counter Pickup / Takeaway'}:</strong> ${isDelivered ? 'Customer collected their food from the 5th floor rooftop counter.' : 'Customer will collect directly at the 5th floor rooftop counter. No delivery rider needed.'}</span>
         </div>
       `;
     } else if (order.rider_id || order.rider_name) {
       const isDispatched = ['out_for_delivery', 'dispatched'].includes(status);
-      riderStrip = `
-        <div class="rider-assigned-box" style="background: ${isDispatched ? '#f0f9ff' : '#fefce8'}; border-color: ${isDispatched ? '#bae6fd' : '#fde047'};">
-          <div>
-            <i class="fas fa-motorcycle" style="color: ${isDispatched ? '#0284c7' : '#ca8a04'};"></i> 
-            <span style="font-weight: 700; color: ${isDispatched ? '#0369a1' : '#854d0e'};">${isDispatched ? 'Out with' : 'Assigned to'}:</span> 
-            <strong>${escapeHtml(order.rider_name || order.rider_id)}</strong>
-            ${order.rider_phone ? `(<a href="tel:${order.rider_phone}" style="color: inherit; text-decoration: underline;">${order.rider_phone}</a>)` : ''}
-            <span style="font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px; background: ${isDispatched ? '#e0f2fe' : '#fef08a'}; color: ${isDispatched ? '#0369a1' : '#713f12'};">
-              ${isDispatched ? 'In Transit' : 'At Cafe Counter'}
-            </span>
+      
+      if (isDelivered) {
+        riderStrip = `
+          <div class="rider-assigned-box" style="background: #f0fdf4; border-color: #bbf7d0;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <i class="fas fa-check-circle" style="color: #16a34a;"></i> 
+              <span style="font-weight: 700; color: #166534;">Delivered by:</span> 
+              <strong>${escapeHtml(order.rider_name || order.rider_id)}</strong>
+              ${order.rider_phone ? `(<a href="tel:${order.rider_phone}" style="color: inherit; text-decoration: underline;">${order.rider_phone}</a>)` : ''}
+              <span style="font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px; background: #dcfce7; color: #15803d;">
+                Delivered
+              </span>
+            </div>
           </div>
-          ${!isDispatched ? `
-            <button type="button" class="btn-action-outline btn-reassign-rider" data-id="${order.id}" style="padding: 3px 8px; font-size: 0.74rem;">
-              Change
-            </button>
-          ` : ''}
-        </div>
-      `;
+        `;
+      } else {
+        riderStrip = `
+          <div class="rider-assigned-box" style="background: ${isDispatched ? '#f0f9ff' : '#fefce8'}; border-color: ${isDispatched ? '#bae6fd' : '#fde047'};">
+            <div>
+              <i class="fas fa-motorcycle" style="color: ${isDispatched ? '#0284c7' : '#ca8a04'};"></i> 
+              <span style="font-weight: 700; color: ${isDispatched ? '#0369a1' : '#854d0e'};">${isDispatched ? 'Out with' : 'Assigned to'}:</span> 
+              <strong>${escapeHtml(order.rider_name || order.rider_id)}</strong>
+              ${order.rider_phone ? `(<a href="tel:${order.rider_phone}" style="color: inherit; text-decoration: underline;">${order.rider_phone}</a>)` : ''}
+              <span style="font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px; background: ${isDispatched ? '#e0f2fe' : '#fef08a'}; color: ${isDispatched ? '#0369a1' : '#713f12'};">
+                ${isDispatched ? 'In Transit' : 'At Cafe Counter'}
+              </span>
+            </div>
+            ${!isDispatched ? `
+              <button type="button" class="btn-action-outline btn-reassign-rider" data-id="${order.id}" style="padding: 3px 8px; font-size: 0.74rem;">
+                Change
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }
     }
 
     // Timing & Kitchen ETA Strip
     let timingStrip = '';
     const isLiveTiming = ['accepted', 'preparing', 'cooking', 'confirmed', 'food_ready', 'out_for_delivery'].includes(status);
-    if (isLiveTiming || order.estimated_prep_time) {
+
+    if (isDelivered) {
+      // ORDER IS DELIVERED -> Show actual delivery completion timestamp and turnaround metrics!
+      const delivDate = order.delivered_at ? new Date(order.delivered_at) : (order.updated_at ? new Date(order.updated_at) : null);
+      const delivTimeFormatted = delivDate ? delivDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      
+      let totalMins = 0;
+      if (order.created_at && delivDate) {
+        totalMins = Math.max(1, Math.round((delivDate.getTime() - new Date(order.created_at).getTime()) / 60000));
+      } else if (order.accepted_at && delivDate) {
+        totalMins = Math.max(1, Math.round((delivDate.getTime() - new Date(order.accepted_at).getTime()) / 60000));
+      }
+
+      let rideMins = 0;
+      if (order.dispatched_at && delivDate) {
+        rideMins = Math.max(1, Math.round((delivDate.getTime() - new Date(order.dispatched_at).getTime()) / 60000));
+      } else if (order.picked_up_at && delivDate) {
+        rideMins = Math.max(1, Math.round((delivDate.getTime() - new Date(order.picked_up_at).getTime()) / 60000));
+      }
+
+      let acceptedTimeFormatted = '';
+      if (order.accepted_at) {
+        acceptedTimeFormatted = new Date(order.accepted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      let dispatchedTimeFormatted = '';
+      if (order.dispatched_at) {
+        dispatchedTimeFormatted = new Date(order.dispatched_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      timingStrip = `
+        <div class="order-timing-strip" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px 12px; margin-top: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-weight: 800; color: #166534; font-size: 0.84rem; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-check-double" style="color: #16a34a;"></i> Delivered to Customer at: <strong>${delivTimeFormatted || 'Completed'}</strong>
+              </span>
+              ${totalMins > 0 ? `
+                <span style="font-size: 0.72rem; color: #15803d; background: #dcfce7; padding: 2px 7px; border-radius: 9999px; font-weight: 700;">
+                  <i class="fas fa-stopwatch" style="margin-right: 2px;"></i> Total: ${totalMins}m
+                </span>
+              ` : ''}
+              ${rideMins > 0 ? `
+                <span style="font-size: 0.72rem; color: #0369a1; background: #e0f2fe; padding: 2px 7px; border-radius: 9999px; font-weight: 700;">
+                  <i class="fas fa-motorcycle" style="margin-right: 2px;"></i> Transit: ${rideMins}m
+                </span>
+              ` : ''}
+            </div>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #166534; background: #dcfce7; padding: 2px 8px; border-radius: 4px;">
+              ✓ Fulfilled
+            </span>
+          </div>
+          ${(acceptedTimeFormatted || dispatchedTimeFormatted) ? `
+            <div style="font-size: 0.72rem; color: #64748b; margin-top: 5px; display: flex; justify-content: space-between; border-top: 1px dashed #bbf7d0; padding-top: 4px;">
+              <span>Accepted: <strong>${acceptedTimeFormatted || '--:--'}</strong></span>
+              ${dispatchedTimeFormatted ? `<span>Dispatched: <strong>${dispatchedTimeFormatted}</strong></span>` : ''}
+              <span>Delivered: <strong style="color: #166534;">${delivTimeFormatted}</strong></span>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    } else if (isLiveTiming || order.estimated_prep_time) {
+      // ACTIVE ORDER -> Show real-time prep & delivery ETAs
       const isDeliv = isDeliveryOrder(order);
       const prepMins = order.estimated_prep_time || 20;
       const combinedDelivMins = order.estimated_delivery_time || (prepMins + (isDeliv ? 15 : 0));
@@ -2246,7 +2328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </span>
                 <span style="color: var(--admin-text-muted); font-weight: 800;">=</span>
                 <span style="font-weight: 800; color: #166534; background: #dcfce7; padding: 1px 6px; border-radius: 4px;">
-                  <i class="fas fa-clock" style="margin-right: 2px;"></i> Combined ETA: ~${combinedDelivMins}m
+                  <i class="fas fa-clock" style="margin-right: 2px;"></i> Est. Delivery: ~${combinedDelivMins}m
                 </span>
               ` : `
                 <span style="font-weight: 700; color: #166534; background: #dcfce7; padding: 1px 6px; border-radius: 4px;">
@@ -2275,7 +2357,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 0.72rem; color: var(--admin-text-muted); margin-top: 5px; display: flex; justify-content: space-between; border-top: 1px dashed var(--admin-border-light); padding-top: 4px;">
               <span>Food Ready: <strong>${targetReadyFormatted || '--:--'}</strong></span>
               ${(isDeliv && targetDeliveryFormatted) ? `
-                <span>Customer Arrival: <strong style="color: #0284c7;">${targetDeliveryFormatted}</strong></span>
+                <span>Est. Delivery: <strong style="color: #0284c7;">${targetDeliveryFormatted}</strong></span>
               ` : ''}
             </div>
           ` : ''}
@@ -2287,7 +2369,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
     }
-
     // Cancellation reason strip & Online refund actions
     let cancelStrip = '';
     if (status === 'cancelled') {
@@ -2762,7 +2843,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewTransitMinsEl = document.getElementById('previewTransitMins');
     if (previewTransitMinsEl) previewTransitMinsEl.textContent = `+ ${transitMins} Mins`;
 
-    if (previewDeliveryTime) previewDeliveryTime.textContent = isDelivery ? `Arrival: ~${timeFmt(delivDate)}` : `Ready: ~${timeFmt(readyDate)}`;
+    if (previewDeliveryTime) previewDeliveryTime.textContent = isDelivery ? `Est. Delivery: ~${timeFmt(delivDate)}` : `Ready: ~${timeFmt(readyDate)}`;
     if (previewDeliveryMins) previewDeliveryMins.textContent = `~${totalCombinedMins} Mins`;
 
     if (btnConfirmAcceptOrder) {

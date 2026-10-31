@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
           cardKitchenEtaIcon.innerHTML = '<i class="fas fa-motorcycle"></i>';
         }
         if (cardKitchenEtaTitle) cardKitchenEtaTitle.textContent = '🛵 Out for Delivery • On the Road';
-        if (cardKitchenEtaSubtext) cardKitchenEtaSubtext.textContent = deliveryTimeFormatted ? `Target Arrival by ${deliveryTimeFormatted}` : 'Drive safely to customer address';
+        if (cardKitchenEtaSubtext) cardKitchenEtaSubtext.textContent = deliveryTimeFormatted ? `Target Delivery by ${deliveryTimeFormatted}` : 'Drive safely to customer address';
         if (cardKitchenStatusBadge) {
           cardKitchenStatusBadge.style.background = '#e0f2fe';
           cardKitchenStatusBadge.style.color = '#0369a1';

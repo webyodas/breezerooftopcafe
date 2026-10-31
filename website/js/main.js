@@ -5773,7 +5773,7 @@ function initCartSystem() {
           trackingPrepTimeText.innerHTML = `
             <span>
               <i class="fas fa-clock" style="color: var(--gold-primary, #ca8a04);"></i>
-              <strong>Estimated Arrival: ~${remDeliveryMins || totalDelivMins} Mins ${delivByFormatted ? `(by ${delivByFormatted})` : ''}</strong>
+              <strong>Estimated Delivery: ~${remDeliveryMins || totalDelivMins} Mins ${delivByFormatted ? `(by ${delivByFormatted})` : ''}</strong>
               <span style="font-size: 0.74rem; color: #94a3b8; margin-left: 6px;">(${prepMins}m Kitchen Prep + ${transitBufferMins}m Delivery)</span>
             </span>
           `;
