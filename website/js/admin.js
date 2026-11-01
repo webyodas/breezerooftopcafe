@@ -312,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const customerDetailModal = document.getElementById('customerDetailModal');
   const btnCloseCustomerDetailModal = document.getElementById('btnCloseCustomerDetailModal');
   const btnCloseCustomerDetailDrawer = document.getElementById('btnCloseCustomerDetailDrawer');
+  const btnDeleteCustomerFromModal = document.getElementById('btnDeleteCustomerFromModal');
   const customerModalAvatarContainer = document.getElementById('customerModalAvatarContainer');
   const customerModalName = document.getElementById('customerModalName');
   const customerModalTierBadge = document.getElementById('customerModalTierBadge');
@@ -5528,7 +5529,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (dispTotalCustomersCount) dispTotalCustomersCount.textContent = totalCount;
-    if (dispVerifiedCustomersSub) dispVerifiedCustomersSub.textContent = `${registeredCount} Registered Accounts`;
+    if (dispVerifiedCustomersSub) dispVerifiedCustomersSub.textContent = `Active Customer Profiles`;
     if (dispRepeatCustomersCount) dispRepeatCustomersCount.textContent = orderedCustomersCount;
     if (dispRepeatRateSub) dispRepeatRateSub.textContent = `Placed 1+ orders`;
     if (dispAvgCustomerLtv) dispAvgCustomerLtv.textContent = totalOrdersCount;
@@ -5547,8 +5548,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let filtered = allEnriched.filter(c => {
       // Filter dropdown
       if (customerSegment === 'with_orders' && c.total_orders_count === 0) return false;
-      if (customerSegment === 'registered' && !c.is_registered) return false;
-      if (customerSegment === 'guest' && c.is_registered) return false;
+      if (customerSegment === 'new' && c.total_orders_count > 0) return false;
 
       // Search query
       if (customerSearchQuery) {
@@ -5619,7 +5619,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="customer-info-meta">
                 <div class="customer-name-row">
                   <span class="customer-display-name">${escapeHtml(c.name)}</span>
-                  ${c.is_registered ? '<span class="customer-tag-verified" title="Signed in via Google OAuth"><i class="fab fa-google"></i> Verified</span>' : '<span class="customer-tag-guest" title="Guest orderer"><i class="fas fa-user"></i> Guest</span>'}
                 </div>
                 <div class="customer-joined-date">Joined ${joinedDate}</div>
               </div>
@@ -5650,18 +5649,17 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </td>
           <td style="text-align: right;">
-            <div class="customer-action-btns" style="justify-content: flex-end;">
+            <div class="customer-action-btns" style="justify-content: flex-end; gap: 6px;">
               ${waPhone ? `
                 <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="btn-customer-whatsapp" title="Chat on WhatsApp">
                   <i class="fab fa-whatsapp"></i> Chat
                 </a>
-              ` : `
-                <button type="button" class="btn-customer-whatsapp disabled" disabled title="No phone number available">
-                  <i class="fab fa-whatsapp"></i> Chat
-                </button>
-              `}
-              <button type="button" class="btn-view-customer-profile" data-customer-id="${c.id}" title="View Orders & Details">
-                <i class="fas fa-external-link-alt"></i> View
+              ` : ''}
+              <button type="button" class="btn-view-customer-profile" data-customer-id="${c.id}" title="View Profile & Orders">
+                <i class="fas fa-eye"></i> View
+              </button>
+              <button type="button" class="btn-delete-customer" data-customer-id="${c.id}" data-customer-name="${escapeHtml(c.name || 'Customer')}" data-customer-phone="${escapeHtml(c.phone || '')}" title="Delete Customer Profile">
+                <i class="fas fa-trash-alt"></i> Delete
               </button>
             </div>
           </td>
@@ -5674,6 +5672,16 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', (e) => {
         const custId = e.currentTarget.dataset.customerId;
         openCustomerDetailModal(custId);
+      });
+    });
+
+    // Attach delete customer click listeners
+    customersTableBody.querySelectorAll('.btn-delete-customer').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const custId = e.currentTarget.dataset.customerId;
+        const custName = e.currentTarget.dataset.customerName;
+        const custPhone = e.currentTarget.dataset.customerPhone;
+        await deleteCustomerRecord(custId, custName, custPhone);
       });
     });
   }
@@ -5729,7 +5737,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (customerModalJoined) {
       const joinedDate = customer.created_at ? new Date(customer.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Unknown';
-      customerModalJoined.textContent = `Member since ${joinedDate} • ${customer.is_registered ? 'Google Verified Account' : 'Guest Account'}`;
+      customerModalJoined.textContent = `Customer since ${joinedDate}`;
     }
 
     // 2. WhatsApp & Phone Quick Action
@@ -5951,6 +5959,72 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnCloseCustomerDetailDrawer) {
     btnCloseCustomerDetailDrawer.addEventListener('click', closeCustomerDetailModal);
   }
+  if (btnDeleteCustomerFromModal) {
+    btnDeleteCustomerFromModal.addEventListener('click', async () => {
+      if (!activeDetailCustomer) return;
+      await deleteCustomerRecord(activeDetailCustomer.id, activeDetailCustomer.name, activeDetailCustomer.phone);
+    });
+  }
+
+  async function deleteCustomerRecord(customerId, customerName, customerPhone) {
+    if (!customerId) return;
+    const displayName = customerName || 'Customer';
+    const phoneText = customerPhone ? ` (${customerPhone})` : '';
+
+    const confirmed = confirm(`Are you sure you want to delete customer "${displayName}"${phoneText}?\n\nThis will permanently remove this customer profile from the database.`);
+    if (!confirmed) return;
+
+    if (!supabaseClient) {
+      alert('Database connection not available.');
+      return;
+    }
+
+    try {
+      // 1. Delete from customers table in D1
+      const isDbRecord = allCustomers.some(c => c.id === customerId);
+      if (isDbRecord) {
+        const { error } = await supabaseClient
+          .from('customers')
+          .delete()
+          .eq('id', customerId);
+
+        if (error) {
+          alert('Error deleting customer: ' + (error.message || String(error)));
+          return;
+        }
+
+        allCustomers = allCustomers.filter(c => c.id !== customerId);
+      } else {
+        // If guest-synthesized profile, delete any database record matching phone
+        const cleanP = customerPhone ? String(customerPhone).replace(/\D/g, '').slice(-10) : '';
+        if (cleanP) {
+          const { error } = await supabaseClient
+            .from('customers')
+            .delete()
+            .or(`phone.eq.${cleanP},phone.eq.+91${cleanP}`);
+
+          if (!error) {
+            allCustomers = allCustomers.filter(c => {
+              const cP = c.phone ? String(c.phone).replace(/\D/g, '').slice(-10) : '';
+              return cP !== cleanP;
+            });
+          }
+        }
+      }
+
+      // Close modal if open
+      if (activeDetailCustomer && String(activeDetailCustomer.id) === String(customerId)) {
+        closeCustomerDetailModal();
+      }
+
+      showAdminToast(`✓ Customer "${displayName}" deleted successfully!`);
+      renderCustomersTab();
+      updateKPISummaries();
+    } catch (err) {
+      console.warn('deleteCustomerRecord error:', err);
+      alert('Failed to delete customer: ' + (err.message || String(err)));
+    }
+  }
   if (customerDetailModal) {
     customerDetailModal.addEventListener('click', (e) => {
       if (e.target === customerDetailModal) {
@@ -6004,7 +6078,7 @@ document.addEventListener('DOMContentLoaded', () => {
       `"${(c.name || '').replace(/"/g, '""')}"`,
       `"${(c.phone || '').replace(/"/g, '""')}"`,
       `"${(c.email || '').replace(/"/g, '""')}"`,
-      `"${c.is_registered ? 'Google Verified' : 'Guest'}"`,
+      `"${c.phone ? 'Phone User' : 'Online Guest'}"`,
       `"${(c.default_address || '').replace(/"/g, '""')}"`,
       c.total_orders_count,
       c.total_spent,

@@ -1696,6 +1696,28 @@
       background: var(--admin-gold-light);
     }
 
+    .btn-delete-customer {
+      background: #ffffff;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .btn-delete-customer:hover {
+      border-color: #ef4444;
+      background: #fef2f2;
+      color: #b91c1c;
+      transform: translateY(-1px);
+    }
+
     /* TAB 4: SALES & ANALYTICS */
     .analytics-grid {
       display: grid;
@@ -3509,7 +3531,7 @@
         <div class="fleet-kpi-card">
           <div class="fleet-kpi-label"><i class="fas fa-users" style="color: var(--admin-gold);"></i> Total Customers</div>
           <div class="fleet-kpi-value" id="dispTotalCustomersCount">0</div>
-          <div class="fleet-kpi-sub" id="dispVerifiedCustomersSub">0 Registered Accounts</div>
+          <div class="fleet-kpi-sub" id="dispVerifiedCustomersSub">Active Customer Profiles</div>
         </div>
         <div class="fleet-kpi-card highlight-green">
           <div class="fleet-kpi-label"><i class="fas fa-user-check" style="color: #15803d;"></i> Ordered Customers</div>
@@ -3543,8 +3565,7 @@
             <select id="customerSegmentFilter" class="form-select" style="width: auto; padding: 8px 12px; font-size: 0.82rem;">
               <option value="all">All Customers</option>
               <option value="with_orders">Customers with Orders</option>
-              <option value="registered">Registered Accounts</option>
-              <option value="guest">Guest Orders</option>
+              <option value="new">New Customers (0 Orders)</option>
             </select>
           </div>
 
@@ -4674,7 +4695,10 @@
       </div>
 
       <!-- Modal Footer -->
-      <div style="margin-top: 18px; display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+      <div style="margin-top: 18px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+        <button type="button" class="btn-delete-customer" id="btnDeleteCustomerFromModal" style="padding: 8px 16px; font-size: 0.82rem;">
+          <i class="fas fa-trash-alt"></i> Delete Customer
+        </button>
         <button type="button" class="btn-action-outline" id="btnCloseCustomerDetailDrawer" style="padding: 8px 20px; font-size: 0.84rem; font-weight: 700; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s;">
           Close
         </button>
@@ -5085,7 +5109,7 @@
   </div>
 
   <!-- SCRIPTS -->
-  <script src="js/admin.js?v=11.3"></script>
+  <script src="js/admin.js?v=11.4"></script>
   <!-- Progressive Web App Controller & Live-Update Engine -->
   <script src="js/pwa-install.js?v=11.0"></script>
 </body>

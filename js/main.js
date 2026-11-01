@@ -86,10 +86,16 @@ function getSupabaseClient() {
   return breezeSupabaseClient;
 }
 
+let isSyncingCustomerLock = false;
 async function syncCustomerToSupabase(profile, activeCart = null) {
   if (!profile || (!profile.email && !profile.phone)) return;
+  if (isSyncingCustomerLock) return;
+  isSyncingCustomerLock = true;
   const client = getSupabaseClient();
-  if (!client) return;
+  if (!client) {
+    isSyncingCustomerLock = false;
+    return;
+  }
   try {
     const cleanEmail = profile.email ? profile.email.toLowerCase().trim() : null;
     const rawPhone = profile.phone ? String(profile.phone).replace(/[^0-9]/g, '') : '';
@@ -130,6 +136,8 @@ async function syncCustomerToSupabase(profile, activeCart = null) {
     }
   } catch (err) {
     console.warn('Supabase sync customer error:', err);
+  } finally {
+    setTimeout(() => { isSyncingCustomerLock = false; }, 800);
   }
 }
 
