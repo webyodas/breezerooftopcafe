@@ -6127,6 +6127,41 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
+  function formatCsvISTDateTime(isoStr) {
+    if (!isoStr) return 'Never';
+    try {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return 'Never';
+      return d.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (e) {
+      return 'Never';
+    }
+  }
+
+  function formatCsvISTDate(isoStr) {
+    if (!isoStr) return 'Unknown';
+    try {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return 'Unknown';
+      return d.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
+
   // CSV EXPORT FOR CUSTOMER DATABASE
   // --------------------------------------------------------------------------
   function exportCustomersToCsv() {
@@ -6175,8 +6210,8 @@ document.addEventListener('DOMContentLoaded', () => {
       `"${(c.default_address || '').replace(/"/g, '""')}"`,
       c.total_orders_count,
       c.total_spent,
-      `"${c.last_order_at || 'Never'}"`,
-      `"${c.created_at || ''}"`
+      `"${formatCsvISTDateTime(c.last_order_at)}"`,
+      `"${formatCsvISTDate(c.created_at)}"`
     ]);
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
@@ -6400,7 +6435,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return [
         `"${o.id || ''}"`,
-        `"${o.created_at || ''}"`,
+        `"${formatCsvISTDateTime(o.created_at)}"`, 
         `"${(o.customer_name || '').replace(/"/g, '""')}"`,
         `"${o.customer_phone || ''}"`,
         `"${(o.customer_address || '').replace(/"/g, '""')}"`,
