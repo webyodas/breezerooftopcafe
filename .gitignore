@@ -9,3 +9,8 @@ orders_backup_pre_test.json
 # Local mobile demo preview (stays on device only)
 mobile/
 /mobile/
+
+.agents/
+*.md
+!README.md
+test_*.py

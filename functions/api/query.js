@@ -368,7 +368,12 @@ async function handleQueryExecution({ env, body, request }) {
           // Public order lookup MUST filter by id or customer_phone to prevent full database dumps
           const hasOrderOrPhoneFilter = filters.some(f => {
             const col = (f.col || f.column || '').toLowerCase();
-            return col === 'id' || col === 'customer_phone' || col === 'phone';
+            if (col === 'id' || col === 'customer_phone' || col === 'phone') return true;
+            if ((f.op || f.operator) === 'or' && typeof (f.val || f.value) === 'string') {
+              const val = (f.val || f.value).toLowerCase();
+              return val.includes('customer_phone.') || val.includes('phone.') || val.includes('id.');
+            }
+            return false;
           });
           if (!hasOrderOrPhoneFilter) {
             return new Response(
@@ -379,9 +384,13 @@ async function handleQueryExecution({ env, body, request }) {
         }
 
         if (action === 'update' && !isRider) {
-          // Public update is ONLY permitted for customer cancellation request
+          // Public update is ONLY permitted for customer cancellation request (setting status to 'cancelled')
           const updateKeys = data ? Object.keys(data) : [];
+          const isCustomerCancellation = data && data.status === 'cancelled';
           const allowedPublicKeys = new Set(['cancellation_reason', 'updated_at', 'cancelled_by']);
+          if (isCustomerCancellation) {
+            allowedPublicKeys.add('status');
+          }
           const hasDisallowedKey = updateKeys.some(k => !allowedPublicKeys.has(k));
           if (hasDisallowedKey) {
             return new Response(
