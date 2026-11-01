@@ -4508,41 +4508,39 @@ function initCartSystem() {
       renderCheckoutAddressSelector();
     }
 
-    // Render Order Summary
+    // Render Sleek Compact Order Summary Strip
     if (orderModalSummary) {
       if (mode === 'direct' && directItem) {
         if (orderModalTitle) orderModalTitle.textContent = 'Checkout & Delivery Details';
-        let summaryHtml = '<div class="order-summary-header"><span>Item Ordered</span><span>Subtotal</span></div>';
-        summaryHtml += '<div class="order-summary-list">';
-        summaryHtml += '<div class="order-summary-item">';
-        summaryHtml += '<span class="order-summary-item-name"><span class="order-summary-item-qty">1x</span>' + escapeHtml(directItem.name) + '</span>';
-        summaryHtml += '<span class="order-summary-item-price">₹' + directItem.price + '</span>';
-        summaryHtml += '</div>';
-        summaryHtml += '</div>';
-        summaryHtml += '<div class="order-summary-footer">';
-        summaryHtml += '<span class="order-summary-footer-label">Total Amount:</span>';
-        summaryHtml += '<span class="order-summary-footer-total">₹' + directItem.price + '</span>';
-        summaryHtml += '</div>';
-        orderModalSummary.innerHTML = summaryHtml;
+        orderModalSummary.innerHTML = `
+          <div class="order-summary-compact">
+            <div class="order-summary-compact-left">
+              <span class="order-summary-item-badge">1 Item</span>
+              <span class="order-summary-items-preview">${escapeHtml(directItem.name)}</span>
+            </div>
+            <div class="order-summary-compact-right">
+              <span class="order-summary-total-label">Payable</span>
+              <span class="order-summary-total-val">₹${directItem.price}</span>
+            </div>
+          </div>
+        `;
       } else {
         // Cart mode
         if (orderModalTitle) orderModalTitle.textContent = 'Checkout & Delivery Details';
         const { count, total } = getCartTotals();
-        let summaryHtml = '<div class="order-summary-header"><span>Order Summary (' + count + ' item' + (count === 1 ? '' : 's') + ')</span><span>Subtotal</span></div>';
-        summaryHtml += '<div class="order-summary-list">';
-        cart.forEach(item => {
-          const itemTotal = (item.price || 0) * (item.qty || 1);
-          summaryHtml += '<div class="order-summary-item">';
-          summaryHtml += '<span class="order-summary-item-name"><span class="order-summary-item-qty">' + (item.qty || 1) + 'x</span>' + escapeHtml(item.name) + '</span>';
-          summaryHtml += '<span class="order-summary-item-price">₹' + itemTotal + '</span>';
-          summaryHtml += '</div>';
-        });
-        summaryHtml += '</div>';
-        summaryHtml += '<div class="order-summary-footer">';
-        summaryHtml += '<span class="order-summary-footer-label">Grand Total:</span>';
-        summaryHtml += '<span class="order-summary-footer-total">₹' + total + '</span>';
-        summaryHtml += '</div>';
-        orderModalSummary.innerHTML = summaryHtml;
+        const itemsPreview = cart.map(i => `${i.qty > 1 ? i.qty + 'x ' : ''}${i.name}`).join(', ');
+        orderModalSummary.innerHTML = `
+          <div class="order-summary-compact">
+            <div class="order-summary-compact-left">
+              <span class="order-summary-item-badge">${count} Item${count === 1 ? '' : 's'}</span>
+              <span class="order-summary-items-preview" title="${escapeHtml(itemsPreview)}">${escapeHtml(itemsPreview)}</span>
+            </div>
+            <div class="order-summary-compact-right">
+              <span class="order-summary-total-label">Payable</span>
+              <span class="order-summary-total-val">₹${total}</span>
+            </div>
+          </div>
+        `;
       }
     }
 

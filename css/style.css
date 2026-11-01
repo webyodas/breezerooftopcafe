@@ -3595,6 +3595,74 @@ button {
   }
 }
 
+
+/* ==========================================================================
+   SLEEK COMPACT CHECKOUT ORDER SUMMARY (ANTI-CONGESTION)
+   ========================================================================== */
+.order-summary-compact {
+  background: #ffffff !important;
+  border: 1.5px solid #ebd9c0 !important;
+  border-radius: 14px !important;
+  padding: 10px 14px !important;
+  margin-bottom: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02) !important;
+}
+
+.order-summary-compact-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.order-summary-item-badge {
+  background: #fdf6ec !important;
+  color: #b45309 !important;
+  border: 1px solid #fcd34d !important;
+  padding: 3px 8px !important;
+  border-radius: 8px !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.order-summary-items-preview {
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  color: #3b3530 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.order-summary-compact-right {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+.order-summary-total-label {
+  font-size: 0.7rem !important;
+  color: #8c827a !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.order-summary-total-val {
+  font-size: 1.18rem !important;
+  font-weight: 800 !important;
+  color: #b45309 !important;
+  font-family: var(--font-serif, Georgia, serif) !important;
+}
+
 .order-modal-summary {
   background: #fdfaf4;
   border: 1px solid rgba(193, 145, 67, 0.25);
@@ -4349,7 +4417,75 @@ button {
     flex-shrink: 0 !important;
   }
 
-  .order-modal-summary {
+  
+/* ==========================================================================
+   SLEEK COMPACT CHECKOUT ORDER SUMMARY (ANTI-CONGESTION)
+   ========================================================================== */
+.order-summary-compact {
+  background: #ffffff !important;
+  border: 1.5px solid #ebd9c0 !important;
+  border-radius: 14px !important;
+  padding: 10px 14px !important;
+  margin-bottom: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02) !important;
+}
+
+.order-summary-compact-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.order-summary-item-badge {
+  background: #fdf6ec !important;
+  color: #b45309 !important;
+  border: 1px solid #fcd34d !important;
+  padding: 3px 8px !important;
+  border-radius: 8px !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.order-summary-items-preview {
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  color: #3b3530 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.order-summary-compact-right {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+.order-summary-total-label {
+  font-size: 0.7rem !important;
+  color: #8c827a !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.order-summary-total-val {
+  font-size: 1.18rem !important;
+  font-weight: 800 !important;
+  color: #b45309 !important;
+  font-family: var(--font-serif, Georgia, serif) !important;
+}
+
+.order-modal-summary {
     padding: 8px 12px !important;
     margin-bottom: 10px !important;
     border-radius: 8px !important;
