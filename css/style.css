@@ -3202,7 +3202,7 @@ button {
 }
 
 /* ==========================================================================
-   CART ITEMS LIST & ITEM ROW STYLES (PREMIUM ZOMATO DESIGN)
+   CART ITEMS LIST & ITEM ROW STYLES (PREMIUM MODERN DESIGN)
    ========================================================================== */
 .cart-items-list {
   display: flex !important;
@@ -5829,7 +5829,7 @@ body.store-closed .menu-card:not(.out-of-stock) .btn-card-cart:active {
 }
 
 /* ==========================================================================
-   SAVED DELIVERY ADDRESS MODAL (PREMIUM ZOMATO-GRADE DESIGN)
+   SAVED DELIVERY ADDRESS MODAL (PREMIUM MODERN DESIGN)
    ========================================================================== */
 .saved-address-container {
   max-width: 480px !important;

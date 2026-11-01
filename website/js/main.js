@@ -72,7 +72,7 @@ function isValidIndianMobile(phoneStr) {
 }
 
 // --------------------------------------------------------------------------
-// SUPABASE DATABASE ADAPTER (ZOMATO-GRADE CLOUD SYNC)
+// SUPABASE DATABASE ADAPTER (ENTERPRISE-GRADE CLOUD SYNC)
 // --------------------------------------------------------------------------
 let breezeSupabaseClient = null;
 function getSupabaseClient() {
@@ -4478,7 +4478,7 @@ function initCartSystem() {
       }
     }
 
-    // Mandatory Authentication Gate (Zomato-grade)
+    // Mandatory Authentication Gate (Frictionless)
     if (!customerProfile || !customerProfile.isLoggedIn || (!customerProfile.email && !customerProfile.phone)) {
       pendingCheckoutAction = { mode, directItem };
       closeCartDrawer();
