@@ -5722,9 +5722,10 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="customer-phone-val">
                 <i class="fas fa-phone"></i> ${c.phone ? escapeHtml(c.phone) : '<span style="color:#94a3b8;">No phone</span>'}
               </div>
+              ${c.email && c.email.trim() ? `
               <div class="customer-email-val">
-                <i class="fas fa-envelope"></i> ${c.email ? escapeHtml(c.email) : '<span style="color:#94a3b8;">No email</span>'}
-              </div>
+                <i class="fas fa-envelope"></i> ${escapeHtml(c.email.trim())}
+              </div>` : ''}
             </div>
           </td>
           <td>
@@ -5874,8 +5875,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (customerModalPhone) {
       customerModalPhone.textContent = customer.phone || 'Not provided';
     }
-    if (customerModalEmail) {
-      customerModalEmail.textContent = customer.email || 'Not provided';
+    const customerModalEmailWrapper = document.getElementById('customerModalEmailWrapper');
+    const customerModalEmailDivider = document.getElementById('customerModalEmailDivider');
+    if (customer.email && customer.email.trim()) {
+      if (customerModalEmail) customerModalEmail.textContent = customer.email.trim();
+      if (customerModalEmailWrapper) customerModalEmailWrapper.style.display = 'inline';
+      if (customerModalEmailDivider) customerModalEmailDivider.style.display = 'inline';
+    } else {
+      if (customerModalEmailWrapper) customerModalEmailWrapper.style.display = 'none';
+      if (customerModalEmailDivider) customerModalEmailDivider.style.display = 'none';
     }
     if (customerModalDefaultAddress) {
       customerModalDefaultAddress.textContent = customer.default_address || 'No saved delivery address on file';
@@ -6192,8 +6200,6 @@ document.addEventListener('DOMContentLoaded', () => {
       'Customer ID',
       'Name',
       'Phone',
-      'Email',
-      'Account Type',
       'Delivery Address',
       'Total Orders',
       'Total Spend (INR)',
@@ -6205,8 +6211,6 @@ document.addEventListener('DOMContentLoaded', () => {
       `"${c.id}"`,
       `"${(c.name || '').replace(/"/g, '""')}"`,
       `"${(c.phone || '').replace(/"/g, '""')}"`,
-      `"${(c.email || '').replace(/"/g, '""')}"`,
-      `"${c.phone ? 'Phone User' : 'Online Guest'}"`,
       `"${(c.default_address || '').replace(/"/g, '""')}"`,
       c.total_orders_count,
       c.total_spent,

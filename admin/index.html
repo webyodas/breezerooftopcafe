@@ -4633,8 +4633,8 @@
             <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a;" id="customerModalName">Customer Name</div>
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 4px; font-size: 0.82rem; color: #475569;">
               <span><i class="fas fa-phone" style="color: #94a3b8; font-size: 0.75rem;"></i> <strong id="customerModalPhone">--</strong></span>
-              <span style="color: #cbd5e1;">•</span>
-              <span><i class="fas fa-envelope" style="color: #94a3b8; font-size: 0.75rem;"></i> <span id="customerModalEmail">--</span></span>
+              <span id="customerModalEmailDivider" style="color: #cbd5e1; display: none;">•</span>
+              <span id="customerModalEmailWrapper" style="display: none;"><i class="fas fa-envelope" style="color: #94a3b8; font-size: 0.75rem;"></i> <span id="customerModalEmail"></span></span>
             </div>
           </div>
         </div>
@@ -5128,7 +5128,7 @@
   </div>
 
   <!-- SCRIPTS -->
-  <script src="js/admin.js?v=11.8"></script>
+  <script src="js/admin.js?v=11.9"></script>
   <!-- Progressive Web App Controller & Live-Update Engine -->
   <script src="js/pwa-install.js?v=11.0"></script>
 </body>
