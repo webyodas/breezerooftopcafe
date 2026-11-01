@@ -117,11 +117,11 @@
   <!-- ==========================================================================
        MAIN TRACKING WRAPPER
        ========================================================================== -->
-  <main class="profile-main-layout" style="padding: 30px 16px 80px;">
+  <main class="profile-main-layout" style="padding: 24px 16px 100px;">
     <div class="container" style="max-width: 820px; margin: 0 auto;">
 
       <!-- Tracking Search Box / Header Banner -->
-      <div style="background: linear-gradient(135deg, #1c1814 0%, #110e0b 100%); border: 1.5px solid rgba(181, 136, 61, 0.28); border-radius: 20px; padding: 28px 24px; color: #ffffff; margin-bottom: 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.18);">
+      <div class="tracking-search-hero-box" style="background: linear-gradient(135deg, #1c1814 0%, #110e0b 100%); border: 1.5px solid rgba(181, 136, 61, 0.28); border-radius: 20px; padding: 24px 22px; color: #ffffff; margin-bottom: 22px; box-shadow: 0 12px 32px rgba(0,0,0,0.18);">
         <div style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary-gold); font-weight: 800; margin-bottom: 8px;">
           <i class="fas fa-satellite-dish"></i> LIVE ORDER RADAR
         </div>
@@ -170,7 +170,7 @@
       </div>
 
       <!-- Active Orders on the Go Bar (Rendered when phone has active orders) -->
-      <div id="trackActiveChipsBar" style="display: none; background: #ffffff; border: 1.5px solid rgba(181, 136, 61, 0.35); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+      <div id="trackActiveChipsBar" class="track-active-bar-card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
           <div style="font-weight: 800; font-size: 0.95rem; color: #1c1814; display: flex; align-items: center; gap: 8px;">
             <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);"></span>
@@ -178,7 +178,7 @@
           </div>
           <small style="color: #78716c; font-size: 0.8rem;">Tap an order to track live</small>
         </div>
-        <div id="trackActiveChipsList" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;"></div>
+        <div id="trackActiveChipsList" class="track-chips-scroll-wrap"></div>
       </div>
 
       <!-- No Active Orders Banner (Rendered when phone has past orders but no live cooking orders) -->
@@ -198,18 +198,19 @@
       <!-- Live Order Results Container -->
       <div id="trackResultsContainer" style="display: none;">
         
-        <!-- Order Header Card -->
-        <div style="background: #ffffff; border-radius: 18px; border: 1px solid #eee5d7; padding: 22px 24px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-            <div>
-              <span class="tracking-header-badge" id="trackStatusBadge">
-                <i class="fas fa-circle" style="font-size: 0.55rem;"></i> <span id="trackStatusBadgeText">Order Placed</span>
-              </span>
-              <h2 style="font-family: var(--font-serif); font-size: 1.35rem; color: #1c1814; margin: 6px 0 0;" id="trackDisplayOrderId">Order #BRZ-0000</h2>
-            </div>
-            <div style="text-align: right;">
-              <small style="color: #78716c; font-size: 0.78rem; display: block;">Placed At</small>
-              <strong style="font-size: 0.88rem; color: #1c1814;" id="trackOrderDate">Today</strong>
+        <!-- Order Header Card (Redesigned Zero-Misalignment Header) -->
+        <div class="tracking-order-main-card">
+          <div class="tracking-order-head-bar">
+            <div class="tracking-order-title-group">
+              <div class="tracking-badge-and-id">
+                <h2 class="tracking-order-heading" id="trackDisplayOrderId">Order #BRZ-0000</h2>
+                <span class="tracking-header-badge" id="trackStatusBadge">
+                  <i class="fas fa-circle" style="font-size: 0.55rem;"></i> <span id="trackStatusBadgeText">Order Placed</span>
+                </span>
+              </div>
+              <div class="tracking-placed-time-pill">
+                <i class="far fa-clock"></i> <span>Placed at: <strong id="trackOrderDate">Today</strong></span>
+              </div>
             </div>
           </div>
 
@@ -405,25 +406,28 @@
        FOOTER (Standard Luxury Breeze Footer with Mandatory Legal Links)
        ========================================================================== -->
   <footer class="footer">
-    <div class="container footer-container">
-      <div class="footer-grid">
-        <div class="footer-col footer-brand-col">
-          <img src="assets/logo-white.png" alt="Breeze Rooftop Cafe" class="footer-logo">
-          <p class="footer-tagline">Palghar's Premier Rooftop Lounge &amp; Dining Experience</p>
-          <div class="footer-social-links">
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="footer-social-icon" aria-label="Instagram">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="assets/logo-white.png" alt="Breeze Logo" class="brand-logo-img" style="height: 56px; width: auto; margin-bottom: 14px;">
+          <p>
+            Palghar's premier open-sky dining lounge. High above the city on the 5th floor of Kanchan Aura, offering artisan matchas, messy burgers, and fairy-lit evenings.
+          </p>
+          <div class="social-links">
+            <a href="https://www.instagram.com/breezetherooftopcafe/?hl=en" target="_blank" rel="noopener noreferrer" class="social-link" title="Instagram">
               <i class="fab fa-instagram"></i>
             </a>
-            <a href="https://wa.me/919623999095" target="_blank" rel="noopener noreferrer" class="footer-social-icon" aria-label="WhatsApp">
+            <a href="https://wa.me/919623999095" target="_blank" rel="noopener noreferrer" class="social-link" title="WhatsApp">
               <i class="fab fa-whatsapp"></i>
             </a>
-            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="footer-social-icon" aria-label="Google Maps">
+            <a href="https://maps.app.goo.gl/2LKpvN9paxTDa77ZA" target="_blank" rel="noopener noreferrer" class="social-link" title="Google Maps">
               <i class="fas fa-map-marker-alt"></i>
             </a>
+            <a href="tel:9623999095" class="social-link" title="Call Cafe Desk"><i class="fas fa-phone"></i></a>
           </div>
         </div>
 
-                <div class="footer-col">
+        <div class="footer-col">
           <h4>Quick Navigation</h4>
           <ul class="footer-links-list">
             <li><a href="/" class="footer-link">Home</a></li>
@@ -485,7 +489,7 @@
           <a href="/shipping" class="footer-legal-link">Delivery &amp; Shipping</a>
         </div>
         <div>
-          Crafted by <a href="https://webyodas.pages.dev" target="_blank" rel="noopener noreferrer" class="webyodas-link" title="Visit WebYodas — Digital Architecture & Engineering">WebYodas <i class="fas fa-external-link-alt" style="font-size: 0.72em; margin-left: 2px;"></i></a>
+          Crafted by <a href="https://webyodas.pages.dev" target="_blank" rel="noopener noreferrer" class="webyodas-link" title="Visit WebYodas">WebYodas <i class="fas fa-external-link-alt" style="font-size: 0.72em; margin-left: 2px;"></i></a>
         </div>
       </div>
     </div>

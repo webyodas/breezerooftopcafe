@@ -4,7 +4,7 @@
    Immediate Activation (skipWaiting + clients.claim), and Resilient Offline Fallback
    ========================================================================== */
 
-const CACHE_VERSION = 'breeze-pwa-v1.0.22-profile-tabs-fit';
+const CACHE_VERSION = 'breeze-pwa-v1.0.23-tracking-polish';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

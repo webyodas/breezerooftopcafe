@@ -8436,3 +8436,143 @@ body:has(.mobile-nav-drawer.open) {
   color: #c19143 !important;
 }
 
+
+
+/* ==========================================================================
+   TRACKING PAGE LUXURY POLISH & MOBILE ALIGNMENT FIXES
+   ========================================================================== */
+.tracking-order-main-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #eee5d7;
+  padding: 24px 26px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.tracking-order-head-bar {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3ede2;
+}
+
+.tracking-order-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tracking-badge-and-id {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tracking-order-heading {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #1c1814;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.tracking-placed-time-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: #78716c;
+  font-weight: 500;
+}
+
+.tracking-placed-time-pill i {
+  color: #b5883d;
+  font-size: 0.82rem;
+}
+
+.tracking-placed-time-pill strong {
+  color: #292524;
+  font-weight: 700;
+}
+
+/* Active Orders on the Go Bar */
+.track-active-bar-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(181, 136, 61, 0.35);
+  border-radius: 18px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+
+.track-chips-scroll-wrap {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 6px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.track-chips-scroll-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tracking Hero Status Card Polish */
+.tracking-hero-status {
+  background: linear-gradient(145deg, #1d1915, #2c251e) !important;
+  border: 1.5px solid rgba(181, 136, 61, 0.32) !important;
+  border-radius: 16px !important;
+  padding: 22px 20px !important;
+  margin: 16px 0 20px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+.tracking-hero-status h3,
+.tracking-hero-status h2 {
+  font-family: var(--font-serif) !important;
+  font-size: 1.3rem !important;
+  color: #fff9ed !important;
+  margin: 0 0 6px !important;
+  letter-spacing: -0.2px !important;
+}
+
+.tracking-hero-status p {
+  color: #cfc6b8 !important;
+  font-size: 0.88rem !important;
+  margin: 0 0 10px !important;
+  line-height: 1.45 !important;
+}
+
+/* Mobile Alignment & Breathing Room */
+@media (max-width: 640px) {
+  .tracking-order-main-card {
+    padding: 18px 16px;
+    border-radius: 16px;
+    margin-bottom: 18px;
+  }
+  .tracking-order-heading {
+    font-size: 1.25rem;
+  }
+  .tracking-placed-time-pill {
+    font-size: 0.8rem;
+  }
+  .track-active-bar-card {
+    padding: 14px 14px;
+    border-radius: 14px;
+  }
+  .tracking-search-hero-box {
+    padding: 20px 18px !important;
+    border-radius: 16px !important;
+  }
+  .tracking-search-hero-box h1 {
+    font-size: 1.35rem !important;
+  }
+  .tracking-search-hero-box p {
+    font-size: 0.84rem !important;
+    margin-bottom: 16px !important;
+  }
+}
