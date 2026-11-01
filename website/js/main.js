@@ -101,9 +101,13 @@ async function syncCustomerToSupabase(profile, activeCart = null) {
     const rawPhone = profile.phone ? String(profile.phone).replace(/[^0-9]/g, '') : '';
     const cleanPhone = rawPhone.length >= 10 ? rawPhone.slice(-10) : (rawPhone || null);
 
-    // Look for existing record by email or phone to link them
+    // Look for existing record by ID, email, or phone to link them
     let existingRow = null;
-    if (cleanEmail) {
+    if (profile.id) {
+      const { data } = await client.from('customers').select('*').eq('id', profile.id).maybeSingle();
+      if (data) existingRow = data;
+    }
+    if (!existingRow && cleanEmail) {
       const { data } = await client.from('customers').select('*').eq('email', cleanEmail).maybeSingle();
       if (data) existingRow = data;
     }
@@ -128,11 +132,19 @@ async function syncCustomerToSupabase(profile, activeCart = null) {
     }
 
     if (existingRow && existingRow.id) {
+      if (typeof customerProfile !== 'undefined' && customerProfile) {
+        customerProfile.id = existingRow.id;
+        try { localStorage.setItem(CUSTOMER_PROFILE_KEY, JSON.stringify(customerProfile)); } catch (e) {}
+      }
       await client.from('customers').update(payload).eq('id', existingRow.id);
     } else {
-      payload.id = 'CUST-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+      payload.id = profile.id || ('CUST-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6));
       payload.created_at = new Date().toISOString();
-      await client.from('customers').insert(payload);
+      const { data: insertedRow } = await client.from('customers').insert(payload).select().maybeSingle();
+      if (insertedRow && insertedRow.id && typeof customerProfile !== 'undefined' && customerProfile) {
+        customerProfile.id = insertedRow.id;
+        try { localStorage.setItem(CUSTOMER_PROFILE_KEY, JSON.stringify(customerProfile)); } catch (e) {}
+      }
     }
   } catch (err) {
     console.warn('Supabase sync customer error:', err);

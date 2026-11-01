@@ -403,11 +403,16 @@ async function handleQueryExecution({ env, body, request }) {
         if (action === 'select') {
           const hasPhoneOrIdFilter = filters.some(f => {
             const col = (f.col || f.column || '').toLowerCase();
-            return col === 'phone' || col === 'customer_phone' || col === 'id';
+            if (col === 'phone' || col === 'customer_phone' || col === 'id' || col === 'email') return true;
+            if ((f.op || f.operator) === 'or' && typeof (f.val || f.value) === 'string') {
+              const val = (f.val || f.value).toLowerCase();
+              return val.includes('phone.') || val.includes('customer_phone.') || val.includes('id.') || val.includes('email.');
+            }
+            return false;
           });
           if (!hasPhoneOrIdFilter) {
             return new Response(
-              JSON.stringify({ data: null, error: { message: "Public customer lookup requires phone or customer ID filter" } }),
+              JSON.stringify({ data: null, error: { message: "Public customer lookup requires phone, email, or customer ID filter" } }),
               { status: 403, headers: CORS_HEADERS }
             );
           }
@@ -593,6 +598,50 @@ async function handleQueryExecution({ env, body, request }) {
       const inserted = [];
       for (const rec of records) {
         const norm = normalizeIncomingRow(table, rec);
+
+        // Deduplication guard for customers table: avoid inserting multiple profiles for same phone/email
+        if (cleanTable === 'customers') {
+          const checkPhone = norm.phone ? String(norm.phone).replace(/\D/g, '').slice(-10) : '';
+          const checkEmail = norm.email ? String(norm.email).trim().toLowerCase() : '';
+          if (checkPhone || checkEmail) {
+            let existingCust = null;
+            if (checkPhone) {
+              const row = await env.DB.prepare(
+                `SELECT id FROM customers WHERE phone = ? OR phone = ? OR phone LIKE ?`
+              ).bind(checkPhone, `+91${checkPhone}`, `%${checkPhone}`).first();
+              if (row) existingCust = row;
+            }
+            if (!existingCust && checkEmail) {
+              const row = await env.DB.prepare(
+                `SELECT id FROM customers WHERE LOWER(email) = LOWER(?)`
+              ).bind(checkEmail).first();
+              if (row) existingCust = row;
+            }
+            if (existingCust && existingCust.id) {
+              norm.id = existingCust.id;
+              delete norm.created_at; // preserve original creation timestamp
+              norm.updated_at = new Date().toISOString();
+              const updateKeys = Object.keys(norm).filter(k => k !== 'id');
+              const setClause = updateKeys.map(k => `"${k}" = ?`).join(', ');
+              const updateVals = updateKeys.map(k => norm[k]);
+              await env.DB.prepare(
+                `UPDATE customers SET ${setClause} WHERE id = ?`
+              ).bind(...updateVals, existingCust.id).run();
+
+              const updatedRow = await env.DB.prepare(`SELECT * FROM customers WHERE id = ?`).bind(existingCust.id).first();
+              const finalRow = normalizeOutgoingRow('customers', updatedRow || norm, isAdmin);
+              inserted.push(finalRow);
+
+              try {
+                await env.DB.prepare(
+                  `INSERT INTO app_events (table_name, event_type, record_id, payload, created_at) VALUES ('customers', 'UPDATE', ?, ?, ?)`
+                ).bind(String(existingCust.id), JSON.stringify(finalRow), new Date().toISOString()).run();
+              } catch (e) {}
+              continue;
+            }
+          }
+        }
+
         const keys = Object.keys(norm);
         const placeholders = keys.map(() => '?').join(', ');
         const cols = keys.map(k => `"${k}"`).join(', ');
@@ -696,7 +745,32 @@ async function handleQueryExecution({ env, body, request }) {
         const rawVal = f.val !== undefined ? f.val : (f.value !== undefined ? f.value : null);
         const val = rawVal === undefined ? null : rawVal;
 
-        if (op === 'eq' || op === 'ilike') {
+        if (op === 'or' && typeof val === 'string') {
+          const clauses = val.split(',').map(c => c.trim()).filter(Boolean);
+          const orParts = [];
+          for (const clause of clauses) {
+            const firstDot = clause.indexOf('.');
+            const secondDot = clause.indexOf('.', firstDot + 1);
+            if (firstDot === -1 || secondDot === -1) continue;
+            const cCol = clause.substring(0, firstDot);
+            const cOp = clause.substring(firstDot + 1, secondDot);
+            const cVal = clause.substring(secondDot + 1);
+            if (cOp === 'eq') {
+              if (cVal === 'null') {
+                orParts.push(`"${cCol}" IS NULL`);
+              } else if (['id', 'rider_id', 'status', 'customer_email', 'customer_phone', 'phone'].includes(cCol)) {
+                orParts.push(`LOWER("${cCol}") = LOWER(?)`);
+                params.push(cVal);
+              } else {
+                orParts.push(`"${cCol}" = ?`);
+                params.push(cVal);
+              }
+            }
+          }
+          if (orParts.length > 0) {
+            whereClauses.push(`(${orParts.join(' OR ')})`);
+          }
+        } else if (op === 'eq' || op === 'ilike') {
           if (['id', 'rider_id', 'status', 'customer_phone', 'customer_email', 'phone'].includes(col) && typeof val === 'string') {
             whereClauses.push(`LOWER("${col}") = LOWER(?)`);
             params.push(val);
@@ -849,7 +923,32 @@ async function handleQueryExecution({ env, body, request }) {
         const rawVal = f.val !== undefined ? f.val : (f.value !== undefined ? f.value : null);
         const val = rawVal === undefined ? null : rawVal;
 
-        if (op === 'eq' || op === 'ilike') {
+        if (op === 'or' && typeof val === 'string') {
+          const clauses = val.split(',').map(c => c.trim()).filter(Boolean);
+          const orParts = [];
+          for (const clause of clauses) {
+            const firstDot = clause.indexOf('.');
+            const secondDot = clause.indexOf('.', firstDot + 1);
+            if (firstDot === -1 || secondDot === -1) continue;
+            const cCol = clause.substring(0, firstDot);
+            const cOp = clause.substring(firstDot + 1, secondDot);
+            const cVal = clause.substring(secondDot + 1);
+            if (cOp === 'eq') {
+              if (cVal === 'null') {
+                orParts.push(`"${cCol}" IS NULL`);
+              } else if (['id', 'rider_id', 'status', 'customer_email', 'customer_phone', 'phone'].includes(cCol)) {
+                orParts.push(`LOWER("${cCol}") = LOWER(?)`);
+                params.push(cVal);
+              } else {
+                orParts.push(`"${cCol}" = ?`);
+                params.push(cVal);
+              }
+            }
+          }
+          if (orParts.length > 0) {
+            whereClauses.push(`(${orParts.join(' OR ')})`);
+          }
+        } else if (op === 'eq' || op === 'ilike') {
           if (['id', 'rider_id', 'status', 'customer_phone', 'customer_email', 'phone'].includes(col) && typeof val === 'string') {
             whereClauses.push(`LOWER("${col}") = LOWER(?)`);
             params.push(val);

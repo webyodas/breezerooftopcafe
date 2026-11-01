@@ -5453,39 +5453,56 @@ document.addEventListener('DOMContentLoaded', () => {
   function getEnrichedCustomersList() {
     const customerMap = new Map();
 
-    // 1. Index registered customers
+    // 1. Index registered customers (deduplicating by phone / email)
     (allCustomers || []).forEach(cust => {
       const emailKey = cust.email ? cust.email.trim().toLowerCase() : '';
       const rawPhone = cust.phone ? String(cust.phone).replace(/\D/g, '').slice(-10) : '';
 
-      const enriched = {
-        id: cust.id,
-        name: cust.name || 'Registered Customer',
-        phone: cust.phone || '',
-        cleanPhone: rawPhone,
-        email: cust.email || '',
-        avatar: cust.avatar || '',
-        default_address: cust.default_address || '',
-        saved_addresses: Array.isArray(cust.saved_addresses) ? cust.saved_addresses : [],
-        active_cart: cust.active_cart || null,
-        is_registered: true,
-        created_at: cust.created_at || new Date().toISOString(),
-        orders: [],
-        total_orders_count: Number(cust.total_orders_count) || 0,
-        total_spent: Number(cust.total_spent) || 0,
-        last_order_at: null,
-        segment: 'prospect',
-        aov: 0
-      };
+      // Primary deduplication key: phone first, then email, then id
+      const dedupKey = rawPhone ? `phone_${rawPhone}` : (emailKey ? `email_${emailKey}` : cust.id);
 
-      // Store by primary customer ID
-      customerMap.set(cust.id, enriched);
+      let enriched = customerMap.get(dedupKey);
+      if (!enriched) {
+        enriched = {
+          id: cust.id,
+          name: cust.name || 'Registered Customer',
+          phone: cust.phone || '',
+          cleanPhone: rawPhone,
+          email: cust.email || '',
+          avatar: cust.avatar || '',
+          default_address: cust.default_address || '',
+          saved_addresses: Array.isArray(cust.saved_addresses) ? cust.saved_addresses : [],
+          active_cart: cust.active_cart || null,
+          is_registered: true,
+          created_at: cust.created_at || new Date().toISOString(),
+          orders: [],
+          total_orders_count: Number(cust.total_orders_count) || 0,
+          total_spent: Number(cust.total_spent) || 0,
+          last_order_at: null,
+          segment: 'prospect',
+          aov: 0
+        };
+        customerMap.set(dedupKey, enriched);
+      } else {
+        // Merge attributes if duplicate exists
+        if (!enriched.name || enriched.name === 'Registered Customer') enriched.name = cust.name || enriched.name;
+        if (!enriched.default_address && cust.default_address) enriched.default_address = cust.default_address;
+        if (!enriched.email && cust.email) enriched.email = cust.email;
+        if (!enriched.phone && cust.phone) enriched.phone = cust.phone;
+      }
     });
 
     // Helper to find existing enriched profile by email or 10-digit phone
     function findProfileMatch(email, phone) {
       const cleanP = phone ? String(phone).replace(/\D/g, '').slice(-10) : '';
       const cleanE = email ? email.trim().toLowerCase() : '';
+
+      if (cleanP && customerMap.has(`phone_${cleanP}`)) {
+        return customerMap.get(`phone_${cleanP}`);
+      }
+      if (cleanE && customerMap.has(`email_${cleanE}`)) {
+        return customerMap.get(`email_${cleanE}`);
+      }
 
       // Priority 1: Match by account email first
       if (cleanE) {
@@ -5518,8 +5535,8 @@ document.addEventListener('DOMContentLoaded', () => {
       let profile = findProfileMatch(oEmail, oPhone);
 
       if (!profile) {
-        // Synthesize guest customer profile
-        const guestKey = oPhone ? `guest_ph_${oPhone}` : (oEmail ? `guest_em_${oEmail}` : `guest_ord_${order.id}`);
+        // Synthesize guest customer profile (unified key by phone / email)
+        const guestKey = oPhone ? `phone_${oPhone}` : (oEmail ? `email_${oEmail}` : `guest_ord_${order.id}`);
         profile = customerMap.get(guestKey);
 
         if (!profile) {
