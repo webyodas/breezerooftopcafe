@@ -4,7 +4,7 @@
    Immediate Activation (skipWaiting + clients.claim), and Resilient Offline Fallback
    ========================================================================== */
 
-const CACHE_VERSION = 'breeze-pwa-v1.0.17-scrub-zomato';
+const CACHE_VERSION = 'breeze-pwa-v1.0.18-call-desk-polish';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

@@ -8125,10 +8125,10 @@ body:has(.mobile-nav-drawer.open) {
 .btn-table-desk-call {
   background: #ffffff !important;
   border: 1.5px solid #e7ded2 !important;
-  color: #44403c !important;
-  border-radius: 12px !important;
-  height: 42px !important;
-  font-size: 0.82rem !important;
+  color: #2b2520 !important;
+  border-radius: 14px !important;
+  height: 48px !important;
+  font-size: 0.88rem !important;
   font-weight: 700 !important;
   display: flex !important;
   align-items: center !important;
@@ -8136,9 +8136,11 @@ body:has(.mobile-nav-drawer.open) {
   gap: 8px !important;
   width: 100% !important;
   text-decoration: none !important;
-  margin-top: 10px !important;
-  transition: all 0.2s ease !important;
+  margin-top: 12px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-sizing: border-box !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  white-space: nowrap !important;
 }
 
 .btn-table-desk-call:hover {
