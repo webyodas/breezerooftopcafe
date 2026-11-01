@@ -1174,7 +1174,12 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
 
       if (!error && Array.isArray(data)) {
-        allSettlements = data;
+        const seen = new Set();
+        allSettlements = data.filter(s => {
+          if (!s || !s.id || seen.has(s.id)) return false;
+          seen.add(s.id);
+          return true;
+        });
       }
     } catch (err) {
       console.warn('fetchRiderSettlements error:', err);
@@ -1454,11 +1459,22 @@ document.addEventListener('DOMContentLoaded', () => {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'rider_settlements' }, (payload) => {
           if (!payload) return;
           if (payload.eventType === 'INSERT' && payload.new) {
-            allSettlements.unshift(payload.new);
+            if (!allSettlements.some(s => s.id === payload.new.id)) {
+              allSettlements.unshift(payload.new);
+              updateKPISummaries();
+              if (activeTab === 'riders') renderRidersTab();
+            }
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            const idx = allSettlements.findIndex(s => s.id === payload.new.id);
+            if (idx !== -1) {
+              allSettlements[idx] = Object.assign({}, allSettlements[idx], payload.new);
+            } else {
+              allSettlements.unshift(payload.new);
+            }
             updateKPISummaries();
             if (activeTab === 'riders') renderRidersTab();
           } else if (payload.eventType === 'DELETE') {
-            if (payload.old) {
+            if (payload.old && payload.old.id) {
               allSettlements = allSettlements.filter(s => s.id !== payload.old.id);
             } else {
               allSettlements = [];
@@ -4728,8 +4744,13 @@ document.addEventListener('DOMContentLoaded', () => {
       fleetTotalPendingOrdersCount += rDeliveredCod.length;
     });
 
-    // Filter settlements and delivered orders by active analytics period
-    const periodSettlements = allSettlements.filter(s => isRecordInActivePeriod(s.created_at));
+    // Filter unique settlements and delivered orders by active analytics period
+    const seenSettlementIds = new Set();
+    const periodSettlements = allSettlements.filter(s => {
+      if (!s || !s.id || seenSettlementIds.has(s.id)) return false;
+      seenSettlementIds.add(s.id);
+      return isRecordInActivePeriod(s.created_at);
+    });
     const fleetPeriodSettledCash = periodSettlements.reduce((sum, s) => sum + (Number(s.amount_settled) || 0), 0);
 
     const periodDeliveredOrders = allOrders.filter(o => o.status === 'delivered' && o.rider_id && isRecordInActivePeriod(o.delivered_at || o.created_at));
@@ -5398,7 +5419,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      allSettlements.unshift(settlementRecord);
+      if (!allSettlements.some(s => s.id === settlementRecord.id)) {
+        allSettlements.unshift(settlementRecord);
+      }
 
       closeSettleRiderModal();
       if (isFullSettlement) {
@@ -6433,7 +6456,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Filter orders and settlements in this period
     const periodOrders = allOrders.filter(o => isRecordInActivePeriod(o.created_at));
-    const periodSettlements = allSettlements.filter(s => isRecordInActivePeriod(s.created_at));
+    const seenAnalyticsSettlementIds = new Set();
+    const periodSettlements = allSettlements.filter(s => {
+      if (!s || !s.id || seenAnalyticsSettlementIds.has(s.id)) return false;
+      seenAnalyticsSettlementIds.add(s.id);
+      return isRecordInActivePeriod(s.created_at);
+    });
 
     let grossRev = 0;
     let deliveredRev = 0;
@@ -6686,7 +6714,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function exportPeriodCsv() {
     const periodOrders = allOrders.filter(o => isRecordInActivePeriod(o.created_at));
-    const periodSettlements = allSettlements.filter(s => isRecordInActivePeriod(s.created_at));
+    const seenCsvSettlementIds = new Set();
+    const periodSettlements = allSettlements.filter(s => {
+      if (!s || !s.id || seenCsvSettlementIds.has(s.id)) return false;
+      seenCsvSettlementIds.add(s.id);
+      return isRecordInActivePeriod(s.created_at);
+    });
     const periodLabel = getActivePeriodLabel();
 
     let csv = `Breeze The Roof-Top Cafe - Financial & Operational Statement\r\n`;

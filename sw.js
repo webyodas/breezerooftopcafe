@@ -1,10 +1,10 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    BREEZE CAFE & FLEET — LIVE-SYNC PROGRESSIVE WEB APP SERVICE WORKER
    Strategy: Network-First for HTML/Code (Zero Stale Versions), Realtime Bypass,
    Immediate Activation (skipWaiting + clients.claim), and Resilient Offline Fallback
    ========================================================================== */
 
-const CACHE_VERSION = 'breeze-pwa-v1.0.10-inline-auth-error';
+const CACHE_VERSION = 'breeze-pwa-v1.0.11-settlement-dedup';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
