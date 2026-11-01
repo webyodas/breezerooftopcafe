@@ -4195,22 +4195,27 @@ function initCartSystem() {
 
           html += `
             <div class="cart-item-row ${isSoldOut ? 'cart-item-sold-out' : ''}" data-index="${index}">
-              <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(item.name)}" class="cart-item-img" onerror="this.style.display='none'">
-              <div class="cart-item-info">
-                <div class="cart-item-name">${escapeHtml(item.name)}</div>
-                <div class="cart-item-price-single">₹${item.price} each</div>
-                ${isSoldOut ? '<div class="cart-sold-out-badge"><i class="fas fa-ban"></i> Kitchen Sold Out</div>' : ''}
+              <div class="cart-item-main">
+                <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(item.name)}" class="cart-item-img" onerror="this.style.display='none'">
+                <div class="cart-item-info">
+                  <div class="cart-item-name">${escapeHtml(item.name)}</div>
+                  <div class="cart-item-price-single">₹${item.price} each</div>
+                  ${isSoldOut ? '<div class="cart-sold-out-badge"><i class="fas fa-ban"></i> Kitchen Sold Out</div>' : ''}
+                </div>
+                <button type="button" class="cart-item-delete btn-cart-remove" data-index="${index}" aria-label="Remove item" title="Remove item">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
               </div>
-              <div class="cart-item-actions">
+              <div class="cart-item-footer">
                 <div class="cart-qty-ctrl">
                   <button type="button" class="cart-qty-btn btn-qty-minus" data-index="${index}" aria-label="Decrease quantity">−</button>
                   <span class="cart-qty-num">${item.qty || 1}</span>
                   <button type="button" class="cart-qty-btn btn-qty-plus" data-index="${index}" aria-label="Increase quantity" ${isSoldOut ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>+</button>
                 </div>
-                <span class="cart-item-total">₹${itemTotal}</span>
-                <button type="button" class="cart-item-delete btn-cart-remove" data-index="${index}" aria-label="Remove item" title="Remove item">
-                  <i class="fas fa-trash-alt"></i>
-                </button>
+                <div class="cart-item-subtotal-wrap">
+                  <span class="cart-subtotal-tag">Subtotal</span>
+                  <span class="cart-item-total">₹${itemTotal}</span>
+                </div>
               </div>
             </div>
           `;
