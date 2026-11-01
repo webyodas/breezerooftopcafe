@@ -90,7 +90,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet with Cache Busting -->
-  <link rel="stylesheet" href="css/style.css?v=11.3-webyodas">
+  <link rel="stylesheet" href="css/style.css?v=11.4-webyodas">
 
   <!-- Supabase JS Client for Cloud Customer & Order Database -->
   <!-- Cloudflare D1 Client (Replaced Supabase) -->
@@ -3014,35 +3014,44 @@
     </div>
   </div>
 
-  <!-- ==========================================================================
+    <!-- ==========================================================================
        MODAL: ROOFTOP TABLE RESERVATION (DIRECT PLATFORM SYSTEM)
        ========================================================================== -->
   <div class="modal-overlay" id="tableBookingModal" role="dialog" aria-modal="true" aria-labelledby="tableBookingTitle">
-    <div class="modal-container" style="max-width: 480px; width: 92%; padding: 24px;">
+    <div class="modal-container table-reservation-modal-container">
       <div class="modal-drag-handle"></div>
-      <div class="modal-sticky-header">
+      
+      <div class="table-reserve-header">
         <div>
-          <span class="badge-tag" style="margin-bottom: 4px;"><i class="fas fa-calendar-check"></i> 5th Floor Rooftop Lounge</span>
-          <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-dark); margin: 0;" id="tableBookingTitle">Reserve a Rooftop Table</h3>
+          <div class="table-reserve-badge">
+            <i class="fas fa-sparkles"></i> 5th Floor Rooftop Lounge
+          </div>
+          <h3 class="table-reserve-title" id="tableBookingTitle">Reserve a Rooftop Table</h3>
+          <p class="table-reserve-subtitle">
+            Dine under the Palghar stars with open-air terrace views. Instant table confirmation.
+          </p>
         </div>
-        <button type="button" class="modal-close-btn" id="tableBookingCloseBtn" aria-label="Close modal">
+        <button type="button" class="table-reserve-close-btn" id="tableBookingCloseBtn" aria-label="Close modal">
           <i class="fas fa-times"></i>
         </button>
       </div>
 
-      <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 16px;">
-        Reserve your table under the stars at Palghar's premier open-air rooftop sanctuary. Instant confirmation.
-      </p>
-
-      <form id="tableBookingForm" onsubmit="return false;">
-        <div class="form-row">
-          <div class="form-group flex-1" style="margin-bottom: 12px;">
-            <label for="reserveDate"><i class="fas fa-calendar-alt"></i> Date <span class="required-star">*</span></label>
-            <input type="date" id="reserveDate" class="form-control" required>
+      <form id="tableBookingForm" class="table-reserve-form" onsubmit="return false;">
+        <div class="table-reserve-grid">
+          <!-- Date -->
+          <div class="table-reserve-field">
+            <label class="table-reserve-label" for="reserveDate">
+              <i class="fas fa-calendar-alt"></i> Date <span class="required-star">*</span>
+            </label>
+            <input type="date" id="reserveDate" class="table-reserve-input form-control" required>
           </div>
-          <div class="form-group flex-1" style="margin-bottom: 12px;">
-            <label for="reserveTime"><i class="fas fa-clock"></i> Time Slot <span class="required-star">*</span></label>
-            <select id="reserveTime" class="form-control" required>
+
+          <!-- Time Slot -->
+          <div class="table-reserve-field">
+            <label class="table-reserve-label" for="reserveTime">
+              <i class="fas fa-clock"></i> Time Slot <span class="required-star">*</span>
+            </label>
+            <select id="reserveTime" class="table-reserve-select form-control" required>
               <option value="12:00 PM">12:00 PM (Lunch)</option>
               <option value="01:00 PM">01:00 PM (Lunch)</option>
               <option value="05:00 PM">05:00 PM (Sunset View)</option>
@@ -3053,7 +3062,75 @@
               <option value="10:00 PM">10:00 PM (Late Night Bites)</option>
             </select>
           </div>
+
+          <!-- Guests -->
+          <div class="table-reserve-field">
+            <label class="table-reserve-label" for="reserveGuests">
+              <i class="fas fa-users"></i> Guests <span class="required-star">*</span>
+            </label>
+            <select id="reserveGuests" class="table-reserve-select form-control" required>
+              <option value="2 Guests">2 Guests (Couple / Pair)</option>
+              <option value="4 Guests" selected>4 Guests (Family / Friends)</option>
+              <option value="6 Guests">6 Guests (Group)</option>
+              <option value="8+ Guests">8+ Guests (Celebration Party)</option>
+            </select>
+          </div>
+
+          <!-- Seating Area -->
+          <div class="table-reserve-field">
+            <label class="table-reserve-label" for="reserveArea">
+              <i class="fas fa-chair"></i> Seating Area
+            </label>
+            <select id="reserveArea" class="table-reserve-select form-control">
+              <option value="Open-Sky Terrace">Open-Sky Terrace</option>
+              <option value="Sunset View Edge">Sunset View Edge</option>
+              <option value="5th Floor Indoor Lounge">Indoor AC Lounge</option>
+            </select>
+          </div>
+
+          <!-- Full Name -->
+          <div class="table-reserve-field">
+            <label class="table-reserve-label" for="reserveCustName">
+              <i class="fas fa-user"></i> Full Name <span class="required-star">*</span>
+            </label>
+            <input type="text" id="reserveCustName" class="table-reserve-input form-control" placeholder="Enter your full name" required autocomplete="name">
+          </div>
+
+          <!-- Mobile Number with +91 flag -->
+          <div class="table-reserve-field">
+            <label class="table-reserve-label" for="reserveCustPhone">
+              <i class="fas fa-phone"></i> Mobile Number <span class="required-star">*</span>
+            </label>
+            <div class="table-reserve-phone-wrap">
+              <span class="table-reserve-phone-prefix">
+                <span style="font-size: 0.95rem;">🇮🇳</span> +91
+              </span>
+              <input type="tel" id="reserveCustPhone" class="table-reserve-input table-reserve-phone-input form-control" placeholder="10-digit number" maxlength="10" inputmode="numeric" required autocomplete="tel">
+            </div>
+          </div>
+
+          <!-- Special Request (Full width) -->
+          <div class="table-reserve-field full-width">
+            <label class="table-reserve-label" for="reserveNotes">
+              <i class="fas fa-comment-dots"></i> Special Request (Optional)
+            </label>
+            <input type="text" id="reserveNotes" class="table-reserve-input form-control" placeholder="e.g. Birthday celebration, quiet corner table, anniversary">
+          </div>
         </div>
+
+        <button type="button" class="btn-whatsapp-reserve-lux" id="btnReserveWhatsApp">
+          <i class="fab fa-whatsapp"></i> Reserve Now via WhatsApp
+        </button>
+        <div class="table-reserve-guarantee">
+          <i class="fas fa-check-circle" style="color: #16a34a;"></i> Instant reservation confirmation • Zero booking fee
+        </div>
+
+        <a href="tel:9623999095" class="btn-table-desk-call">
+          <i class="fas fa-phone-alt"></i> Call Cafe Desk for Instant Table (+91 9623999095)
+        </a>
+      </form>
+    </div>
+  </div>
 
         <div class="form-row">
           <div class="form-group flex-1" style="margin-bottom: 12px;">
