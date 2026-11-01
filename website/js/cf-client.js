@@ -22,7 +22,7 @@
 
     const trimmed = String(filterString).trim();
 
-    // e.g. "or(customer_phone=eq.9890332798,customer_phone=eq.+919890332798)" or comma-separated
+    // e.g. "or(customer_phone=eq.9876543210,customer_phone=eq.+919876543210)" or comma-separated
     if (trimmed.startsWith('or(') && trimmed.endsWith(')')) {
       const inner = trimmed.slice(3, -1);
       const parts = inner.split(',').map(s => s.trim()).filter(Boolean);
@@ -36,7 +36,7 @@
       });
     }
 
-    // e.g. "rider_id=eq.RAJESH" or "rider_id.eq.RAJESH"
+    // e.g. "rider_id=eq.RIDER_1" or "rider_id.eq.RIDER_1"
     const eqIdx = trimmed.indexOf('=eq.');
     if (eqIdx !== -1) {
       const col = trimmed.slice(0, eqIdx).trim();
@@ -180,7 +180,7 @@
             if (!evMatch) continue;
           }
 
-          // Column attribute filter (e.g. rider_id=eq.RAJESH)
+          // Column attribute filter (e.g. rider_id=eq.RIDER_1)
           if (listener.rawFilter) {
             const targetRow = event.new || event.old;
             if (!rowMatchesFilter(targetRow, listener.rawFilter)) {
