@@ -6857,19 +6857,31 @@ body.store-closed .menu-card:not(.out-of-stock) .btn-card-cart:active {
   display: block;
 }
 
-/* Modern Segmented Tab Bar */
+/* Responsive Segmented Tab Labels */
+.tab-text-mobile {
+  display: none;
+}
+.tab-text-desktop {
+  display: inline;
+}
+
+/* Modern Segmented Tab Bar (Zero-Scroll Responsive Grid) */
 .profile-segment-tabs {
   background: #eae5db;
   border-radius: 16px;
   padding: 6px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .segment-tab-btn {
-  flex: 1;
-  padding: 12px 16px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 8px;
   border-radius: 12px;
   border: none;
   background: transparent;
@@ -6880,8 +6892,10 @@ body.store-closed .menu-card:not(.out-of-stock) .btn-card-cart:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .segment-tab-btn:hover {
@@ -7369,22 +7383,66 @@ body.store-closed .menu-card:not(.out-of-stock) .btn-card-cart:active {
     font-size: 0.65rem !important;
     letter-spacing: 0.4px !important;
   }
-  .profile-segment-tabs {
-    padding: 4px;
-    gap: 4px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-    scrollbar-width: none;
+  /* Zero-Scroll Balanced 3-Tab Segmented Control */
+  .tab-text-desktop {
+    display: none !important;
   }
-  .profile-segment-tabs::-webkit-scrollbar {
-    display: none;
+  .tab-text-mobile {
+    display: inline !important;
+  }
+  .profile-segment-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .segment-tab-btn {
-    padding: 9px 12px;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    flex: 1 0 auto;
+    flex: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 9px 3px !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.2px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    border-radius: 10px !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+  .segment-tab-btn i {
+    font-size: 0.8rem !important;
+    flex-shrink: 0 !important;
+  }
+  .segment-tab-btn .tab-counter-badge {
+    font-size: 0.68rem !important;
+    padding: 1px 5px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    line-height: 14px !important;
+    text-align: center !important;
+    flex-shrink: 0 !important;
+  }
+  .profile-tabs-nav {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 4px !important;
+  }
+  .profile-tab-btn {
+    padding: 8px 2px !important;
+    font-size: 0.78rem !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+  }
+  .profile-tab-btn i {
+    font-size: 0.8rem !important;
   }
   .profile-content-card {
     padding: 18px 14px;
