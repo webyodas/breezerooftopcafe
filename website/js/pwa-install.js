@@ -1,7 +1,7 @@
 /**
  * Breeze Progressive Web App (PWA) Client Controller
  * Manages service worker lifecycle, automatic update checks,
- * and 1-click home screen install prompts across Android, iOS, and Desktop.
+ * intelligent installation detection, and persistent state management.
  */
 
 (function () {
@@ -48,40 +48,124 @@
     });
   }
 
-  // 2. DETECT STANDALONE RUNTIME
+  // 2. HELPER: PORTAL SCOPE DETECTION
+  function getPortalScopeKey() {
+    const path = window.location.pathname.toLowerCase();
+    if (path.startsWith('/rider')) return 'rider';
+    if (path.startsWith('/admin')) return 'admin';
+    return 'cafe';
+  }
+
+  // 3. DETECT STANDALONE RUNTIME
   function isRunningStandalone() {
     return (
       window.matchMedia('(display-mode: standalone)').matches ||
       window.matchMedia('(display-mode: fullscreen)').matches ||
+      window.matchMedia('(display-mode: minimal-ui)').matches ||
       window.navigator.standalone === true ||
       document.referrer.includes('android-app://')
     );
   }
 
-  // 3. LISTEN FOR ANDROID & CHROME INSTALL PROMPTS
+  // 4. INTELLIGENT INSTALLATION DETECTION (PERSISTENT + HARDWARE)
+  function isAppInstalled() {
+    // A. Running directly inside standalone app
+    if (isRunningStandalone()) {
+      markAppAsInstalled();
+      return true;
+    }
+
+    // B. Check persistent localStorage flag for this portal
+    const portal = getPortalScopeKey();
+    try {
+      if (localStorage.getItem('breeze_pwa_installed_' + portal) === 'true') {
+        return true;
+      }
+      if (localStorage.getItem('breeze_pwa_installed') === 'true' && portal === 'cafe') {
+        return true;
+      }
+    } catch (e) {}
+
+    return false;
+  }
+
+  function markAppAsInstalled() {
+    const portal = getPortalScopeKey();
+    try {
+      localStorage.setItem('breeze_pwa_installed_' + portal, 'true');
+      localStorage.setItem('breeze_pwa_installed', 'true');
+    } catch (e) {}
+  }
+
+  // Check modern Chromium getInstalledRelatedApps API
+  async function checkNativeInstalledApps() {
+    if ('getInstalledRelatedApps' in navigator) {
+      try {
+        const relatedApps = await navigator.getInstalledRelatedApps();
+        if (relatedApps && relatedApps.length > 0) {
+          console.log('[Breeze PWA] Installed app detected via getInstalledRelatedApps:', relatedApps);
+          markAppAsInstalled();
+          hideInstallTriggers();
+          return true;
+        }
+      } catch (err) {
+        console.warn('[Breeze PWA] getInstalledRelatedApps check failed:', err);
+      }
+    }
+    return false;
+  }
+
+  // 5. LISTEN FOR ANDROID & CHROME INSTALL PROMPTS
   window.addEventListener('beforeinstallprompt', (e) => {
     // Prevent the default mini-infobar from appearing on mobile
     e.preventDefault();
     deferredInstallPrompt = e;
     console.log('[Breeze PWA] Captured beforeinstallprompt event.');
 
-    // Unhide install buttons on the page if not already installed
-    if (!isRunningStandalone()) {
+    // Only unhide install button if the app is NOT already installed
+    if (!isAppInstalled()) {
       showInstallTriggers();
+    } else {
+      hideInstallTriggers();
     }
   });
 
   window.addEventListener('appinstalled', () => {
     console.log('[Breeze PWA] App installed successfully to home screen!');
     deferredInstallPrompt = null;
+    markAppAsInstalled();
     hideInstallTriggers();
   });
 
-  // 4. GLOBAL TRIGGER METHOD
+  // Watch for display-mode changes dynamically
+  try {
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', (e) => {
+        if (e.matches) {
+          markAppAsInstalled();
+          hideInstallTriggers();
+        }
+      });
+    }
+  } catch (e) {}
+
+  // 6. GLOBAL TRIGGER METHOD
   window.installBreezeApp = async function (portalName) {
+    const portal = portalName || getPortalScopeKey();
+
     // If running in standalone mode already
     if (isRunningStandalone()) {
-      alert('The Breeze ' + (portalName || '') + ' app is already installed and running in standalone mode! 🎉');
+      markAppAsInstalled();
+      hideInstallTriggers();
+      alert('The Breeze ' + (portalName || 'App') + ' is already installed and running in standalone mode! 🎉');
+      return;
+    }
+
+    // If already recorded as installed
+    if (isAppInstalled()) {
+      hideInstallTriggers();
+      alert('The Breeze ' + (portalName || 'App') + ' is already installed on your device! You can launch it directly from your home screen or app drawer. 🎉');
       return;
     }
 
@@ -91,6 +175,7 @@
       const choiceResult = await deferredInstallPrompt.userChoice;
       if (choiceResult.outcome === 'accepted') {
         console.log('[Breeze PWA] User accepted the install prompt');
+        markAppAsInstalled();
         hideInstallTriggers();
       } else {
         console.log('[Breeze PWA] User dismissed the install prompt');
@@ -106,11 +191,14 @@
       return;
     }
 
-    // Fallback for browsers that already installed or don't support beforeinstallprompt
-    alert('To install the app, tap your browser menu (⋮) and select "Add to Home screen" or "Install App".');
+    // Fallback if prompt is unavailable or browser already has the PWA
+    markAppAsInstalled();
+    hideInstallTriggers();
+    alert('The Breeze ' + (portalName || 'App') + ' is already added or ready on your device. Open it from your home screen or tap your browser menu (⋮) to manage apps.');
   };
 
   function showInstallTriggers() {
+    if (isAppInstalled()) return;
     document.querySelectorAll('.btn-pwa-install').forEach(btn => {
       btn.style.display = 'inline-flex';
     });
@@ -122,7 +210,7 @@
     });
   }
 
-  // 5. iOS MODAL PROMPT
+  // 7. iOS MODAL PROMPT
   function showIOSInstallModal(portalName) {
     const existingModal = document.getElementById('breezeIosInstallModal');
     if (existingModal) {
@@ -180,12 +268,15 @@
     modal.addEventListener('click', (e) => { if (e.target === modal) closeFn(); });
   }
 
-  // 6. AUTO-ATTACH TO ANY .btn-pwa-install ELEMENT
+  // 8. AUTO-ATTACH TO ANY .btn-pwa-install ELEMENT & BOOT CHECK
   document.addEventListener('DOMContentLoaded', () => {
-    // If standalone, hide all install buttons
-    if (isRunningStandalone()) {
+    // If standalone or installed, immediately hide all install buttons
+    if (isAppInstalled()) {
       hideInstallTriggers();
     }
+
+    // Check async API
+    checkNativeInstalledApps();
 
     document.querySelectorAll('.btn-pwa-install').forEach(btn => {
       btn.addEventListener('click', () => {
