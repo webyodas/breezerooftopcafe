@@ -217,6 +217,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   // AUTHENTICATION LOGIC (CLEAN PARTNER ID & PASSCODE)
   // --------------------------------------------------------------------------
+  // Auto-clear rider login error on input
+  if (inputRiderPasscode) {
+    inputRiderPasscode.addEventListener('input', () => {
+      inputRiderPasscode.classList.remove('input-error');
+      const errEl = document.getElementById('riderAuthError');
+      if (errEl) errEl.style.display = 'none';
+    });
+  }
+  if (inputRiderId) {
+    inputRiderId.addEventListener('input', () => {
+      inputRiderId.classList.remove('input-error');
+      const errEl = document.getElementById('riderAuthError');
+      if (errEl) errEl.style.display = 'none';
+    });
+  }
+
   if (riderLoginForm) {
     riderLoginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -285,7 +301,24 @@ document.addEventListener('DOMContentLoaded', () => {
           showRiderToast('Welcome, ' + currentRider.name + '! 👋');
           initCockpit();
         } else {
-          showRiderToast(json.error || 'Invalid Rider ID or Passcode');
+          // Inline red text feedback under passcode box
+          const riderAuthError = document.getElementById('riderAuthError');
+          const riderAuthErrorText = document.getElementById('riderAuthErrorText');
+          const errMsg = json.error || 'Incorrect password entered. Access denied.';
+          if (riderAuthError && riderAuthErrorText) {
+            riderAuthErrorText.textContent = errMsg;
+            riderAuthError.style.display = 'flex';
+          }
+          if (inputRiderPasscode) {
+            inputRiderPasscode.classList.add('input-error');
+            const parent = inputRiderPasscode.parentElement;
+            if (parent) {
+              parent.classList.add('shake-field');
+              setTimeout(() => parent.classList.remove('shake-field'), 400);
+            }
+            inputRiderPasscode.focus();
+            inputRiderPasscode.select();
+          }
         }
       } catch (err) {
         if (btnSubmit) {
@@ -293,7 +326,13 @@ document.addEventListener('DOMContentLoaded', () => {
           btnSubmit.innerHTML = origHtml;
         }
         console.warn('Rider auth error:', err);
-        showRiderToast('Network error during authentication. Please retry.');
+        const riderAuthError = document.getElementById('riderAuthError');
+        const riderAuthErrorText = document.getElementById('riderAuthErrorText');
+        const errMsg = 'Network error during authentication. Please retry.';
+        if (riderAuthError && riderAuthErrorText) {
+          riderAuthErrorText.textContent = errMsg;
+          riderAuthError.style.display = 'flex';
+        }
       }
     });
   }

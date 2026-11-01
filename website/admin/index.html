@@ -430,6 +430,21 @@
       box-shadow: 0 0 0 3px rgba(181, 136, 61, 0.15);
     }
 
+    .form-input.input-error {
+      border-color: #ef4444 !important;
+      background: #fef2f2 !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .shake-field {
+      animation: shakeError 0.35s ease;
+    }
+
     .btn-gold-primary {
       width: 100%;
       background: linear-gradient(135deg, #c59b4c 0%, #a87930 100%);
@@ -3011,9 +3026,13 @@
           <input type="text" id="inputAdminId" class="form-input" placeholder="admin" required autofocus>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="inputAdminPassword">Admin Password</label>
-          <input type="password" id="inputAdminPassword" class="form-input" placeholder="••••••••" required>
+          <input type="password" id="inputAdminPassword" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+          <div id="adminAuthError" class="auth-field-error" style="display: none; color: #dc2626; font-size: 0.82rem; font-weight: 600; margin-top: 6px; align-items: center; gap: 6px;">
+            <i class="fas fa-exclamation-circle" style="font-size: 0.85rem; flex-shrink: 0;"></i>
+            <span id="adminAuthErrorText">Incorrect password entered. Access denied.</span>
+          </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px; margin: 14px 0 20px; text-align: left;">
@@ -5109,7 +5128,7 @@
   </div>
 
   <!-- SCRIPTS -->
-  <script src="js/admin.js?v=11.4"></script>
+  <script src="js/admin.js?v=11.5"></script>
   <!-- Progressive Web App Controller & Live-Update Engine -->
   <script src="js/pwa-install.js?v=11.0"></script>
 </body>

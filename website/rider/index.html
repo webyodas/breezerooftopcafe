@@ -175,6 +175,21 @@
       box-shadow: 0 0 0 3px rgba(181, 136, 61, 0.15);
     }
 
+    .form-input.input-error {
+      border-color: #ef4444 !important;
+      background: #fef2f2 !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .shake-field {
+      animation: shakeError 0.35s ease;
+    }
+
     .btn-rider-gold-submit {
       width: 100%;
       background: linear-gradient(135deg, #c59b4c 0%, #a87930 100%);
@@ -847,6 +862,10 @@
         <div class="form-group">
           <label class="form-label" for="inputRiderPasscode">Password / Passcode</label>
           <input type="password" id="inputRiderPasscode" class="form-input" placeholder="Enter rider password (e.g. brz4820)" required autocomplete="current-password">
+          <div id="riderAuthError" class="auth-field-error" style="display: none; color: #dc2626; font-size: 0.82rem; font-weight: 600; margin-top: 6px; align-items: center; gap: 6px;">
+            <i class="fas fa-exclamation-circle" style="font-size: 0.85rem; flex-shrink: 0;"></i>
+            <span id="riderAuthErrorText">Incorrect password entered. Access denied.</span>
+          </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px; margin: 12px 0; text-align: left;">
@@ -1019,7 +1038,7 @@
 
   <!-- Scripts -->
   <script src="js/main.js?v=11.1"></script>
-  <script src="js/rider.js?v=11.1"></script>
+  <script src="js/rider.js?v=11.5"></script>
   <!-- Progressive Web App Controller & Live-Update Engine -->
   <script src="js/pwa-install.js?v=11.0"></script>
 </body>

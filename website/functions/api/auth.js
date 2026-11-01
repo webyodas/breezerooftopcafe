@@ -231,9 +231,16 @@ export async function onRequestPost(context) {
         }
       }
 
+      if (adminRow && !authenticated) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Incorrect password entered. Access denied.', errorType: 'password' }),
+          { status: 401, headers: CORS_HEADERS }
+        );
+      }
+
       if (!authenticated || !userData) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Invalid Admin ID or Password' }),
+          JSON.stringify({ success: false, error: 'Invalid Admin ID or Password. Access denied.', errorType: 'credentials' }),
           { status: 401, headers: CORS_HEADERS }
         );
       }
@@ -299,7 +306,7 @@ export async function onRequestPost(context) {
 
       if (!passMatches) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Incorrect passcode' }),
+          JSON.stringify({ success: false, error: 'Incorrect password entered. Access denied.', errorType: 'password' }),
           { status: 401, headers: CORS_HEADERS }
         );
       }

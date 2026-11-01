@@ -695,14 +695,48 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
 // Demo autofill removed for security hardening
 
+  // Auto-clear login error on input
+  if (inputAdminPassword) {
+    inputAdminPassword.addEventListener('input', () => {
+      inputAdminPassword.classList.remove('input-error');
+      const errEl = document.getElementById('adminAuthError');
+      if (errEl) errEl.style.display = 'none';
+    });
+  }
+  if (inputAdminId) {
+    inputAdminId.addEventListener('input', () => {
+      inputAdminId.classList.remove('input-error');
+      const errEl = document.getElementById('adminAuthError');
+      if (errEl) errEl.style.display = 'none';
+    });
+  }
+
   if (adminLoginForm) {
     adminLoginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const u = inputAdminId.value.trim();
       const p = inputAdminPassword.value.trim();
 
+      const adminAuthError = document.getElementById('adminAuthError');
+      const adminAuthErrorText = document.getElementById('adminAuthErrorText');
+
+      // Clear any prior error state
+      if (adminAuthError) adminAuthError.style.display = 'none';
+      if (inputAdminPassword) inputAdminPassword.classList.remove('input-error');
+      if (inputAdminId) inputAdminId.classList.remove('input-error');
+
       if (!u || !p) {
-        alert('Please enter both Admin ID and Password.');
+        if (adminAuthError && adminAuthErrorText) {
+          adminAuthErrorText.textContent = 'Please enter both Admin ID and Password.';
+          adminAuthError.style.display = 'flex';
+        }
+        if (!p && inputAdminPassword) {
+          inputAdminPassword.classList.add('input-error');
+          inputAdminPassword.focus();
+        } else if (!u && inputAdminId) {
+          inputAdminId.classList.add('input-error');
+          inputAdminId.focus();
+        }
         return;
       }
 
@@ -743,7 +777,22 @@ document.addEventListener('DOMContentLoaded', () => {
           showAdminToast(`Welcome, ${currentAdmin.name}! 👋`);
           initAdminApp();
         } else {
-          alert(json.error || 'Invalid Admin ID or Password. Please verify your credentials or contact the Master Admin.');
+          // Inline red text feedback under password box
+          const errMsg = json.error || 'Incorrect password entered. Access denied.';
+          if (adminAuthError && adminAuthErrorText) {
+            adminAuthErrorText.textContent = errMsg;
+            adminAuthError.style.display = 'flex';
+          }
+          if (inputAdminPassword) {
+            inputAdminPassword.classList.add('input-error');
+            const parent = inputAdminPassword.parentElement;
+            if (parent) {
+              parent.classList.add('shake-field');
+              setTimeout(() => parent.classList.remove('shake-field'), 400);
+            }
+            inputAdminPassword.focus();
+            inputAdminPassword.select();
+          }
         }
       } catch (err) {
         if (btnSubmit) {
@@ -751,7 +800,11 @@ document.addEventListener('DOMContentLoaded', () => {
           btnSubmit.innerHTML = originalBtnHtml;
         }
         console.error('[Admin Auth] Authentication network error:', err);
-        alert('Connection error during authentication. Please verify your network and try again.');
+        const errMsg = 'Connection error during authentication. Please check your network and try again.';
+        if (adminAuthError && adminAuthErrorText) {
+          adminAuthErrorText.textContent = errMsg;
+          adminAuthError.style.display = 'flex';
+        }
       }
     });
   }
