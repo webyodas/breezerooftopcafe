@@ -804,63 +804,107 @@ button {
   flex-shrink: 0;
 }
 
+/* ==========================================================================
+   ABOUT AMBIANCE SHOWCASE BENTO
+   ========================================================================== */
 .about-visual-stack {
-  position: relative;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
 }
 
-.about-card-primary {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-subtle);
-  position: relative;
+.about-card {
+  position: relative !important;
+  border-radius: var(--radius-xl, 20px) !important;
+  overflow: hidden !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(197, 160, 89, 0.3) !important;
+  background: #181411 !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease !important;
 }
 
-.about-card-primary img {
-  width: 100%;
-  height: 420px;
-  object-fit: cover;
-  transition: transform var(--transition-slow);
+.about-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14) !important;
+  border-color: rgba(197, 160, 89, 0.6) !important;
 }
 
-.about-card-primary:hover img {
-  transform: scale(1.04);
+.about-card-night {
+  height: 275px !important;
+}
+
+.about-card-day {
+  height: 235px !important;
+}
+
+.about-card img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.about-card-night img {
+  object-position: center center !important;
+}
+
+.about-card-day img {
+  object-position: center 32% !important;
+}
+
+.about-card:hover img {
+  transform: scale(1.04) !important;
 }
 
 .about-card-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 26px 22px;
-  background: linear-gradient(to top, rgba(18, 15, 12, 0.94) 0%, transparent 100%);
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  padding: 24px 22px 18px !important;
+  background: linear-gradient(to top, rgba(14, 11, 9, 0.94) 0%, rgba(14, 11, 9, 0.58) 55%, transparent 100%) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 4px !important;
+  pointer-events: none !important;
 }
 
-.about-card-floating {
-  position: absolute;
-  bottom: -25px;
-  left: -25px;
-  width: 220px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
-  border: 2px solid var(--primary-gold);
-  background: #ffffff;
+.about-card-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 11px !important;
+  background: rgba(197, 160, 89, 0.22) !important;
+  border: 1px solid rgba(197, 160, 89, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  color: #f7e6c4 !important;
+  border-radius: 999px !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  margin-bottom: 2px !important;
 }
 
-.about-card-floating img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
+.about-card-title {
+  font-family: var(--font-serif) !important;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  line-height: 1.25 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
 }
 
-.about-card-floating-badge {
-  padding: 8px 12px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-align: center;
-  background: #ffffff;
-  color: var(--primary-gold-dark);
+.about-card-sub {
+  color: #dfd3c3 !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
 }
 
 /* ==========================================================================
@@ -2350,14 +2394,7 @@ button {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  .about-card-floating {
-    position: static;
-    width: 100%;
-    margin-top: 18px;
-  }
-  .about-card-floating img {
-    height: 180px;
-  }
+  /* .about-card bento naturally handles <= 1024px */
   .reels-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3863,19 +3900,37 @@ button {
     padding: 6px 0 !important;
   }
 
-  .about-visual-stack {
-    margin-top: 22px !important;
+    .about-visual-stack {
+    margin-top: 28px !important;
+    gap: 14px !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
-  .about-card-primary img {
-    height: 230px !important;
+  .about-card {
+    border-radius: 16px !important;
+    width: 100% !important;
   }
 
-  .about-card-floating {
-    width: 135px !important;
-    height: 105px !important;
-    bottom: -12px !important;
-    right: 8px !important;
+  .about-card-night {
+    height: 220px !important;
+  }
+
+  .about-card-day {
+    height: 190px !important;
+  }
+
+  .about-card-overlay {
+    padding: 16px 14px 14px !important;
+  }
+
+  .about-card-title {
+    font-size: 1.15rem !important;
+  }
+
+  .about-card-sub {
+    font-size: 0.8rem !important;
   }
 
   /* Combo spotlight banner */
