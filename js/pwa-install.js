@@ -81,7 +81,7 @@
       if (localStorage.getItem('breeze_pwa_installed_' + portal) === 'true') {
         return true;
       }
-      if (localStorage.getItem('breeze_pwa_installed') === 'true' && portal === 'cafe') {
+      if (localStorage.getItem('breeze_pwa_installed') === 'true') {
         return true;
       }
     } catch (e) {}

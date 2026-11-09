@@ -2605,7 +2605,7 @@ button {
 
   /* Footer */
   .footer {
-    padding-bottom: 95px !important;
+    padding-bottom: 130px !important;
   }
   .footer-top {
     grid-template-columns: 1fr;
@@ -8432,8 +8432,10 @@ body:has(.mobile-nav-drawer.open) {
 }
 
 .btn-table-desk-call i {
-  font-size: 0.78rem !important;
+  font-size: 0.85rem !important;
   color: #c19143 !important;
+  transform: none !important;
+  display: inline-block !important;
 }
 
 

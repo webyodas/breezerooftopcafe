@@ -1,7 +1,7 @@
 {
-  "name": "Breeze Express Rider Cockpit",
+  "name": "Breeze Express Rider App",
   "short_name": "Breeze Rider",
-  "description": "Delivery partner cockpit for Breeze Cafe riders — Live orders, 1-tap navigation, and doorstep cash settlements.",
+  "description": "Delivery partner portal for Breeze Cafe riders — Live orders, 1-tap navigation, and doorstep cash settlements.",
   "start_url": "/rider/",
   "scope": "/rider/",
   "display": "standalone",
@@ -9,7 +9,11 @@
   "background_color": "#faf7f2",
   "theme_color": "#1c1814",
   "id": "breeze-rider-pwa",
-  "categories": ["business", "navigation", "productivity"],
+  "categories": [
+    "business",
+    "navigation",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/assets/pwa/rider-192.png",
@@ -34,6 +38,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://breezerooftopcafe.pages.dev/manifest-rider.json"
     }
   ]
 }

@@ -9,7 +9,11 @@
   "background_color": "#ffffff",
   "theme_color": "#14100c",
   "id": "breeze-storefront-pwa",
-  "categories": ["food", "shopping", "lifestyle"],
+  "categories": [
+    "food",
+    "shopping",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "/assets/pwa/icon-192.png",
@@ -34,6 +38,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://breezerooftopcafe.pages.dev/manifest.json"
     }
   ]
 }

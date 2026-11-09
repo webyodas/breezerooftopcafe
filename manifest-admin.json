@@ -1,7 +1,7 @@
 {
-  "name": "Breeze Master Admin Cockpit",
+  "name": "Breeze Admin Portal",
   "short_name": "Breeze Admin",
-  "description": "Master Operations, Kitchen Cockpit, Delivery Fleet & Customer CRM for Breeze The Rooftop Cafe.",
+  "description": "Master operations, kitchen radar, delivery fleet & customer CRM for Breeze The Rooftop Cafe.",
   "start_url": "/admin/",
   "scope": "/admin/",
   "display": "standalone",
@@ -9,7 +9,11 @@
   "background_color": "#faf7f2",
   "theme_color": "#b5883d",
   "id": "breeze-admin-pwa",
-  "categories": ["business", "management", "productivity"],
+  "categories": [
+    "business",
+    "management",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/assets/pwa/admin-192.png",
@@ -34,6 +38,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://breezerooftopcafe.pages.dev/manifest-admin.json"
     }
   ]
 }
